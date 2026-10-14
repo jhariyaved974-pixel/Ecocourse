@@ -5,7 +5,7 @@
 import { randomUUID, createHash } from 'node:crypto';
 import pg from 'pg';
 
-export const DB_URL = process.env.TEST_DATABASE_URL ?? 'postgres://postgres@127.0.0.1:54322/postgres';
+export const DB_URL = process.env.TEST_DATABASE_URL ?? 'postgres://postgres@127.0.0.1:54322/auren_test';
 export const AUTHENTICATOR_URL = DB_URL.replace('postgres://postgres@', 'postgres://authenticator:postgres@');
 
 export const admin = new pg.Pool({ connectionString: DB_URL, max: 10 });

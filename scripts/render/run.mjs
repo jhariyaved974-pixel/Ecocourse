@@ -112,12 +112,12 @@ async function main() {
     await savePhoto({
       kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
       shoes: [shoe('velocity-runner-x', 0, [0.05, 0.2, 0], [0.18, -0.55, 0.2], 1)],
-      camera: { position: [0.2, 0.5, 2.6], target: [0.05, 0.28, 0], fov: 26 },
+      camera: { position: [0.2, 0.5, 2.6], target: [0.05, 0.28, 0], fov: 26 }, fill: 0.62, offsetX: 0.32,
     }, path.join(site, 'hero.webp'), 2000, 1250);
     await savePhoto({
       kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
       shoes: [shoe('velocity-runner-x', 0, [0.0, 0.2, 0], [0.18, -0.55, 0.2], 1)],
-      camera: { position: [0.1, 0.55, 2.9], target: [0.0, 0.3, 0], fov: 30 },
+      camera: { position: [0.1, 0.55, 2.9], target: [0.0, 0.3, 0], fov: 30 }, fill: 0.78,
     }, path.join(site, 'hero-mobile.webp'), 900, 1200);
     // Category tiles.
     const tiles = {
@@ -133,7 +133,7 @@ async function main() {
     for (const [slug, s] of Object.entries(tiles)) {
       await savePhoto({
         kind: 'scene', background: tileBg[slug], shoes: [s],
-        camera: { position: [0.9, 1.05, 1.9], target: [0, 0.1, 0], fov: 30 },
+        camera: { position: [0.9, 1.05, 1.9], target: [0, 0.1, 0], fov: 30 }, fill: 0.78,
       }, path.join(site, `category-${slug}.webp`), 900, 1125);
     }
     // Editorial / promo banners.
@@ -143,7 +143,7 @@ async function main() {
         shoe('trailforce-outdoor', 0, [-0.55, 0, -0.1], [0, 0.5, 0]),
         shoe('courtvision-elite', 0, [0.6, 0, 0.05], [0, -0.6, 0]),
       ],
-      camera: { position: [0, 0.75, 3.4], target: [0, 0.2, 0], fov: 32 },
+      camera: { position: [0, 0.75, 3.4], target: [0, 0.2, 0], fov: 32 }, fill: 0.72, offsetX: -0.28,
     }, path.join(site, 'banner-performance.webp'), 2000, 900);
     await savePhoto({
       kind: 'scene', background: '#e9e4da',
@@ -151,17 +151,17 @@ async function main() {
         shoe('cloudstep-everyday', 0, [-0.5, 0, 0.05], [0, 0.6, 0]),
         shoe('urban-street-pro', 0, [0.55, 0, -0.08], [0, -0.5, 0]),
       ],
-      camera: { position: [0, 0.85, 3.3], target: [0, 0.12, 0], fov: 32 },
+      camera: { position: [0, 0.85, 3.3], target: [0, 0.12, 0], fov: 32 }, fill: 0.72, offsetX: -0.28,
     }, path.join(site, 'banner-essentials.webp'), 2000, 900);
     await savePhoto({
       kind: 'scene', background: '#d9d3c7',
       shoes: [shoe('midnight-leather-classic', 1, [0, 0, 0], [0, -0.35, 0])],
-      camera: { position: [0.5, 0.45, 1.5], target: [0.05, 0.08, 0], fov: 30 },
+      camera: { position: [0.9, 0.55, 1.5], target: [0.05, 0.08, 0], fov: 30 }, fill: 0.8,
     }, path.join(site, 'story-craft.webp'), 1200, 1500);
     await savePhoto({
       kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
       shoes: [shoe('velocity-runner-x', 2, [0, 0.12, 0], [0.12, -0.6, 0.15])],
-      camera: { position: [0.2, 0.45, 2.6], target: [0, 0.22, 0], fov: 26 },
+      camera: { position: [0.2, 0.45, 2.6], target: [0, 0.22, 0], fov: 26 }, fill: 0.7, offsetX: 0.3,
     }, path.join(site, 'og-default.webp'), 1200, 630);
   }
 

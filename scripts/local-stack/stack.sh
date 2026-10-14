@@ -7,6 +7,7 @@
 # Usage:
 #   scripts/local-stack/stack.sh up        # start everything (idempotent)
 #   scripts/local-stack/stack.sh reset     # drop & recreate the database, re-apply migrations + seed
+#   scripts/local-stack/stack.sh testdb    # (re)create the isolated `auren_test` database for `npm run test:db`
 #   scripts/local-stack/stack.sh down      # stop services
 #
 # Requires: PostgreSQL 16 server binaries, and the GoTrue + PostgREST release
@@ -85,6 +86,7 @@ auth_up() {
 }
 
 migrate() {
+  local DB_URL="${1:-$DB_URL}"
   psql "$DB_URL" -q -c "create table if not exists public._local_migrations (name text primary key, applied_at timestamptz default now())" >/dev/null
   for f in "$ROOT"/supabase/migrations/*.sql; do
     name=$(basename "$f")
@@ -99,6 +101,7 @@ migrate() {
 }
 
 seed() {
+  local DB_URL="${1:-$DB_URL}"
   if [ -f "$ROOT/supabase/seed.sql" ]; then
     echo "  seeding"
     psql "$DB_URL" -v ON_ERROR_STOP=1 -q --single-transaction -f "$ROOT/supabase/seed.sql"
@@ -140,6 +143,21 @@ gateway_up() {
   exit 1
 }
 
+# Separate database for the integration tests so they never pollute the
+# development data. Reuses the auth schema created by GoTrue in the main DB.
+testdb() {
+  local test_url="postgres://postgres@127.0.0.1:54322/auren_test"
+  psql "postgres://postgres@127.0.0.1:54322/template1" -q -c "drop database if exists auren_test with (force)" -c "create database auren_test"
+  psql "$test_url" -v ON_ERROR_STOP=1 -q -f "$ROOT/scripts/local-stack/bootstrap.sql"
+  psql "$test_url" -q -c "drop schema if exists auth cascade" >/dev/null
+  # Triggers that call public.* functions are recreated by the migrations.
+  pg_dump --schema-only --schema=auth --no-owner "$DB_URL" | grep -v 'EXECUTE FUNCTION public\.' | psql "$test_url" -q -v ON_ERROR_STOP=1 >/dev/null
+  psql "$test_url" -q -c "grant usage on schema auth to anon, authenticated, service_role" >/dev/null
+  migrate "$test_url" >/dev/null
+  seed "$test_url" >/dev/null
+  echo "Test database ready: TEST_DATABASE_URL=$test_url"
+}
+
 down() {
   pkill -f "scripts/local-stack/gateway.mjs" 2>/dev/null || true
   pkill -f "postgrest $STACK_DIR/postgrest.conf" 2>/dev/null || true
@@ -162,6 +180,7 @@ case "${1:-up}" in
     db_init; auth_up; migrate; seed; rest_up; gateway_up
     echo "Local stack reset: SUPABASE_URL=http://127.0.0.1:54321"
     ;;
+  testdb) testdb ;;
   down) down ;;
-  *) echo "usage: $0 {fetch|up|migrate|seed|reset|down}" >&2; exit 2 ;;
+  *) echo "usage: $0 {fetch|up|migrate|seed|reset|testdb|down}" >&2; exit 2 ;;
 esac

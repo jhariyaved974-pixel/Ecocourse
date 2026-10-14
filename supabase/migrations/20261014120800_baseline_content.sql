@@ -110,14 +110,14 @@ select * from (values
   ('footer', 'Shop', 'New arrivals', '/shop?flag=new', 2, false),
   ('footer', 'Shop', 'Bestsellers', '/shop?flag=bestseller', 3, false),
   ('footer', 'Shop', 'Sale', '/shop?sale=1', 4, false),
-  ('footer', 'Help', 'Track an order', '/orders/track', 1, false),
-  ('footer', 'Help', 'Size guide', '/size-guide', 2, false),
-  ('footer', 'Help', 'Shipping', '/pages/shipping-policy', 3, false),
-  ('footer', 'Help', 'Returns & exchanges', '/pages/returns-and-exchanges', 4, false),
-  ('footer', 'Help', 'FAQ', '/faq', 5, false),
-  ('footer', 'Company', 'About us', '/pages/about', 1, false),
-  ('footer', 'Company', 'Privacy policy', '/pages/privacy-policy', 2, false),
-  ('footer', 'Company', 'Terms & conditions', '/pages/terms-and-conditions', 3, false)
+  ('footer', 'Help', 'Track an order', '/orders/track', 11, false),
+  ('footer', 'Help', 'Size guide', '/size-guide', 12, false),
+  ('footer', 'Help', 'Shipping', '/pages/shipping-policy', 13, false),
+  ('footer', 'Help', 'Returns & exchanges', '/pages/returns-and-exchanges', 14, false),
+  ('footer', 'Help', 'FAQ', '/faq', 15, false),
+  ('footer', 'Company', 'About us', '/pages/about', 21, false),
+  ('footer', 'Company', 'Privacy policy', '/pages/privacy-policy', 22, false),
+  ('footer', 'Company', 'Terms & conditions', '/pages/terms-and-conditions', 23, false)
 ) as v(menu, group_title, label, href, sort_order, highlight)
 where not exists (select 1 from public.navigation_links);
 

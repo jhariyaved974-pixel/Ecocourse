@@ -1,26 +1,247 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-surface="dark"], [data-surface="dark"] *));
+
+/* -------------------------------------------------------------------------
+   Design tokens. Theme + font presets are selected in Admin > Settings and
+   applied as data attributes on <html>; the accent colour is a CSS variable.
+   ------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f6f4f0;
+  --surface: #ffffff;
+  --surface-2: #efebe5;
+  --ink: #141414;
+  --ink-2: #2a2826;
+  --muted: #6b665f;
+  --line: #e4dfd6;
+  --line-strong: #cfc8bc;
+  --dark: #111112;
+  --dark-2: #1c1c1e;
+  --dark-ink: #f5f3ef;
+  --dark-muted: #a29d95;
+  --accent: #c2410c;
+  --accent-ink: #ffffff;
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --info: #1d4ed8;
+  --radius: 10px;
+  --font-display-stack: var(--font-instrument), var(--font-instrument-ext), ui-serif, Georgia, serif;
+  --display-tracking: -0.01em;
+  --display-weight: 400;
+}
+
+[data-theme="bone"] {
+  --paper: #efe9df;
+  --surface: #f8f5ef;
+  --surface-2: #e6dfd3;
+  --ink: #1b1a17;
+  --muted: #6f685c;
+  --line: #ddd4c5;
+  --line-strong: #c6bba8;
+  --dark: #1d1b18;
+  --dark-2: #2a2723;
+}
+[data-theme="ember"] {
+  --paper: #f7f3ee;
+  --surface: #fffdfa;
+  --surface-2: #f1e8df;
+  --ink: #1a1412;
+  --muted: #6e625b;
+  --line: #e8ddd3;
+  --dark: #1b1310;
+  --dark-2: #2a1d17;
+}
+[data-theme="forest"] {
+  --paper: #f2f3ee;
+  --surface: #fbfcf8;
+  --surface-2: #e5e8de;
+  --ink: #13190f;
+  --muted: #5f6a59;
+  --line: #dbe0d2;
+  --dark: #102018;
+  --dark-2: #183025;
+}
+
+[data-font="modern"] {
+  --font-display-stack: var(--font-inter), var(--font-inter-ext), ui-sans-serif, system-ui, sans-serif;
+  --display-tracking: -0.035em;
+  --display-weight: 600;
+}
+[data-font="classic"] {
+  --font-display-stack: var(--font-fraunces), var(--font-instrument-ext), ui-serif, Georgia, serif;
+  --display-tracking: -0.02em;
+  --display-weight: 500;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-dark: var(--dark);
+  --color-dark-2: var(--dark-2);
+  --color-dark-ink: var(--dark-ink);
+  --color-dark-muted: var(--dark-muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --font-sans: var(--font-inter), var(--font-inter-ext), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-stack);
+  --radius-card: var(--radius);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-fade-up: fade-up 0.7s var(--ease-out-expo) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-fade-in: fade-in 0.2s ease-out both;
+  --animate-dialog-in: dialog-in 0.25s var(--ease-out-expo) both;
+  --animate-sheet-right: sheet-in-right 0.35s var(--ease-out-expo) both;
+  --animate-sheet-left: sheet-in-left 0.35s var(--ease-out-expo) both;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dialog-in {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.97); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes sheet-in-right {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+@keyframes sheet-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to { background-position: 400px 0; }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
   }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  [data-surface="dark"] {
+    background: var(--dark);
+    color: var(--dark-ink);
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button, [role="button"], summary {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: var(--display-tracking);
+    font-weight: var(--display-weight);
+  }
+  .eyebrow {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .container-x {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 1440px;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-x { padding-inline: 1.5rem; }
+  }
+  @media (min-width: 1024px) {
+    .container-x { padding-inline: 2.5rem; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 0px, color-mix(in srgb, var(--surface-2) 40%, white) 200px, var(--surface-2) 400px);
+    background-size: 800px 100%;
+    animation: var(--animate-shimmer);
+  }
+  .prose-store {
+    color: var(--ink-2);
+    line-height: 1.75;
+  }
+  .prose-store h2 {
+    font-family: var(--font-display);
+    letter-spacing: var(--display-tracking);
+    font-weight: var(--display-weight);
+    font-size: 1.6rem;
+    color: var(--ink);
+    margin: 2rem 0 0.75rem;
+  }
+  .prose-store h3 { font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--ink); }
+  .prose-store p { margin: 0.75rem 0; }
+  .prose-store ul { list-style: disc; padding-left: 1.25rem; margin: 0.75rem 0; }
+  .prose-store ol { list-style: decimal; padding-left: 1.25rem; margin: 0.75rem 0; }
+  .prose-store li { margin: 0.25rem 0; }
+  .prose-store a { text-decoration: underline; text-underline-offset: 3px; }
+  .prose-store strong { color: var(--ink); font-weight: 600; }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}
+
+/* Progressive-enhancement scroll reveal (see <Reveal/> and <RevealObserver/>). */
+[data-reveal] {
+  transition: opacity 0.9s var(--ease-out-expo) var(--reveal-delay, 0s), transform 0.9s var(--ease-out-expo) var(--reveal-delay, 0s);
+}
+html[data-reveal-ready] [data-reveal]:not([data-inview]) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* Transparent header while it overlays the homepage hero. The hero sets
+   html[data-hero-overlay] with a tiny inline script before first paint. */
+html[data-hero-overlay] [data-site-header]:not([data-scrolled]) {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--dark-ink);
+  backdrop-filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

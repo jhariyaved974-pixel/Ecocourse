@@ -6,7 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:db": "bash scripts/local-stack/stack.sh testdb && vitest run --project db",
+    "test:e2e": "playwright test",
+    "stack:up": "bash scripts/local-stack/stack.sh up",
+    "stack:reset": "bash scripts/local-stack/stack.sh reset",
+    "stack:down": "bash scripts/local-stack/stack.sh down",
+    "db:types": "node scripts/gen-db-types.mjs",
+    "render:assets": "node scripts/render/run.mjs",
+    "seed:generate": "tsx scripts/generate-seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -31,6 +31,8 @@ export type Job =
       shoes: { silhouette: Silhouette; colorway: Colorway; position: [number, number, number]; rotation: [number, number, number]; scale?: number }[];
       camera: { position: [number, number, number]; target: [number, number, number]; fov: number };
       accentLight?: string;
+      fill?: number;
+      offsetX?: number;
     };
 
 let renderer: THREE.WebGLRenderer | null = null;
@@ -220,17 +222,32 @@ async function runJob(job: Job): Promise<string> {
     camera.updateProjectionMatrix();
     fitCamera(camera, group, target, job.view === 'detail' ? 1.4 : job.view === 'side' ? 0.86 : 0.8);
   } else {
+    const all = new THREE.Group();
     for (const s of job.shoes) {
       const { group } = buildShoe(s.silhouette, s.colorway);
       group.position.set(...s.position);
       group.rotation.set(...s.rotation);
       group.scale.setScalar(s.scale ?? 1);
-      scene.add(group);
-      addContactShadow(scene, group, Boolean(job.dark));
+      all.add(group);
     }
+    scene.add(all);
+    for (const child of all.children) addContactShadow(scene, child, Boolean(job.dark));
     camera.fov = job.camera.fov;
     camera.position.set(...job.camera.position);
-    camera.lookAt(new THREE.Vector3(...job.camera.target));
+    const target = new THREE.Vector3(...job.camera.target);
+    if (job.fill) {
+      fitCamera(camera, all, target, job.fill);
+      if (job.offsetX) {
+        // Shift the subject sideways (e.g. to leave room for hero copy).
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+        const dist = camera.position.distanceTo(target);
+        const halfW = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * dist * camera.aspect;
+        const shift = right.multiplyScalar(-job.offsetX * halfW);
+        camera.position.add(shift);
+        target.add(shift);
+      }
+    }
+    camera.lookAt(target);
   }
   camera.updateProjectionMatrix();
   r.render(scene, camera);
