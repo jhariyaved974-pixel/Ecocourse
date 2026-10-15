@@ -2764,6 +2764,52 @@ export type Database = {
         }
         Returns: string
       }
+      admin_list_customers: {
+        Args: {
+          p_query?: string
+          p_filter?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+            id: string
+            email: string
+            full_name: string
+            phone: string
+            marketing_opt_in: boolean
+            is_blocked: boolean
+            created_at: string
+            order_count: number
+            paid_total: number
+            last_order_at: string
+            total_count: number
+          }[]
+      }
+      admin_list_inventory: {
+        Args: {
+          p_query?: string
+          p_filter?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+            variant_id: string
+            product_id: string
+            product_name: string
+            product_slug: string
+            product_status: Database["public"]["Enums"]["product_status"]
+            color_name: string
+            size_label: string
+            sku: string
+            is_active: boolean
+            stock_on_hand: number
+            stock_reserved: number
+            available: number
+            low_stock_threshold: number
+            is_low: boolean
+            total_count: number
+          }[]
+      }
       admin_list_products: {
         Args: {
           p_query?: string
