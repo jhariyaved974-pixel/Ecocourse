@@ -1,0 +1,674 @@
+// Agency sales platform schema. PostgreSQL via Prisma 7 (driver adapter: @prisma/adapter-pg).
+// Money is stored as whole rupees (Int). Timestamps are UTC.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- users & auth
+
+enum Role {
+  OWNER
+  ADMIN
+  SALES
+  VIEWER
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(SALES)
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions  Session[]
+  auditLogs AuditLog[]
+}
+
+/// Server-side session. `id` is the SHA-256 of the random cookie token; the raw token is never stored.
+model Session {
+  id         String   @id
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  ipHash     String?
+  userAgent  String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Fixed-window rate limit counters (login, public form, webhook abuse).
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+}
+
+// ---------------------------------------------------------------- leads & CRM
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO_GENERATING
+  DEMO_READY
+  INTERESTED
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadSource {
+  WHATSAPP_AD
+  WHATSAPP_DIRECT
+  WEBSITE_FORM
+  MANUAL
+}
+
+/// CONVERSATION: the customer messaged us (we may reply inside the service window).
+/// OPTED_IN: explicit consent to follow-ups. OPTED_OUT: never send automated messages.
+enum ConsentStatus {
+  UNKNOWN
+  CONVERSATION
+  OPTED_IN
+  OPTED_OUT
+}
+
+enum ConversationMode {
+  AI
+  HUMAN
+}
+
+model Lead {
+  id                String           @id @default(cuid())
+  phoneE164         String?          @unique
+  waId              String?          @unique
+  email             String?
+  contactName       String?
+  businessName      String?
+  industry          String?
+  location          String?
+  source            LeadSource
+  stage             LeadStage        @default(NEW)
+  stageChangedAt    DateTime         @default(now())
+  consentStatus     ConsentStatus    @default(UNKNOWN)
+  preferredLanguage String?
+  /// AI = the assistant replies; HUMAN = an admin took over (assistant silent).
+  conversationMode  ConversationMode @default(AI)
+  aiPaused          Boolean          @default(false)
+  /// Progressive answers collected by the sales assistant (validated by LeadDetailsSchema).
+  collected         Json             @default("{}")
+  lastInboundAt     DateTime?
+  lastOutboundAt    DateTime?
+  firstContactAt    DateTime?
+  qualifiedAt       DateTime?
+  firstDemoReadyAt  DateTime?
+  lostReason        String?
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  attributions  CampaignAttribution[]
+  conversation  Conversation?
+  messages      Message[]
+  consents      ConsentRecord[]
+  briefs        BusinessBrief[]
+  demos         DemoProject[]
+  followUps     FollowUpJob[]
+  deals         Deal[]
+  handoffs      Handoff[]
+  assets        LeadAsset[]
+  aiUsage       AiUsage[]
+  notifications Notification[]
+
+  @@index([stage])
+  @@index([createdAt])
+  @@index([businessName])
+}
+
+model CampaignAttribution {
+  id         String   @id @default(cuid())
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  /// e.g. "ad" or "post" (WhatsApp referral.source_type) or "website_form"
+  sourceType String?
+  /// Ad or post id (referral.source_id)
+  sourceId   String?
+  sourceUrl  String?
+  headline   String?
+  body       String?
+  ctwaClid   String?
+  utmSource  String?
+  utmCampaign String?
+  createdAt  DateTime @default(now())
+
+  @@index([sourceId])
+}
+
+/// Manually entered ad spend so cost-per-lead can be computed honestly (never fabricated).
+model CampaignSpend {
+  id          String   @id @default(cuid())
+  sourceId    String
+  label       String
+  periodStart DateTime
+  periodEnd   DateTime
+  amountInr   Int
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([sourceId])
+}
+
+enum ConversationState {
+  GREETING
+  QUALIFYING
+  CONFIRMING_BRIEF
+  DEMO_IN_PROGRESS
+  DEMO_DELIVERED
+  CLOSED
+}
+
+model Conversation {
+  id           String            @id @default(cuid())
+  leadId       String            @unique
+  lead         Lead              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  state        ConversationState @default(GREETING)
+  /// Fields the assistant has already asked about, with counts (prevents repeating questions).
+  askedFields  Json              @default("{}")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  messages Message[]
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageAuthor {
+  CUSTOMER
+  AI
+  ADMIN
+  SYSTEM
+}
+
+/// RECEIVED (inbound). Outbound: QUEUED -> ACCEPTED (provider accepted the API request) -> SENT/DELIVERED/READ, or FAILED.
+/// SIMULATED marks messages handled by the local simulator (never sent to a real phone).
+/// BLOCKED means policy prevented sending (opt-out, closed window without template, kill switch...).
+enum MessageStatus {
+  RECEIVED
+  QUEUED
+  ACCEPTED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  SIMULATED
+  BLOCKED
+}
+
+model Message {
+  id                String           @id @default(cuid())
+  conversationId    String
+  conversation      Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  leadId            String
+  lead              Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  direction         MessageDirection
+  author            MessageAuthor
+  /// text | template | image | document | audio | video | sticker | location | interactive | unsupported
+  type              String           @default("text")
+  body              String
+  templateName      String?
+  templateParams    Json?
+  providerMessageId String?          @unique
+  /// Prevents duplicate sends of the same logical message (e.g. "followup:<jobId>").
+  idempotencyKey    String?          @unique
+  status            MessageStatus
+  errorCode         String?
+  errorMessage      String?
+  attempts          Int              @default(0)
+  acceptedAt        DateTime?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  readAt            DateTime?
+  failedAt          DateTime?
+  sentById          String?
+  /// Inbound only: set once the sales engine has handled this message (idempotency).
+  processedAt       DateTime?
+  createdAt         DateTime         @default(now())
+
+  @@index([leadId, createdAt])
+  @@index([conversationId, createdAt])
+  @@index([status])
+}
+
+model ConsentRecord {
+  id        String        @id @default(cuid())
+  leadId    String
+  lead      Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  status    ConsentStatus
+  source    String
+  evidence  String?
+  actorId   String?
+  createdAt DateTime      @default(now())
+
+  @@index([leadId])
+}
+
+/// Raw webhook deliveries are deduplicated on (provider, eventKey). Payloads are not retained beyond the retention window.
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  provider    String
+  eventKey    String
+  payloadHash String
+  status      String    @default("RECEIVED")
+  error       String?
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+
+  @@unique([provider, eventKey])
+  @@index([receivedAt])
+}
+
+enum HandoffReason {
+  HUMAN_REQUESTED
+  READY_TO_PAY
+  UNCLEAR_SCOPE
+  DISCOUNT_REQUEST
+  COMPLAINT
+  OUT_OF_SCOPE
+  PAYMENT_ISSUE
+  AI_ERROR
+  GUARDRAIL
+  OTHER
+}
+
+model Handoff {
+  id           String        @id @default(cuid())
+  leadId       String
+  lead         Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  reason       HandoffReason
+  summary      String
+  open         Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  resolvedAt   DateTime?
+  resolvedById String?
+
+  @@index([open])
+}
+
+/// Files supplied by the customer (WhatsApp media) or uploaded by an admin. Content is sniffed and size-limited.
+model LeadAsset {
+  id             String   @id @default(cuid())
+  leadId         String
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  kind           String
+  filename       String
+  mimeType       String
+  sizeBytes      Int
+  sha256         String
+  content        Bytes?
+  providerMediaId String?
+  approvedForDemo Boolean @default(false)
+  source         String
+  createdAt      DateTime @default(now())
+
+  @@index([leadId])
+}
+
+// ---------------------------------------------------------------- briefs, templates & demos
+
+enum BriefStatus {
+  DRAFT
+  CONFIRMED
+  SUPERSEDED
+}
+
+model BusinessBrief {
+  id          String      @id @default(cuid())
+  leadId      String
+  lead        Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  version     Int
+  status      BriefStatus @default(DRAFT)
+  /// Validated by BusinessBriefSchema.
+  data        Json
+  confirmedAt DateTime?
+  createdAt   DateTime    @default(now())
+
+  demos DemoProject[]
+
+  @@unique([leadId, version])
+}
+
+model Template {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  name          String
+  /// Approved layout family implemented in code (editorial | showcase | corporate | earthy).
+  family        String
+  industries    String[]
+  description   String
+  /// Validated by TemplatePresetSchema (palette, fonts, sections, sample content).
+  preset        Json
+  active        Boolean  @default(true)
+  builtIn       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  demos DemoProject[]
+}
+
+enum DemoStatus {
+  QUEUED
+  GENERATING
+  VALIDATING
+  AWAITING_APPROVAL
+  PUBLISHED
+  REJECTED
+  FAILED
+}
+
+model DemoProject {
+  id            String     @id @default(cuid())
+  leadId        String
+  lead          Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  briefId       String
+  brief         BusinessBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  templateId    String?
+  template      Template?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  status        DemoStatus @default(QUEUED)
+  /// Unguessable public slug for the preview URL.
+  slug          String     @unique
+  /// Validated DemoConfigSchema (design + content). Never code.
+  config        Json?
+  attempts      Int        @default(0)
+  lastError     String?
+  publicUrl     String?
+  requestedById String?
+  approvedById  String?
+  approvedAt    DateTime?
+  rejectedReason String?
+  deliveredAt   DateTime?
+  generationMs  Int?
+  estimatedCostUsd Float?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  deployments DemoDeployment[]
+  views       DemoView[]
+
+  @@index([status])
+  @@index([leadId])
+}
+
+enum DeploymentStatus {
+  BUILDING
+  VALIDATED
+  PUBLISHED
+  FAILED
+  SUPERSEDED
+}
+
+model DemoDeployment {
+  id               String           @id @default(cuid())
+  demoProjectId    String
+  demo             DemoProject      @relation(fields: [demoProjectId], references: [id], onDelete: Cascade)
+  /// local | netlify
+  provider         String
+  status           DeploymentStatus @default(BUILDING)
+  url              String?
+  providerDeployId String?
+  validation       Json?
+  log              String           @default("")
+  sizeBytes        Int?
+  startedAt        DateTime         @default(now())
+  finishedAt       DateTime?
+
+  files DemoArtifact[]
+
+  @@index([demoProjectId])
+}
+
+model DemoArtifact {
+  id           String         @id @default(cuid())
+  deploymentId String
+  deployment   DemoDeployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+  path         String
+  contentType  String
+  content      Bytes
+  sha1         String
+
+  @@unique([deploymentId, path])
+}
+
+/// Anonymous preview view counter (no IPs, no cookies). Disclosed in the preview footer.
+model DemoView {
+  id            String      @id @default(cuid())
+  demoProjectId String
+  demo          DemoProject @relation(fields: [demoProjectId], references: [id], onDelete: Cascade)
+  viewedAt      DateTime    @default(now())
+
+  @@index([demoProjectId])
+}
+
+// ---------------------------------------------------------------- follow-ups
+
+model FollowUpRule {
+  id               String   @id @default(cuid())
+  step             Int      @unique
+  name             String
+  /// Hours after the demo was delivered (step 1) or after the previous follow-up (later steps).
+  delayHours       Int
+  body             String
+  /// Approved WhatsApp template used when the 24-hour service window is closed. Null = skip outside the window.
+  templateName     String?
+  templateLanguage String   @default("en")
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  jobs FollowUpJob[]
+}
+
+enum FollowUpStatus {
+  SCHEDULED
+  SENT
+  SKIPPED
+  CANCELLED
+  FAILED
+}
+
+model FollowUpJob {
+  id           String         @id @default(cuid())
+  leadId       String
+  lead         Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  ruleId       String
+  rule         FollowUpRule   @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  scheduledFor DateTime
+  status       FollowUpStatus @default(SCHEDULED)
+  messageId    String?
+  reason       String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([leadId, ruleId])
+  @@index([status, scheduledFor])
+}
+
+// ---------------------------------------------------------------- deals & payments
+
+enum PackageTier {
+  BASIC
+  ADVANCED
+  CUSTOM
+}
+
+enum PaymentStatus {
+  UNPAID
+  ADVANCE_REQUESTED
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+enum ProductionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  READY_FOR_REVIEW
+  COMPLETE
+}
+
+enum DeliveryStatus {
+  NOT_DELIVERED
+  DELIVERED
+}
+
+model Deal {
+  id                    String           @id @default(cuid())
+  leadId                String
+  lead                  Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  package               PackageTier
+  quotedAmountInr       Int
+  /// Set when quotedAmountInr differs from the package's configured price.
+  customPriceApprovedById String?
+  approvedScope         String
+  paymentStatus         PaymentStatus    @default(UNPAID)
+  amountPaidInr         Int              @default(0)
+  invoiceNumber         String?
+  productionStatus      ProductionStatus @default(NOT_STARTED)
+  deliveryStatus        DeliveryStatus   @default(NOT_DELIVERED)
+  wonAt                 DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  payments Payment[]
+
+  @@index([leadId])
+}
+
+enum PaymentMethod {
+  MANUAL_VERIFIED
+  RAZORPAY
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  dealId            String
+  deal              Deal          @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  amountInr         Int
+  /// Negative-direction entries are refunds.
+  kind              String        @default("PAYMENT")
+  method            PaymentMethod
+  /// Bank/UPI transaction reference checked by the admin, or the provider payment id.
+  reference         String
+  providerPaymentId String?       @unique
+  verifiedById      String?
+  notes             String?
+  createdAt         DateTime      @default(now())
+
+  @@index([dealId])
+}
+
+// ---------------------------------------------------------------- operations
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  ipHash     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+/// Key/value settings edited from the admin panel (validated by SettingsSchema). Secrets live in env vars, never here.
+model Setting {
+  key         String   @id
+  value       Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}
+
+model AiUsage {
+  id               String   @id @default(cuid())
+  leadId           String?
+  lead             Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  purpose          String
+  model            String
+  inputTokens      Int
+  outputTokens     Int
+  cacheReadTokens  Int      @default(0)
+  cacheWriteTokens Int      @default(0)
+  estimatedCostUsd Float
+  simulated        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  LOGGED
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  event     String
+  title     String
+  body      String
+  channel   String
+  status    NotificationStatus @default(PENDING)
+  error     String?
+  leadId    String?
+  lead      Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  dedupeKey String?            @unique
+  createdAt DateTime           @default(now())
+  sentAt    DateTime?
+
+  @@index([createdAt])
+}
+
+/// Mirror of jobs that exhausted their retries (dead letters), for the admin "Errors" screen.
+model JobFailure {
+  id        String    @id @default(cuid())
+  queue     String
+  jobId     String?
+  payload   Json
+  error     String
+  attempts  Int
+  retryable Boolean   @default(true)
+  resolved  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  retriedAt DateTime?
+
+  @@index([resolved, createdAt])
+}
+
+/// Per-day counters for automation caps (leads processed, AI calls, outbound automated messages).
+model DailyCounter {
+  day   String
+  key   String
+  count Int    @default(0)
+
+  @@id([day, key])
+}

@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+src/generated/
+public/demo-runtime/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+test-results/
+playwright-report/
+.demo-builds/
