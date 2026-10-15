@@ -80,7 +80,9 @@ export function HomepageEditor({
 }) {
   const { run, pending } = useActionRunner();
   const [orderIds, setOrderIds, resetOrder] = useLocalOrder(sections.map((s) => s.id));
-  const ordered = orderBy(sections, orderIds);
+  // Deleted sections disappear immediately instead of waiting for the refresh.
+  const [removed, setRemoved] = React.useState<ReadonlySet<string>>(() => new Set());
+  const ordered = orderBy(sections, orderIds).filter((s) => !removed.has(s.id));
   const [selectedId, setSelectedId] = React.useState<string | null>(sections[0]?.id ?? null);
   const selected = ordered.find((s) => s.id === selectedId) ?? ordered[0] ?? null;
   const [edits, setEdits] = React.useState<Record<string, Edit>>({});
@@ -228,7 +230,7 @@ export function HomepageEditor({
         </Notice>
       ) : null}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,370px)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,370px)_minmax(0,1fr)]">
         <div className="space-y-6">
           <Panel
             title={`Sections (${ordered.length})`}
@@ -294,10 +296,10 @@ export function HomepageEditor({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem disabled={index === 0} onSelect={() => reorder(moveBy(orderIds, index, -1))}>
+                          <DropdownMenuItem disabled={index === 0} onSelect={() => reorder(moveBy(ordered.map((x) => x.id), index, -1))}>
                             <ArrowUp /> Move up
                           </DropdownMenuItem>
-                          <DropdownMenuItem disabled={index === ordered.length - 1} onSelect={() => reorder(moveBy(orderIds, index, 1))}>
+                          <DropdownMenuItem disabled={index === ordered.length - 1} onSelect={() => reorder(moveBy(ordered.map((x) => x.id), index, 1))}>
                             <ArrowDown /> Move down
                           </DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => duplicate(s)}>
@@ -469,7 +471,9 @@ export function HomepageEditor({
                 if (!deleteTarget) return;
                 const res = await run(() => deleteHomepageSection(deleteTarget.id));
                 if (res.ok) {
-                  discardEdit(deleteTarget.id);
+                  const id = deleteTarget.id;
+                  setRemoved((all) => new Set(all).add(id));
+                  discardEdit(id);
                   setDeleteTarget(null);
                 }
               }}

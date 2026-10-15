@@ -80,7 +80,14 @@ export function MediaTile({
         selected ? 'border-ink shadow-[0_0_0_1px_var(--color-ink)]' : 'border-line hover:border-line-strong',
       )}
     >
-      <MediaPreview asset={item} posterUrl={item.posterUrl} sizes="(min-width: 1280px) 180px, (min-width: 768px) 25vw, 50vw" />
+      <span className="relative block">
+        <MediaPreview asset={item} posterUrl={item.posterUrl} sizes="(min-width: 1280px) 180px, (min-width: 768px) 25vw, 50vw" />
+        {missingAlt ? (
+          <span className="absolute bottom-2 left-2 rounded-full bg-warning px-2 py-0.5 text-[10px] font-semibold text-white" aria-hidden>
+            No alt text
+          </span>
+        ) : null}
+      </span>
       {selectable ? (
         <span
           className={cn(
@@ -99,17 +106,16 @@ export function MediaTile({
         <span className="truncate text-xs font-medium text-ink" title={name}>
           {name}
         </span>
-        <span className="flex items-center gap-1.5 text-[11px] text-muted">
+        <span className="flex items-center gap-1.5 text-[11px] whitespace-nowrap text-muted">
           {item.width && item.height ? (
-            <span className="tabular-nums">
+            <span className="truncate tabular-nums">
               {item.width}×{item.height}
             </span>
           ) : (
-            <span>{formatLabelForMime(item.mimeType) ?? MEDIA_KIND_LABEL[item.kind]}</span>
+            <span className="truncate">{formatLabelForMime(item.mimeType) ?? MEDIA_KIND_LABEL[item.kind]}</span>
           )}
-          {missingAlt ? <span className="font-medium text-warning">· No alt</span> : null}
           {showUsage && item.usageCount !== null ? (
-            <span className={cn('ml-auto', item.usageCount === 0 && 'text-muted/80')}>{item.usageCount === 0 ? 'Unused' : `Used ${item.usageCount}×`}</span>
+            <span className={cn('ml-auto shrink-0', item.usageCount === 0 && 'text-muted/80')}>{item.usageCount === 0 ? 'Unused' : `Used ${item.usageCount}×`}</span>
           ) : null}
         </span>
       </span>

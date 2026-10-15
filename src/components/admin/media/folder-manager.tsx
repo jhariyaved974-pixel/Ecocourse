@@ -9,8 +9,6 @@ import { Field, Input } from '@/components/ui/form-controls';
 import { ConfirmActionButton, useActionRunner } from '@/components/admin/client-ui';
 import { createMediaFolder, deleteMediaFolder, renameMediaFolder } from '@/app/admin/(panel)/media/actions';
 import type { MediaFolderOption } from '@/lib/admin/media';
-import { cn } from '@/lib/utils';
-import { CENTERED_DIALOG_CLASS } from './dialog-classes';
 
 function FolderNameDialog({
   open,
@@ -32,7 +30,7 @@ function FolderNameDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(CENTERED_DIALOG_CLASS, 'h-fit')}>
+      <DialogContent>
         {/* Remounted on every opening so the field starts from initialName. */}
         <FolderNameForm title={title} description={description} initialName={initialName} submitLabel={submitLabel} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
       </DialogContent>

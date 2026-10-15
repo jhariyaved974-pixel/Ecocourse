@@ -1,5 +1,5 @@
 // Shared CMS definitions used by the /admin/content screens (client forms) and
-// their server actions: section field matrix, validation schemas, link rules,
+// their Server Actions: section field matrix, validation schemas, link rules,
 // tokens and small helpers. Keep this file free of server-only imports.
 import { z } from 'zod';
 import type { Enums } from '@/lib/database.types';
@@ -68,7 +68,7 @@ export const slugSchema = z
 
 /** Tokens replaced in announcements, pages, FAQs and homepage text (see fillTokens in content/queries). */
 export const CONTENT_TOKENS = [
-  { token: '{free_shipping_over}', description: 'Free-delivery threshold from shipping settings, e.g. ₹2,499' },
+  { token: '{free_shipping_over}', description: 'Free-delivery threshold from shipping settings' },
   { token: '{return_days}', description: 'Return/exchange window in days from store settings' },
   { token: '{store_name}', description: 'Store name from store settings' },
 ] as const;

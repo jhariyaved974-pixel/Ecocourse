@@ -97,7 +97,7 @@ export async function createUpload(input: unknown): Promise<ActionResult<UploadT
       const { data, error } = await storage.createSignedUploadUrl(path);
       if (error || !data) {
         console.error('media: signed upload URL failed', { path, message: error?.message });
-        results.push({ clientId: file.clientId, ok: false, error: 'Storage refused the upload. Check that you have catalogue permissions and try again.' });
+        results.push({ clientId: file.clientId, ok: false, error: 'Storage refused the upload. Check that you have catalogue permissions and try again.', retryable: true });
         continue;
       }
       results.push({

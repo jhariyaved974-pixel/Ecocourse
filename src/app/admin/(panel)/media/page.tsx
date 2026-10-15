@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import Link from 'next/link';
 import { z } from 'zod';
 import { requireStaffPage, ROLE_GROUPS } from '@/lib/auth';
@@ -8,7 +7,6 @@ import { dbErrorMessage } from '@/lib/errors';
 import { PageHeader, Pagination, firstParam, parsePage } from '@/components/admin/ui';
 import { Notice } from '@/components/ui/misc';
 import { MediaLibrary } from '@/components/admin/media/media-library';
-import { MediaFilters } from '@/components/admin/media/media-filters';
 import { FolderNav, type FolderNavEntry } from '@/components/admin/media/folder-nav';
 import { FolderToolbar, NewFolderButton } from '@/components/admin/media/folder-manager';
 import { MEDIA_PAGE_SIZE } from '@/lib/admin/media';
@@ -58,7 +56,8 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   const items = list.data?.items ?? [];
   const activeFolder = filters.folder && filters.folder !== 'none' ? (folders.find((f) => f.id === filters.folder) ?? null) : null;
   const missingFolder = Boolean(filters.folder && filters.folder !== 'none' && !folderRes.error && !activeFolder);
-  const filtered = Boolean(filters.q || filters.kind || filters.alt);
+  // "Unfiled" and stale folder links are filtered views too (the library itself may not be empty).
+  const filtered = Boolean(filters.q || filters.kind || filters.alt || (filters.folder && !activeFolder));
 
   // Folder links keep the search and type filters but reset the page.
   const hrefFor = (folder: string | null) => {
@@ -111,18 +110,8 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
             activeFolderId={activeFolder?.id ?? null}
             initialAssetId={filters.asset ?? null}
             filtered={filtered}
-            toolbar={
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <Suspense fallback={<div className="h-9 w-full max-w-xl" aria-hidden />}>
-                  <MediaFilters />
-                </Suspense>
-                {!loadError ? (
-                  <p className="text-xs text-muted" aria-live="polite">
-                    {total} {filtered || filters.folder ? 'matching ' : ''}file{total === 1 ? '' : 's'}
-                  </p>
-                ) : null}
-              </div>
-            }
+            total={loadError ? null : total}
+            countLabel={filtered || activeFolder ? 'matching file' : 'file'}
           />
           <Pagination
             page={page}

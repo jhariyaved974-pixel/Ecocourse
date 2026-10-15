@@ -205,7 +205,7 @@ export function useMediaUploader({ folder, mediaFolderId = null, kinds, onUpload
           if (!pending.has(result.clientId)) continue;
           if (result.ok) queue.push(result.ticket);
           else {
-            patch(result.clientId, { status: 'error', error: result.error, retryable: false });
+            patch(result.clientId, { status: 'error', error: result.error, retryable: result.retryable ?? false });
             settle(result.clientId);
           }
         }

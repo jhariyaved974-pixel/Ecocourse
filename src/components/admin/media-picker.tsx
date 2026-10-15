@@ -16,8 +16,6 @@ import { MEDIA_KIND_LABEL, type MediaListItem, type MediaListPage } from '@/lib/
 import { MediaPreview, MediaTile } from '@/components/admin/media/media-tile';
 import { UploadDropzone, UploadQueueList } from '@/components/admin/media/upload-queue';
 import { useMediaUploader } from '@/components/admin/media/use-media-uploader';
-import { CENTERED_DIALOG_CLASS } from '@/components/admin/media/dialog-classes';
-import { cn } from '@/lib/utils';
 
 export interface MediaPickerProps {
   open: boolean;
@@ -36,7 +34,7 @@ export interface MediaPickerProps {
 export function MediaPicker({ open, onOpenChange, onSelect, multiple = false, kinds, uploadFolder = 'library', title }: MediaPickerProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(CENTERED_DIALOG_CLASS, 'flex h-[min(860px,calc(100dvh-2rem))] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(860px,calc(100dvh-4rem))]')}>
+      <DialogContent className="flex h-[min(860px,calc(100dvh-2rem))] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:h-[min(860px,calc(100dvh-4rem))]">
         {/* Content unmounts when the dialog closes, so every opening starts fresh. */}
         <PickerBody
           multiple={multiple}
@@ -159,8 +157,8 @@ function PickerBody({
             </TabsTrigger>
           </TabsList>
           {tab === 'library' ? (
-            <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
-              <label className="relative block w-full sm:w-64">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-1 sm:justify-end">
+              <label className="relative block min-w-0 flex-1 sm:w-64 sm:flex-none">
                 <span className="sr-only">Search by label or alt text</span>
                 <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" aria-hidden />
                 <input

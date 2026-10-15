@@ -316,7 +316,10 @@ export interface UploadTicket {
   kind: MediaKind;
 }
 
-export type UploadTicketResult = { clientId: string; ok: true; ticket: UploadTicket } | { clientId: string; ok: false; error: string };
+export type UploadTicketResult =
+  | { clientId: string; ok: true; ticket: UploadTicket }
+  /** retryable: a transient storage problem rather than a rejected file. */
+  | { clientId: string; ok: false; error: string; retryable?: boolean };
 
 export interface FinalizedUpload {
   asset: MediaListItem;

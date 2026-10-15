@@ -10,6 +10,7 @@ import { MediaTile } from './media-tile';
 import { UploadDropzone, UploadQueueList } from './upload-queue';
 import { useMediaUploader } from './use-media-uploader';
 import { AssetDetailSheet } from './asset-detail-sheet';
+import { MediaFilters } from './media-filters';
 
 export function MediaLibrary({
   items,
@@ -17,7 +18,8 @@ export function MediaLibrary({
   activeFolderId,
   initialAssetId,
   filtered,
-  toolbar,
+  total,
+  countLabel,
 }: {
   items: MediaListItem[];
   folders: MediaFolderOption[];
@@ -26,8 +28,10 @@ export function MediaLibrary({
   /** Asset to open on arrival (?asset=…), e.g. from a "where used" link. */
   initialAssetId: string | null;
   filtered: boolean;
-  /** Filters rendered between the upload area and the grid. */
-  toolbar?: React.ReactNode;
+  /** Number of files matching the current view (null when it could not be loaded). */
+  total: number | null;
+  /** Singular noun for the count, e.g. "file" or "matching file". */
+  countLabel: string;
 }) {
   const router = useRouter();
   const [storageFolder, setStorageFolder] = React.useState<StorageFolder>('library');
@@ -45,6 +49,20 @@ export function MediaLibrary({
       setSheetOpen(true);
     }
   }
+
+  // A modal marks the rest of the page aria-hidden. Doing that while streamed
+  // parts of the page are still hydrating (e.g. a ?asset= deep link on a full
+  // page load) causes a hydration mismatch, so the sheet only opens once the
+  // browser is idle after mount.
+  const [settled, setSettled] = React.useState(false);
+  React.useEffect(() => {
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(() => setSettled(true), { timeout: 1000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(() => setSettled(true), 200);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const openAsset = (id: string) => {
     setOpenId(id);
@@ -104,7 +122,16 @@ export function MediaLibrary({
         <UploadQueueList className="mt-3" items={uploader.items} onRetry={uploader.retry} onRemove={uploader.remove} onClear={uploader.clearFinished} />
       </section>
 
-      {toolbar}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <React.Suspense fallback={<div className="h-9 w-full max-w-xl" aria-hidden />}>
+          <MediaFilters />
+        </React.Suspense>
+        {total !== null ? (
+          <p className="text-xs text-muted" aria-live="polite">
+            {`${total} ${countLabel}${total === 1 ? '' : 's'}`}
+          </p>
+        ) : null}
+      </div>
 
       {items.length === 0 ? (
         <EmptyState
@@ -132,7 +159,7 @@ export function MediaLibrary({
         assetId={openId}
         initial={initial}
         folders={folders}
-        open={sheetOpen}
+        open={sheetOpen && settled}
         onOpenChange={setSheetOpen}
         onDeleted={() => {
           setSheetOpen(false);

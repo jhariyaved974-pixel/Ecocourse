@@ -66,7 +66,7 @@ export function NavigationManager({ links, suggestions }: { links: NavLinkRow[];
 
   return (
     <>
-      <div className="grid items-start gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
         <MenuPanel
           menu="header"
           title="Header menu"

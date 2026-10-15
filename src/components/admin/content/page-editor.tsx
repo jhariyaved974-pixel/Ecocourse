@@ -151,7 +151,7 @@ export function PageEditor({ page, revisions, menuLinks, tokens }: { page: PageE
         }}
         className="space-y-6"
       >
-        <div className="grid items-start gap-6 xl:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
           <Panel title="Content" description="Markdown: **bold**, *italic*, ## headings, lists, tables and [links](/shop). HTML and images are not rendered.">
             <div className="space-y-4">
               <Field label="Title" htmlFor="page-title" required error={errors.title} hint={`${form.title.length}/${PAGE_LIMITS.title}`}>
