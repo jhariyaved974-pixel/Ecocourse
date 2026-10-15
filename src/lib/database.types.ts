@@ -2734,15 +2734,114 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_content_revisions: {
+        Args: {
+          p_content_type: string
+          p_content_id: string
+          p_limit?: number
+        }
+        Returns: {
+            revision_id: number
+            revision_note: string
+            published_at: string
+            author: string
+            section_count: number
+          }[]
+      }
       admin_dashboard_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      admin_delete_media_asset: {
+        Args: {
+          p_asset_id: string
+        }
+        Returns: Json
+      }
+      admin_duplicate_homepage_section: {
+        Args: {
+          p_section_id: string
+        }
+        Returns: string
+      }
+      admin_list_products: {
+        Args: {
+          p_query?: string
+          p_status?: Database["public"]["Enums"]["product_status"]
+          p_category?: string
+          p_flag?: string
+          p_stock?: string
+          p_sort?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+            id: string
+            name: string
+            slug: string
+            sku: string
+            status: Database["public"]["Enums"]["product_status"]
+            category_id: string
+            category_name: string
+            category_slug: string
+            brand_name: string
+            price: number
+            sale_price: number
+            final_price: number
+            is_featured: boolean
+            is_new_arrival: boolean
+            is_bestseller: boolean
+            is_trending: boolean
+            tags: string[]
+            created_at: string
+            updated_at: string
+            published_at: string
+            cover_image: string
+            variant_count: number
+            active_variant_count: number
+            total_available: number
+            low_stock_variants: number
+            stock_threshold: number
+            total_count: number
+          }[]
+      }
+      admin_reorder_content: {
+        Args: {
+          p_list: string
+          p_ids: string[]
+        }
+        Returns: number
+      }
+      admin_reorder_homepage_sections: {
+        Args: {
+          p_section_ids: string[]
+        }
+        Returns: undefined
+      }
+      admin_save_homepage_section: {
+        Args: {
+          p_section: Json
+        }
+        Returns: string
       }
       admin_save_product: {
         Args: {
           p_product: Json
         }
         Returns: Json
+      }
+      admin_save_size_guide: {
+        Args: {
+          p_guide: Json
+        }
+        Returns: string
+      }
+      admin_set_collection_products: {
+        Args: {
+          p_collection_id: string
+          p_product_ids: string[]
+        }
+        Returns: number
       }
       approve_payment: {
         Args: {
@@ -2950,6 +3049,19 @@ export type Database = {
           p_asset_id: string
         }
         Returns: boolean
+      }
+      media_asset_usage: {
+        Args: {
+          p_asset_ids: string[]
+        }
+        Returns: {
+            asset_id: string
+            source: string
+            ref_id: string
+            ref_label: string
+            ref_slug: string
+            detail: string
+          }[]
       }
       my_staff_status: {
         Args: Record<PropertyKey, never>

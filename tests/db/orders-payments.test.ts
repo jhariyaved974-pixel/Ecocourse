@@ -226,6 +226,25 @@ describe('manual UPI payment verification', () => {
     );
   });
 
+  it('refuses to approve a proof whose UTR already confirmed another order, with a clear reason', async () => {
+    const a = await pendingOrder();
+    const b = await pendingOrder();
+    const utr = `${Date.now()}`.slice(-12).padStart(12, '7');
+    await submitProof(a.order, { utr });
+    await rpc(owner, 'approve_payment', { p_order_id: a.order.order_id, p_bank_credit_confirmed: true, p_verified_amount: a.order.total, p_reference: utr });
+    // The second customer reuses the same UTR on their proof; even with a different bank reference it must not be approved.
+    await submitProof(b.order, { utr });
+    await expectDbError(
+      rpc(owner, 'approve_payment', { p_order_id: b.order.order_id, p_bank_credit_confirmed: true, p_verified_amount: b.order.total, p_reference: `${utr}9` }),
+      { hint: 'proof_utr_already_approved' },
+    );
+    expect((await orderRow(b.order.order_id)).payment_status).toBe('proof_submitted');
+    // After asking for a new proof, a genuinely matched credit can be approved.
+    await rpc(owner, 'reject_payment', { p_order_id: b.order.order_id, p_reason: 'This UTR belongs to another order.', p_request_resubmission: true });
+    const res = await rpc<{ status: string }>(owner, 'approve_payment', { p_order_id: b.order.order_id, p_bank_credit_confirmed: true, p_verified_amount: b.order.total, p_reference: `${utr}9` });
+    expect(res.status).toBe('approved');
+  });
+
   it('expires unpaid orders, releases stock and never touches orders under review', async () => {
     const unpaid = await pendingOrder(2);
     const review = await pendingOrder(2);
