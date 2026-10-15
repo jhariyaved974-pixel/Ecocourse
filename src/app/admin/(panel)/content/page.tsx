@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
-import { requireStaffPage, ROLE_GROUPS } from '@/lib/auth';
 
-export default async function ContentIndexPage() {
-  await requireStaffPage(ROLE_GROUPS.catalog);
+// The content index has no screen of its own; the homepage editor checks the role.
+export default function ContentIndexPage() {
   redirect('/admin/content/homepage');
 }

@@ -19,7 +19,7 @@ export function FolderNav({ entries, actions }: { entries: FolderNavEntry[]; act
         <h2 className="text-xs font-semibold tracking-wide text-muted uppercase">Folders</h2>
         {actions}
       </div>
-      <ul className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0">
+      <ul className="relative flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0">
         {entries.map((entry) => {
           const Icon = entry.icon === 'all' ? Images : entry.icon === 'unfiled' ? Inbox : entry.active ? FolderOpen : Folder;
           return (

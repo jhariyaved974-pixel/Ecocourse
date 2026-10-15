@@ -7,7 +7,7 @@ export interface SizeGuideRow {
 
 export function SizeGuideTable({ rows }: { rows: SizeGuideRow[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-line">
+    <div className="relative overflow-x-auto rounded-xl border border-line">
       <table className="w-full text-sm">
         <caption className="sr-only">Size conversions</caption>
         <thead className="bg-surface-2 text-left text-xs text-muted">

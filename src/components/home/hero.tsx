@@ -67,16 +67,20 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
             </motion.p>
           ) : null}
           <h1 id="hero-heading" className="font-display text-[clamp(3rem,8vw,7rem)] leading-[0.95]">
+            {/* Real spaces between the animated words keep the heading's text
+                (and what screen readers announce) intact. */}
             {words.map((w, i) => (
-              <motion.span
-                key={`${w}-${i}`}
-                className="mr-[0.22em] inline-block"
-                initial={reduceMotion ? false : { opacity: 0, y: '0.4em' }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, delay: 0.1 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {w}
-              </motion.span>
+              <React.Fragment key={`${w}-${i}`}>
+                {i > 0 ? ' ' : null}
+                <motion.span
+                  className="inline-block"
+                  initial={reduceMotion ? false : { opacity: 0, y: '0.4em' }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.9, delay: 0.1 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {w}
+                </motion.span>
+              </React.Fragment>
             ))}
           </h1>
           {section.subheading ? (

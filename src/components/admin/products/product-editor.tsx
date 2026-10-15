@@ -278,7 +278,7 @@ export function ProductEditor({
         </Notice>
       ) : null}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-6">
           <Panel title="Basics">
             <div className="grid gap-4 md:grid-cols-2">

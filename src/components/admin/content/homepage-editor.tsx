@@ -146,7 +146,7 @@ export function HomepageEditor({
       setEdits((all) => ({ ...all, [s.id]: { base: s.updated_at, values, saved: true } }));
       setErrors((all) => ({ ...all, [s.id]: {} }));
     } else {
-      setErrors((all) => ({ ...all, [s.id]: res.fieldErrors ?? {} }));
+      setErrors((all) => ({ ...all, [s.id]: normalizeErrors(res.fieldErrors) }));
     }
   };
 
@@ -391,6 +391,11 @@ export function HomepageEditor({
               >
                 <div className="space-y-6">
                   {SECTION_TYPES[selected.type].note ? <Notice tone="info">{SECTION_TYPES[selected.type].note}</Notice> : null}
+                  {otherErrors(errors[selected.id]).length ? (
+                    <Notice tone="danger" title="This section could not be saved">
+                      {otherErrors(errors[selected.id]).join(' ')}
+                    </Notice>
+                  ) : null}
                   <SectionForm
                     section={selected}
                     values={selectedValues}
@@ -493,6 +498,31 @@ export function HomepageEditor({
       />
     </>
   );
+}
+
+/** Field keys the section form shows next to an input. */
+const FORM_ERROR_KEYS = new Set([
+  'eyebrow', 'heading', 'subheading', 'body', 'cta_label', 'cta_href', 'secondary_cta_label', 'secondary_cta_href',
+  'image_asset_id', 'mobile_image_asset_id', 'model_asset_id', 'product_source', 'category_id', 'collection_id',
+  'product_limit', 'layout', 'theme', 'coupon_code', 'items',
+]);
+
+/** Folds per-item errors ("items.2.title") into the list-level "items" message. */
+function normalizeErrors(fieldErrors: Record<string, string> | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, message] of Object.entries(fieldErrors ?? {})) {
+    const item = /^items\.(\d+)\./.exec(key);
+    if (item) out.items ??= `Item ${Number(item[1]) + 1}: ${message}`;
+    else out[key] ??= message;
+  }
+  return out;
+}
+
+/** Errors without an input of their own, shown at the top of the form. */
+function otherErrors(errors: Record<string, string> | undefined): string[] {
+  return Object.entries(errors ?? {})
+    .filter(([key, message]) => message && !FORM_ERROR_KEYS.has(key))
+    .map(([, message]) => message);
 }
 
 function PublishDialog({

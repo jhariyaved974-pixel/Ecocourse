@@ -16,7 +16,7 @@ function safeImageSrc(src: string | null): string | null {
 export function OrderItemsTable({ items }: { items: AdminOrderItem[] }) {
   if (!items.length) return <p className="text-sm text-muted">No items recorded.</p>;
   return (
-    <div className="-mx-5 overflow-x-auto">
+    <div className="relative -mx-5 overflow-x-auto">
       <table className="w-full min-w-[560px] text-left text-sm">
         <thead>
           <tr className="text-xs text-muted">

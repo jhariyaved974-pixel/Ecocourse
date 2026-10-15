@@ -406,8 +406,8 @@ export const sectionValuesSchema = z
     items: z
       .array(
         z.object({
-          title: optionalText(SECTION_LIMITS.itemTitle, 'Item titles'),
-          body: optionalText(SECTION_LIMITS.itemBody, 'Item descriptions'),
+          title: optionalText(SECTION_LIMITS.itemTitle, 'Item titles').nullable(),
+          body: optionalText(SECTION_LIMITS.itemBody, 'Item descriptions').nullable(),
           icon: z.union([z.enum(USP_ICON_VALUES), z.null()]),
           product_id: nullableUuid,
         }),

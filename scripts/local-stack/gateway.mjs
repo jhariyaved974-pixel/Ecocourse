@@ -298,7 +298,7 @@ async function handleStorage(req, res) {
       await client.query('savepoint probe');
       try {
         await client.query(
-          `insert into storage.objects (bucket_id, name, owner, owner_id, metadata) values ($1, $2, $3, $3, '{}')`,
+          `insert into storage.objects (bucket_id, name, owner, owner_id, metadata) values ($1, $2, $3::uuid, $3::text, '{}')`,
           [m[1], m[2], claims.role === 'authenticated' ? claims.sub : null],
         );
         await client.query('rollback to savepoint probe');

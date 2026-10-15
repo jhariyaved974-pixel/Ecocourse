@@ -174,7 +174,7 @@ export function ProductGallery({
   return (
     <div className="flex flex-col-reverse gap-3 lg:flex-row lg:items-start">
       <ul
-        className="scrollbar-none flex gap-2 overflow-x-auto lg:max-h-[calc(100vh-10rem)] lg:w-20 lg:flex-col lg:overflow-y-auto"
+        className="scrollbar-none relative flex gap-2 overflow-x-auto lg:max-h-[calc(100vh-10rem)] lg:w-20 lg:flex-col lg:overflow-y-auto"
         aria-label="Product media"
       >
         {slides.map((s, i) => (

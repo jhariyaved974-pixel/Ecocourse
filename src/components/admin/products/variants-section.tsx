@@ -346,7 +346,7 @@ function SizeGroup({
   return (
     <div className="space-y-3">
       {variants.length ? (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="text-xs text-muted">

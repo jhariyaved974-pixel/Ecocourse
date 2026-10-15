@@ -61,7 +61,7 @@ export function StatCard({ label, value, hint, tone }: { label: string; value: R
 
 /** Table primitives with consistent admin styling. Wrap in <TableWrap> for horizontal scroll on small screens. */
 export function TableWrap({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('overflow-x-auto rounded-xl border border-line bg-surface', className)}>{children}</div>;
+  return <div className={cn('relative overflow-x-auto rounded-xl border border-line bg-surface', className)}>{children}</div>;
 }
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
   return <table className={cn('w-full min-w-[640px] text-left text-sm', className)}>{children}</table>;

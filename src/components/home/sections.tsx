@@ -47,7 +47,7 @@ async function ProductRail({ section }: { section: HomeSection }) {
           </div>
         </Reveal>
         {carousel ? (
-          <div className="scrollbar-none -mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10" tabIndex={0} aria-label={`${section.heading} products`}>
+          <div className="scrollbar-none relative -mx-4 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10" tabIndex={0} aria-label={`${section.heading} products`}>
             {products.map((p) => (
               <ProductCard key={p.id} product={p} className="w-[70vw] shrink-0 snap-start sm:w-[42vw] md:w-[30vw] lg:w-[23vw] xl:w-[19vw]" />
             ))}

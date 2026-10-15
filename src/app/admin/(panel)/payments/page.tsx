@@ -23,7 +23,7 @@ const TAB_LABEL: Record<PaymentTab, string> = {
 function QueueTabs({ tab, q, counts }: { tab: PaymentTab; q: string; counts: { review: number; attention: number } }) {
   const tabs: PaymentTab[] = ['review', 'attention', 'rejected', 'verified', 'all'];
   return (
-    <nav aria-label="Payment queue" className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+    <nav aria-label="Payment queue" className="relative -mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
       <ul className="flex min-w-max gap-1 border-b border-line">
         {tabs.map((t) => {
           const sp = new URLSearchParams();
