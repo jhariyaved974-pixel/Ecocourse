@@ -187,6 +187,8 @@ model Conversation {
   state        ConversationState @default(GREETING)
   /// Fields the assistant has already asked about, with counts (prevents repeating questions).
   askedFields  Json              @default("{}")
+  /// Short lease so only one worker handles a conversation at a time.
+  lockedUntil  DateTime?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
@@ -401,7 +403,9 @@ model DemoProject {
   approvedById  String?
   approvedAt    DateTime?
   rejectedReason String?
-  deliveredAt   DateTime?
+  /// When the preview link message was queued (delivery status lives on the linked Message).
+  linkQueuedAt  DateTime?
+  linkMessageId String?
   generationMs  Int?
   estimatedCostUsd Float?
   createdAt     DateTime   @default(now())
