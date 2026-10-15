@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Check, Ruler, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
 import type { ProductDetailData } from '@/lib/catalog/types';
 import { ProductGallery } from './gallery';
+import { SizeGuideTable, type SizeGuideRow } from './size-guide-table';
 import { Price, Stars, WishlistButton } from '@/components/store/product-bits';
 import { QuantityStepper } from '@/components/store/cart-drawer';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ export interface SizeGuideData {
   name: string;
   intro: string;
   notes: string;
-  rows: { uk: string; us: string; eu: string; foot_length_cm: number | null }[];
+  rows: SizeGuideRow[];
 }
 
 export function ProductExperience({
@@ -167,29 +168,7 @@ export function ProductExperience({
                     <DialogTitle>{sizeGuide.name}</DialogTitle>
                     <DialogDescription>{sizeGuide.intro}</DialogDescription>
                   </DialogHeader>
-                  <div className="overflow-x-auto rounded-xl border border-line">
-                    <table className="w-full text-sm">
-                      <caption className="sr-only">Size conversions</caption>
-                      <thead className="bg-surface-2 text-left text-xs text-muted">
-                        <tr>
-                          <th scope="col" className="px-4 py-2.5 font-medium">UK / India</th>
-                          <th scope="col" className="px-4 py-2.5 font-medium">US</th>
-                          <th scope="col" className="px-4 py-2.5 font-medium">EU</th>
-                          <th scope="col" className="px-4 py-2.5 font-medium">Foot length</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sizeGuide.rows.map((r) => (
-                          <tr key={r.uk} className="border-t border-line">
-                            <th scope="row" className="px-4 py-2.5 text-left font-medium">{r.uk}</th>
-                            <td className="px-4 py-2.5">{r.us}</td>
-                            <td className="px-4 py-2.5">{r.eu}</td>
-                            <td className="px-4 py-2.5 tabular-nums">{r.foot_length_cm ? `${r.foot_length_cm} cm` : '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <SizeGuideTable rows={sizeGuide.rows} />
                   {sizeGuide.notes ? <p className="mt-4 text-xs text-muted">{sizeGuide.notes}</p> : null}
                 </DialogContent>
               </Dialog>

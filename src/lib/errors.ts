@@ -45,3 +45,12 @@ export function zodFieldErrors(issues: { path: PropertyKey[]; message: string }[
   }
   return out;
 }
+
+/**
+ * SQL function arguments without defaults must always be sent (PostgREST
+ * matches functions by argument names), but the generated types mark them as
+ * non-null. Use this to pass an explicit SQL NULL.
+ */
+export function sqlNull<T>(value: T | null | undefined): T {
+  return (value ?? null) as T;
+}

@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { randomBytes } from 'node:crypto';
-import { searchProducts } from '@/lib/catalog/queries';
+import { getProductsByIds, searchProducts } from '@/lib/catalog/queries';
 import { createSupabaseServiceClient } from '@/lib/supabase/service';
 import { getCurrentUser } from '@/lib/auth';
 import { rateLimitByIp, sha256Hex } from '@/lib/security';
@@ -74,4 +74,11 @@ export async function subscribeNewsletter(_prev: unknown, formData: FormData): P
   });
   if (error) return fail('We could not sign you up right now. Please try again.');
   return ok({ status: String(data) }, data === 'already_subscribed' ? "You're already on the list." : "You're subscribed. Welcome!");
+}
+
+/** Product cards for the guest/customer wishlist page (published products only). */
+export async function getWishlistProducts(ids: string[]) {
+  const parsed = z.array(z.uuid()).max(100).safeParse(ids);
+  if (!parsed.success) return [];
+  return getProductsByIds(parsed.data);
 }

@@ -64,3 +64,11 @@ export function titleCase(value: string) {
 export function pluralize(count: number, singular: string, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
+
+/** 45 → "45 minutes", 60 → "1 hour", 90 → "1.5 hours", 2880 → "2 days". */
+export function formatDuration(minutes: number): string {
+  const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? '' : 's'}`;
+  if (minutes < 60) return plural(minutes, 'minute');
+  if (minutes < 60 * 48 || minutes % (60 * 24) !== 0) return plural(Math.round((minutes / 60) * 10) / 10, 'hour');
+  return plural(minutes / (60 * 24), 'day');
+}

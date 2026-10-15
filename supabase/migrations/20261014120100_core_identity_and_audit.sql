@@ -217,12 +217,14 @@ security definer
 set search_path = ''
 as $$
 begin
-  -- Only harmless display data is copied from user-controlled metadata.
-  insert into public.profiles (id, email, full_name)
+  -- Only harmless data is copied from user-controlled metadata: the display
+  -- name and the shopper's own marketing consent. Never roles or flags.
+  insert into public.profiles (id, email, full_name, marketing_opt_in)
   values (
     new.id,
     new.email,
-    nullif(left(trim(coalesce(new.raw_user_meta_data ->> 'full_name', '')), 120), '')
+    nullif(left(trim(coalesce(new.raw_user_meta_data ->> 'full_name', '')), 120), ''),
+    coalesce(new.raw_user_meta_data ->> 'marketing_opt_in', '') = 'true'
   )
   on conflict (id) do nothing;
   return new;

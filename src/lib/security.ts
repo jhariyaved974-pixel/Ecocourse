@@ -1,5 +1,6 @@
 import 'server-only';
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
+import { deriveOrderAccessToken, deriveOrderId } from '@/lib/tokens';
 import { headers } from 'next/headers';
 import { createSupabaseServiceClient } from '@/lib/supabase/service';
 import { serverEnv, integrations } from '@/lib/env.server';
@@ -79,9 +80,11 @@ export function isSameOrigin(request: Request): boolean {
  * without ever being stored; the database keeps only its SHA-256 hash.
  */
 export function orderAccessToken(orderId: string): string {
-  const secret = serverEnv.orderAccessSecret;
-  if (!secret) throw new Error('ORDER_ACCESS_SECRET is not configured');
-  return createHmac('sha256', secret).update(`order-access:${orderId}`).digest('base64url');
+  return deriveOrderAccessToken(serverEnv.orderAccessSecret, orderId);
+}
+
+export function orderIdForCheckout(idempotencyKey: string): string {
+  return deriveOrderId(serverEnv.orderAccessSecret, idempotencyKey);
 }
 
 export function orderAccessTokenHash(orderId: string): string {
