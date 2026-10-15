@@ -23,6 +23,7 @@ export async function updateRequest(input: z.input<typeof schema>) {
       .update({ status, resolution_note: note || null, resolved_by: closed ? staff.user.id : null, resolved_at: closed ? new Date().toISOString() : null })
       .eq('id', id);
     if (error) return dbFail(error);
+    await supabase.rpc('write_audit', { p_action: 'customer_request.updated', p_entity_type: 'customer_request', p_entity_id: id, p_summary: `Status: ${status}`, p_details: { status } });
     return ok(null, 'Request updated');
   });
 }

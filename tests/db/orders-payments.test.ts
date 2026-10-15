@@ -377,3 +377,33 @@ describe('order integrity rules', () => {
     expect(ownerProofs).toHaveLength(1);
   });
 });
+
+describe('admin bootstrap', () => {
+  it('creates the first owner only while no active owner exists', async () => {
+    const user = await createUser(`bootstrap-${Date.now()}@example.com`);
+    const client = await admin.connect();
+    try {
+      await client.query('begin');
+      // Simulate a fresh store: no active owners.
+      await client.query("update public.staff_members set is_active = false where role = 'owner'");
+      await client.query('set local role service_role');
+      const { rows } = await client.query('select public.bootstrap_owner($1) as id', [user.email]);
+      expect(rows[0].id).toBe(user.sub);
+      await client.query('savepoint again');
+      await expect(client.query('select public.bootstrap_owner($1)', [user.email])).rejects.toMatchObject({ hint: 'owner_exists' });
+      await client.query('rollback to savepoint again');
+      await client.query('reset role');
+      const audit = await client.query("select count(*)::int as n from public.audit_logs where action = 'staff.bootstrap_owner' and entity_id = $1", [user.sub]);
+      expect(audit.rows[0].n).toBe(1);
+    } finally {
+      await client.query('rollback');
+      client.release();
+    }
+  });
+
+  it('cannot be called by browser roles', async () => {
+    const user = await createUser();
+    await expectDbError(rpc(user, 'bootstrap_owner', { p_email: user.email }), { code: '42501' });
+    await expectDbError(rpc(anon, 'bootstrap_owner', { p_email: user.email }), { code: '42501' });
+  });
+});

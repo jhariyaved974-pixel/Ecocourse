@@ -10,6 +10,7 @@ import { fail, ok, zodFieldErrors, type ActionResult } from '@/lib/errors';
 import { orderAccessToken, orderCookieName, orderIdForCheckout, rateLimitByIp, sha256Hex } from '@/lib/security';
 import { INDIAN_STATES, MOBILE, PIN_CODE, normalizeMobile } from '@/lib/india';
 import { getPublicPaymentSettings } from '@/lib/payments/settings';
+import { getStoreSettings } from '@/lib/content/queries';
 
 const addressSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter the recipient’s full name.').max(120),
@@ -61,7 +62,8 @@ export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ o
   const data = parsed.data;
   if (!(await rateLimitByIp('checkout', 10, 600))) return fail('Too many checkout attempts. Please wait a few minutes.', 'rate_limited');
 
-  const settings = await getPublicPaymentSettings();
+  const [settings, store] = await Promise.all([getPublicPaymentSettings(), getStoreSettings()]);
+  if (store.maintenance_mode) return fail('The store is closed for maintenance. Please try again shortly.', 'maintenance');
   if (data.paymentMethod === 'razorpay' && !settings?.razorpayEnabled) return fail(HINT_MESSAGES.payment_method_unavailable, 'payment_method_unavailable');
   if (data.paymentMethod === 'upi_manual' && !settings?.upiEnabled) return fail(HINT_MESSAGES.payment_method_unavailable, 'payment_method_unavailable');
 

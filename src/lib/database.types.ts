@@ -3295,6 +3295,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      staff_session_fresh: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       start_payment_review: {
         Args: {
           p_order_id: string

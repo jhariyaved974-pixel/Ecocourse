@@ -18,6 +18,13 @@ export async function setCustomerBlocked(input: z.input<typeof blockSchema>) {
     if (staff) return fail('Staff accounts are managed in Staff & security.');
     const { error } = await supabase.from('profiles').update({ is_blocked: blocked, blocked_reason: blocked ? reason : null }).eq('id', id);
     if (error) return dbFail(error);
+    await supabase.rpc('write_audit', {
+      p_action: blocked ? 'customer.blocked' : 'customer.unblocked',
+      p_entity_type: 'customer',
+      p_entity_id: id,
+      p_summary: blocked ? `Blocked from ordering: ${reason}` : 'Unblocked',
+      p_details: { reason: reason ?? null },
+    });
     return ok(null, blocked ? 'Customer blocked' : 'Customer unblocked');
   });
 }

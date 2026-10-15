@@ -4,6 +4,7 @@ import { Footer } from '@/components/store/footer';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { getAnnouncements, getNavigation, getStoreSettings } from '@/lib/content/queries';
 import { getCategories } from '@/lib/catalog/queries';
+import { MaintenancePage } from '@/components/store/maintenance';
 
 export default async function StoreLayout({ children }: LayoutProps<'/'>) {
   const [settings, nav, announcements, categories] = await Promise.all([
@@ -12,6 +13,10 @@ export default async function StoreLayout({ children }: LayoutProps<'/'>) {
     getAnnouncements(),
     getCategories(),
   ]);
+  // Maintenance mode hides the whole storefront (the admin lives outside this layout).
+  if (settings.maintenance_mode) {
+    return <MaintenancePage storeName={settings.store_name} message={settings.maintenance_message} email={settings.support_email} />;
+  }
   return (
     <>
       <a href="#main" className="sr-only z-[60] rounded-full bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-3 focus:left-3">

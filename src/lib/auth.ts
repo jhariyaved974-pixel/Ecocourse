@@ -28,6 +28,8 @@ interface StaffStatus {
   is_active: boolean;
   mfa_required: boolean;
   aal: string;
+  /** The staff session is older than the configured maximum (Staff & security). */
+  session_expired?: boolean;
 }
 
 export const getStaffStatus = cache(async (): Promise<StaffStatus | null> => {
@@ -41,7 +43,7 @@ export const getStaffStatus = cache(async (): Promise<StaffStatus | null> => {
 /** Staff session with an authorised role, or null. Enforces MFA when configured. */
 export const getStaff = cache(async (): Promise<StaffSession | null> => {
   const [user, status] = await Promise.all([getCurrentUser(), getStaffStatus()]);
-  if (!user || !status || !status.is_active) return null;
+  if (!user || !status || !status.is_active || status.session_expired) return null;
   if (status.mfa_required && status.aal !== 'aal2') return null;
   return { user, role: status.role, email: user.email ?? '' };
 });
@@ -63,6 +65,7 @@ export async function requireStaffPage(allowed: readonly StaffRole[] = ROLE_GROU
   if (!user) redirect('/admin/login');
   const status = await getStaffStatus();
   if (!status || !status.is_active) redirect('/admin/login?error=not_staff');
+  if (status.session_expired) redirect('/admin/login?error=session');
   if (status.mfa_required && status.aal !== 'aal2') redirect('/admin/mfa');
   if (!roleAllowed(status.role, allowed)) redirect('/admin?denied=1');
   return { user, role: status.role, email: user.email ?? '' };
