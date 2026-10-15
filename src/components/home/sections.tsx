@@ -126,11 +126,14 @@ function PromoBanner({ section }: { section: HomeSection }) {
       <div className="container-x">
         <Reveal>
           <div data-surface={dark ? 'dark' : undefined} className={cn('relative overflow-hidden rounded-[calc(var(--radius)*2)]', !dark && 'bg-surface-2')}>
+            {/* Phones: image above the text (text never sits on the product). Larger screens: full-bleed with an overlay. */}
             {section.image ? (
-              <Image src={section.image} alt={section.imageAlt} fill sizes="100vw" className="object-cover" />
+              <div className="relative aspect-[4/3] md:absolute md:inset-0 md:aspect-auto">
+                <Image src={section.image} alt={section.imageAlt} fill sizes="(min-width: 768px) 100vw, 100vw" className="object-cover" />
+              </div>
             ) : null}
-            <div className={cn('relative flex min-h-[420px] flex-col justify-end p-8 md:min-h-[520px] md:p-14 lg:items-end lg:justify-center lg:text-right', dark && 'bg-gradient-to-t from-black/70 via-black/20 to-transparent lg:bg-gradient-to-l')}>
-              <div className="max-w-md">
+            <div className={cn('relative flex flex-col justify-end p-6 sm:p-8 md:min-h-[520px] md:p-14 lg:items-end lg:justify-center lg:text-right', !section.image && 'min-h-[320px]', dark && 'md:bg-gradient-to-t md:from-black/75 md:via-black/25 md:to-transparent lg:bg-gradient-to-l lg:from-black/85 lg:via-black/35')}>
+              <div className="max-w-md lg:max-w-sm">
                 {section.eyebrow ? <p className="eyebrow mb-4 opacity-75">{section.eyebrow}</p> : null}
                 <h2 className="font-display text-4xl leading-[1.05] md:text-6xl">{section.heading}</h2>
                 {section.subheading ? <p className="mt-4 text-sm leading-relaxed opacity-80 md:text-base">{section.subheading}</p> : null}
@@ -272,7 +275,7 @@ function NewsletterSection({ section }: { section: HomeSection }) {
     <section className="py-8 md:py-12">
       <div className="container-x">
         <Reveal>
-          <div data-surface="dark" className="grid items-center gap-8 rounded-[calc(var(--radius)*2)] px-8 py-14 md:grid-cols-2 md:px-14 md:py-20">
+          <div data-surface="dark" className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 rounded-[calc(var(--radius)*2)] px-6 py-12 sm:px-8 sm:py-14 md:grid-cols-2 md:px-14 md:py-20">
             <div>
               {section.eyebrow ? <p className="eyebrow mb-3 text-dark-muted">{section.eyebrow}</p> : null}
               <h2 className="font-display text-4xl leading-tight md:text-5xl">{section.heading}</h2>
