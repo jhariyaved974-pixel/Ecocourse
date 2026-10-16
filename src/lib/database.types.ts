@@ -1317,6 +1317,13 @@ export type Database = {
           created_at: string
           updated_at: string
           refunded_total: number
+          payment_plan: Database["public"]["Enums"]["payment_plan"]
+          advance_percent: number
+          advance_amount: number
+          amount_paid: number
+          balance_due_at: string | null
+          balance_paid_at: string | null
+          balance_reference: string | null
         }
         Insert: {
           id?: string
@@ -1369,6 +1376,13 @@ export type Database = {
           created_at?: string
           updated_at?: string
           refunded_total?: number
+          payment_plan?: Database["public"]["Enums"]["payment_plan"]
+          advance_percent?: number
+          advance_amount: number
+          amount_paid?: number
+          balance_due_at?: string | null
+          balance_paid_at?: string | null
+          balance_reference?: string | null
         }
         Update: {
           id?: string
@@ -1421,6 +1435,13 @@ export type Database = {
           created_at?: string
           updated_at?: string
           refunded_total?: number
+          payment_plan?: Database["public"]["Enums"]["payment_plan"]
+          advance_percent?: number
+          advance_amount?: number
+          amount_paid?: number
+          balance_due_at?: string | null
+          balance_paid_at?: string | null
+          balance_reference?: string | null
         }
         Relationships: [
           {
@@ -1500,6 +1521,8 @@ export type Database = {
           reviewed_at: string | null
           submitted_at: string
           submitted_ip_hash: string | null
+          purpose: string
+          expected_amount: number | null
         }
         Insert: {
           id?: string
@@ -1518,6 +1541,8 @@ export type Database = {
           reviewed_at?: string | null
           submitted_at?: string
           submitted_ip_hash?: string | null
+          purpose?: string
+          expected_amount?: number | null
         }
         Update: {
           id?: string
@@ -1536,6 +1561,8 @@ export type Database = {
           reviewed_at?: string | null
           submitted_at?: string
           submitted_ip_hash?: string | null
+          purpose?: string
+          expected_amount?: number | null
         }
         Relationships: [
           {
@@ -1567,6 +1594,8 @@ export type Database = {
           razorpay_enabled: boolean
           updated_at: string
           updated_by: string | null
+          advance_percent: number
+          balance_due_days: number
         }
         Insert: {
           id?: boolean
@@ -1587,6 +1616,8 @@ export type Database = {
           razorpay_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
+          advance_percent?: number
+          balance_due_days?: number
         }
         Update: {
           id?: boolean
@@ -1607,6 +1638,8 @@ export type Database = {
           razorpay_enabled?: boolean
           updated_at?: string
           updated_by?: string | null
+          advance_percent?: number
+          balance_due_days?: number
         }
         Relationships: [
 
@@ -1626,6 +1659,7 @@ export type Database = {
           error_description: string | null
           created_at: string
           updated_at: string
+          purpose: string
         }
         Insert: {
           id?: string
@@ -1640,6 +1674,7 @@ export type Database = {
           error_description?: string | null
           created_at?: string
           updated_at?: string
+          purpose?: string
         }
         Update: {
           id?: string
@@ -1654,6 +1689,7 @@ export type Database = {
           error_description?: string | null
           created_at?: string
           updated_at?: string
+          purpose?: string
         }
         Relationships: [
           {
@@ -2906,6 +2942,12 @@ export type Database = {
         }
         Returns: number
       }
+      amount_due: {
+        Args: {
+          p_order: unknown
+        }
+        Returns: number
+      }
       approve_payment: {
         Args: {
           p_order_id: string
@@ -2998,6 +3040,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      due_purpose: {
+        Args: {
+          p_order: unknown
+        }
+        Returns: string
+      }
       duplicate_product: {
         Args: {
           p_product_id: string
@@ -3072,6 +3120,13 @@ export type Database = {
           p_user_id?: string
         }
         Returns: Json
+      }
+      half_prepaid_advance: {
+        Args: {
+          p_total: number
+          p_percent: number
+        }
+        Returns: number
       }
       homepage_has_unpublished_changes: {
         Args: Record<PropertyKey, never>
@@ -3451,7 +3506,8 @@ export type Database = {
       media_kind: "image" | "video" | "model"
       order_status: "pending_payment" | "payment_review" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled"
       payment_method: "upi_manual" | "razorpay"
-      payment_status: "unpaid" | "proof_submitted" | "verification_pending" | "verified_paid" | "rejected" | "refund_pending" | "refunded"
+      payment_plan: "prepaid" | "half_prepaid"
+      payment_status: "unpaid" | "proof_submitted" | "verification_pending" | "partially_paid" | "verified_paid" | "rejected" | "refund_pending" | "refunded"
       product_status: "draft" | "published" | "archived"
       proof_status: "submitted" | "under_review" | "approved" | "rejected" | "resubmission_requested"
       reservation_status: "active" | "consumed" | "released"
