@@ -5,8 +5,9 @@ import { ROLE_GROUPS } from '@/lib/auth';
 import { dbFail, staffAction } from '@/lib/admin/action';
 import { invalidateOrderStock } from '@/lib/admin/orders';
 import { dbErrorMessage, fail, ok, zodFieldErrors, type ActionResult } from '@/lib/errors';
-import { rupeesToPaise } from '@/lib/utils';
+import { formatMoney, rupeesToPaise } from '@/lib/utils';
 import { deliverEmailsSoon } from '@/lib/email/outbox';
+import { asPurpose, PURPOSE_NOUN, type PaymentPurpose } from '@/lib/admin/payment-plans';
 
 // Manual UPI payment verification (owner/admin only). The SQL functions are
 // the source of truth for every rule (role, state, exact amount, UTR reuse,
@@ -34,10 +35,33 @@ const HINT_FIELD: Record<string, string> = {
   utr_already_used: 'reference',
 };
 
-function paymentDbFail(error: { code?: string; message?: string; hint?: string | null }): ActionResult<never> {
-  const message = dbErrorMessage(error);
+type DbError = { code?: string; message?: string; hint?: string | null; details?: string | null };
+
+/** approve_payment puts {purpose, expected_amount} in the error detail when the amount differs. */
+function mismatchDetail(error: DbError): { purpose: PaymentPurpose | null; expected: number | null } {
+  try {
+    const d = JSON.parse(error.details ?? '') as { purpose?: unknown; expected_amount?: unknown; amount_due?: unknown };
+    const expected = typeof d.expected_amount === 'number' ? d.expected_amount : typeof d.amount_due === 'number' ? d.amount_due : null;
+    return { purpose: asPurpose(d.purpose), expected: expected !== null && Number.isInteger(expected) && expected >= 0 ? expected : null };
+  } catch {
+    return { purpose: null, expected: null };
+  }
+}
+
+function paymentDbFail(error: DbError): ActionResult<never> {
+  let message = dbErrorMessage(error);
+  if (error.hint === 'amount_mismatch') {
+    const { purpose, expected } = mismatchDetail(error);
+    if (expected !== null) {
+      message = `The amount does not match the expected ${PURPOSE_NOUN[purpose ?? 'full']} of ${formatMoney(expected)}. Confirm this exact amount in your bank statement; partial or different payments cannot be approved.`;
+    }
+  }
   const field = error.hint ? HINT_FIELD[error.hint] : undefined;
   return fail(message, error.hint ?? error.code, field ? { [field]: message } : undefined);
+}
+
+function resultPurpose(data: unknown): PaymentPurpose | null {
+  return data && typeof data === 'object' && 'purpose' in data ? asPurpose((data as { purpose: unknown }).purpose) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -52,7 +76,13 @@ export async function startPaymentReview(input: z.input<typeof orderOnly>) {
     const { data, error } = await supabase.rpc('start_payment_review', { p_order_id: parsed.data.orderId });
     if (error) return dbFail(error);
     const status = jsonStatus(data);
-    return ok({ status }, status === 'already_in_review' ? 'This payment is already under review.' : 'Review started. The customer sees that verification is in progress.');
+    if (status === 'already_in_review') return ok({ status }, 'This payment is already under review.');
+    return ok(
+      { status },
+      resultPurpose(data) === 'balance'
+        ? 'Review started. The customer sees that their balance payment is being verified.'
+        : 'Review started. The customer sees that verification is in progress.',
+    );
   });
 }
 
@@ -103,10 +133,18 @@ export async function approvePayment(input: z.input<typeof approveSchema>) {
     if (status === 'already_verified') {
       return ok({ status }, 'This payment was already verified. Nothing changed.');
     }
-    // Stock was consumed: refresh storefront availability.
-    await invalidateOrderStock(supabase, v.orderId);
+    const purpose = resultPurpose(data) ?? 'full';
+    const amountDue = data && typeof data === 'object' ? (data as { amount_due?: unknown }).amount_due : undefined;
+    // The first verified payment (full or advance) consumed stock: refresh storefront availability.
+    if (purpose !== 'balance') await invalidateOrderStock(supabase, v.orderId);
     deliverEmailsSoon();
-    return ok({ status: status ?? 'approved' }, 'Payment verified. The order is confirmed and the customer has been notified.');
+    const message =
+      purpose === 'advance'
+        ? `Advance verified. The order is confirmed; the balance${typeof amountDue === 'number' && amountDue > 0 ? ` of ${formatMoney(amountDue)}` : ''} is due before dispatch. The customer has been emailed.`
+        : purpose === 'balance'
+          ? 'Balance verified. The order is fully paid and ready to ship. The customer has been emailed.'
+          : 'Payment verified. The order is confirmed and the customer has been notified.';
+    return ok({ status: status ?? 'approved', purpose }, message);
   });
 }
 
@@ -138,11 +176,20 @@ export async function rejectPayment(input: z.input<typeof rejectSchema>) {
     if (error) return dbFail(error);
     const status = jsonStatus(data);
     if (status === 'already_rejected') return ok({ status }, 'This payment was already rejected. Nothing changed.');
+    deliverEmailsSoon();
+    if (resultPurpose(data) === 'balance') {
+      // The advance stays valid: the order keeps its status and returns to "balance due".
+      return ok(
+        { status: status ?? 'rejected', purpose: 'balance' as const },
+        v.requestResubmission
+          ? 'New balance proof requested. The advance stays valid and the order is back to “Advance received — balance due”.'
+          : 'Balance proof rejected. The advance stays valid and the order is back to “Advance received — balance due”. The customer has been notified.',
+      );
+    }
     const orderStatus = data && typeof data === 'object' ? (data as { order_status?: string }).order_status : undefined;
     const tail = orderStatus === 'cancelled' ? ' The order had no stock reserved any more, so it is now cancelled.' : '';
-    deliverEmailsSoon();
     return ok(
-      { status: status ?? 'rejected' },
+      { status: status ?? 'rejected', purpose: resultPurpose(data) },
       (v.requestResubmission ? 'New proof requested. The customer has been asked to resubmit.' : 'Payment rejected. The customer has been notified.') + tail,
     );
   });
@@ -182,6 +229,10 @@ export async function recordPaymentAndRefund(input: z.input<typeof recordAndRefu
     if (status === 'already_recorded') return ok({ status }, 'A payment was already recorded for this order. Nothing changed.');
     await invalidateOrderStock(supabase, v.orderId);
     deliverEmailsSoon();
-    return ok({ status: status ?? 'refund_pending' }, 'Payment recorded and a refund is pending. Send the refund, then record it on the order page.');
+    const refundAmount = data && typeof data === 'object' ? (data as { refund_amount?: unknown }).refund_amount : undefined;
+    return ok(
+      { status: status ?? 'refund_pending' },
+      `Payment recorded and the order cancelled. A refund${typeof refundAmount === 'number' ? ` of ${formatMoney(refundAmount)}` : ''} is pending: send it, then record it on the order page.`,
+    );
   });
 }

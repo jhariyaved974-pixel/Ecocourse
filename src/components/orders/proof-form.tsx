@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field, Input, Textarea } from '@/components/ui/form-controls';
 import { Notice } from '@/components/ui/misc';
 import { formatMoney } from '@/lib/utils';
+import type { PaymentPurpose } from '@/lib/orders/payment-plan';
 
 const MAX = 4 * 1024 * 1024;
 const ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
@@ -19,7 +20,27 @@ function localNow() {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
-export function ProofForm({ orderNumber, amount, upiId, requireProof, late }: { orderNumber: string; amount: number; upiId: string; requireProof: boolean; late: boolean }) {
+const WHAT: Record<PaymentPurpose, string> = { full: 'the payment', advance: 'the advance', balance: 'the balance' };
+
+export function ProofForm({
+  orderNumber,
+  amount,
+  purpose = 'full',
+  reference,
+  upiId,
+  requireProof,
+  late,
+}: {
+  orderNumber: string;
+  /** Exact amount this proof is for (advance, full or balance), from the database. */
+  amount: number;
+  purpose?: PaymentPurpose;
+  /** Payment note the shopper was asked to use (the order number, or "<order number>-BAL"). */
+  reference?: string;
+  upiId: string;
+  requireProof: boolean;
+  late: boolean;
+}) {
   const router = useRouter();
   const [file, setFile] = React.useState<File | null>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
@@ -102,11 +123,15 @@ export function ProofForm({ orderNumber, amount, upiId, requireProof, late }: { 
   const busy = progress !== null;
   return (
     <section className="rounded-[var(--radius)] border border-line bg-surface p-6" aria-labelledby="proof-heading">
-      <h2 id="proof-heading" className="text-lg font-semibold">Already paid? Submit your payment details</h2>
+      <h2 id="proof-heading" className="text-lg font-semibold">
+        {purpose === 'balance' ? 'Paid the balance? Submit your payment details' : purpose === 'advance' ? 'Paid the advance? Submit your payment details' : 'Already paid? Submit your payment details'}
+      </h2>
       <p className="mt-1 text-sm text-muted">
         {late
           ? 'Your reservation has expired. If you already paid, submit the details below — our team will check the payment and either confirm your order (if stock allows) or arrange a full refund.'
-          : 'This helps us match your payment quickly. It does not confirm the order by itself: we verify every payment in our bank records first.'}
+          : purpose === 'balance'
+            ? `This helps us match your balance payment of ${formatMoney(amount)} quickly. It does not mark the balance as paid by itself: we verify it in our bank records, then dispatch your order.`
+            : `This helps us match your ${purpose === 'advance' ? `advance of ${formatMoney(amount)}` : 'payment'} quickly. It does not confirm the order by itself: we verify every payment in our bank records first.`}
       </p>
       <form onSubmit={submit} className="mt-6 space-y-5" noValidate>
         {error ? <Notice tone="danger">{error}</Notice> : null}
@@ -153,7 +178,14 @@ export function ProofForm({ orderNumber, amount, upiId, requireProof, late }: { 
         <label className="flex items-start gap-3 text-sm">
           <input type="checkbox" name="confirm" className="mt-0.5 size-4 accent-[var(--ink)]" />
           <span>
-            I confirm I have paid <strong>{formatMoney(amount)}</strong> to <span className="font-mono">{upiId}</span> for order <span className="font-mono">{orderNumber}</span>.
+            I confirm I have paid {purpose === 'full' ? '' : `${WHAT[purpose]} of `}<strong>{formatMoney(amount)}</strong> to <span className="font-mono">{upiId}</span> for order{' '}
+            <span className="font-mono">{orderNumber}</span>
+            {reference && reference !== orderNumber ? (
+              <>
+                {' '}(payment note <span className="font-mono">{reference}</span>)
+              </>
+            ) : null}
+            .
           </span>
         </label>
         {fieldErrors.confirm ? <p className="-mt-3 text-xs font-medium text-danger" role="alert">{fieldErrors.confirm}</p> : null}

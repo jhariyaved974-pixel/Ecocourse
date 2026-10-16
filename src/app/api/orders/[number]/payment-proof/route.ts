@@ -44,8 +44,11 @@ function error(status: number, message: string, fieldErrors?: Record<string, str
 }
 
 /**
- * Receives a payment proof for a manual UPI order. The proof is evidence for
- * staff to check against bank records; it never marks the order as paid.
+ * Receives a payment proof for a manual UPI order: the full amount (prepaid),
+ * the advance (half prepaid) or, once the advance is verified, the balance.
+ * The browser never says which: submit_payment_proof derives the purpose and
+ * the expected amount from the order in the database. The proof is evidence
+ * for staff to check against bank records; it never marks anything as paid.
  */
 export async function POST(request: NextRequest, ctx: RouteContext<'/api/orders/[number]/payment-proof'>) {
   if (!isSameOrigin(request)) return error(403, 'Invalid request origin.');
@@ -64,7 +67,9 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/orders/
   const order = await getCustomerOrder(orderNumber);
   if (!order) return error(404, 'Order not found. Open the link from your order email or sign in.');
   if (!canSubmitProof(order)) {
-    return error(409, order.paymentStatus === 'verified_paid' ? HINTS.already_paid[1] : 'This order is not awaiting payment.');
+    if (order.paymentStatus === 'verified_paid') return error(409, HINTS.already_paid[1]);
+    if (order.paymentStatus === 'proof_submitted' || order.paymentStatus === 'verification_pending') return error(409, HINTS.proof_pending[1]);
+    return error(409, HINTS.not_awaiting_payment[1]);
   }
 
   let form: FormData;
@@ -122,7 +127,7 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/orders/
     p_ip_hash: await getClientIpHash(),
   });
 
-  const result = data as { replayed?: boolean; payment_status?: string } | null;
+  const result = data as { replayed?: boolean; payment_status?: string; purpose?: string; expected_amount?: number } | null;
   if (stored && (rpcError || result?.replayed)) {
     // Not referenced by any proof record: remove it from private storage.
     await supabase.storage.from(BUCKET).remove([stored.path]);
@@ -133,5 +138,8 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/orders/
     return error(status, message);
   }
   deliverEmailsSoon();
-  return NextResponse.json({ ok: true, status: result?.payment_status ?? 'proof_submitted' }, { headers: { 'Cache-Control': 'no-store' } });
+  return NextResponse.json(
+    { ok: true, status: result?.payment_status ?? 'proof_submitted', purpose: result?.purpose ?? null, expectedAmount: result?.expected_amount ?? null },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }

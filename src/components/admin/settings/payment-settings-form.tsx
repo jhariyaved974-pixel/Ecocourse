@@ -9,14 +9,26 @@ import { Button } from '@/components/ui/button';
 import { Field, Input, Switch, Textarea } from '@/components/ui/form-controls';
 import { Badge, Notice } from '@/components/ui/misc';
 import { buildUpiUri, isValidUpiId } from '@/lib/payments/upi';
+import { ADVANCE_PERCENT_MAX, ADVANCE_PERCENT_MIN, BALANCE_DUE_DAYS_MAX, BALANCE_DUE_DAYS_MIN, planExample } from '@/lib/admin/payment-plans';
+import { formatMoney } from '@/lib/utils';
 
-type Values = Omit<PaymentSettingsInput, 'reviewDeadlineHours' | 'reservationMinutes' | 'resubmissionHours'> & {
+type Values = Omit<PaymentSettingsInput, 'reviewDeadlineHours' | 'reservationMinutes' | 'resubmissionHours' | 'advancePercent' | 'balanceDueDays'> & {
   reviewDeadlineHours: string;
   reservationMinutes: string;
   resubmissionHours: string;
+  advancePercent: string;
+  balanceDueDays: string;
 };
 
 const SAMPLE_AMOUNT = 149_900;
+
+/** Whole number within [min, max], or null. */
+function intIn(value: string, min: number, max: number): number | null {
+  const t = value.trim();
+  if (!/^\d{1,3}$/.test(t)) return null;
+  const n = Number(t);
+  return n >= min && n <= max ? n : null;
+}
 
 function Toggle({ checked, onChange, label, hint, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string; disabled?: boolean }) {
   return (
@@ -70,6 +82,10 @@ export function PaymentSettingsForm({
   }, [preview]);
 
   const err = (k: string) => errors[k];
+  const percent = intIn(v.advancePercent, ADVANCE_PERCENT_MIN, ADVANCE_PERCENT_MAX);
+  const dueDays = intIn(v.balanceDueDays, BALANCE_DUE_DAYS_MIN, BALANCE_DUE_DAYS_MAX);
+  // Same rounding as the database: the exact percentage rounded up to a whole rupee, capped at the total.
+  const example = percent !== null ? planExample(SAMPLE_AMOUNT, percent) : null;
 
   return (
     <form
@@ -118,6 +134,60 @@ export function PaymentSettingsForm({
             )}
             {preview ? <p className="mt-3 font-mono text-[10px] break-all text-muted">{preview}</p> : null}
             <p className="mt-2 text-[11px] text-muted">Scan it to check the payee — do not complete the payment.</p>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel
+        title="Payment plans"
+        description="Every order is paid online before it ships; there is no cash on delivery. Shoppers choose Prepaid (the full amount at checkout) or Half prepaid (an advance at checkout, the balance before dispatch)."
+      >
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Half prepaid advance (%)"
+              htmlFor="p-adv"
+              required
+              error={err('advancePercent')}
+              hint={`${ADVANCE_PERCENT_MIN}–${ADVANCE_PERCENT_MAX}. Paid at checkout to confirm the order, rounded up to a whole rupee.`}
+            >
+              <Input id="p-adv" inputMode="numeric" value={v.advancePercent} onChange={text('advancePercent')} maxLength={3} autoComplete="off" />
+            </Field>
+            <Field
+              label="Balance due within (days)"
+              htmlFor="p-due"
+              required
+              error={err('balanceDueDays')}
+              hint={`${BALANCE_DUE_DAYS_MIN}–${BALANCE_DUE_DAYS_MAX}, counted from when the advance is verified. Overdue balances are flagged for staff, never cancelled.`}
+            >
+              <Input id="p-due" inputMode="numeric" value={v.balanceDueDays} onChange={text('balanceDueDays')} maxLength={2} autoComplete="off" />
+            </Field>
+            <p className="text-xs text-muted sm:col-span-2">Changes apply to new orders only. Every order keeps the percentage it was placed with.</p>
+          </div>
+          <div className="rounded-xl border border-line p-4 text-sm" aria-live="polite" data-testid="plan-example">
+            <p className="text-xs font-medium text-muted">Example · Half prepaid</p>
+            {example ? (
+              <>
+                <p className="mt-2 font-medium">{example.text}</p>
+                <dl className="mt-3 space-y-1 text-xs">
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted">Advance at checkout ({percent}%)</dt>
+                    <dd className="tabular-nums">{formatMoney(example.advance)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-muted">Balance before dispatch</dt>
+                    <dd className="tabular-nums">{formatMoney(example.balance)}</dd>
+                  </div>
+                </dl>
+                {dueDays !== null ? (
+                  <p className="mt-3 text-xs text-muted">
+                    The balance is due within {dueDays} day{dueDays === 1 ? '' : 's'} of the advance being verified.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className="mt-2 text-xs text-muted">Enter a whole number from {ADVANCE_PERCENT_MIN} to {ADVANCE_PERCENT_MAX} to see an example.</p>
+            )}
           </div>
         </div>
       </Panel>

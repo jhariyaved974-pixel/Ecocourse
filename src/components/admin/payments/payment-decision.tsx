@@ -8,12 +8,24 @@ import { Notice } from '@/components/ui/misc';
 import { ConfirmActionButton, useActionRunner } from '@/components/admin/client-ui';
 import { approvePayment, recordPaymentAndRefund, rejectPayment, startPaymentReview } from '@/app/admin/(panel)/payments/actions';
 import type { PaymentStatus } from '@/components/admin/orders/constants';
-import { formatMoney, paiseToRupeeString, rupeesToPaise } from '@/lib/utils';
+import { PURPOSE_NOUN, type PaymentPlan, type PaymentPurpose } from '@/lib/admin/payment-plans';
+import { formatDate, formatMoney, paiseToRupeeString, rupeesToPaise } from '@/lib/utils';
 
 export interface PaymentDecisionProps {
   orderId: string;
   orderNumber: string;
   total: number;
+  paymentPlan: PaymentPlan;
+  /** Verified money received so far (0, the advance, or the total). */
+  amountPaid: number;
+  /**
+   * The exact credit to find in the bank records: the open proof's expected
+   * amount, else the amount due now (computed by the database rules).
+   */
+  expectedAmount: number;
+  /** What that credit pays for. */
+  purpose: PaymentPurpose;
+  balanceDueAt: string | null;
   paymentStatus: PaymentStatus;
   /** Cancelled by staff (not by expiry): approval is impossible. */
   cancelledByStaff: boolean;
@@ -39,15 +51,26 @@ function useOnce() {
 }
 
 export function PaymentDecision(props: PaymentDecisionProps) {
-  const { orderId, paymentStatus, cancelledByStaff, expired, openProof } = props;
+  const { orderId, paymentStatus, cancelledByStaff, expired, openProof, purpose } = props;
   const [showRefundPath, setShowRefundPath] = React.useState(false);
   const inReview = paymentStatus === 'proof_submitted' || paymentStatus === 'verification_pending';
-  const canApprove = !cancelledByStaff && ['proof_submitted', 'verification_pending', 'unpaid', 'rejected'].includes(paymentStatus);
+  const canApprove = !cancelledByStaff && ['proof_submitted', 'verification_pending', 'unpaid', 'rejected', 'partially_paid'].includes(paymentStatus);
+  const isBalance = purpose === 'balance';
 
-  if (paymentStatus === 'verified_paid' || paymentStatus === 'refund_pending' || paymentStatus === 'refunded') {
+  if (paymentStatus === 'verified_paid') {
     return (
       <Notice tone="success" title="Payment verified">
-        This payment has already been verified. Nothing more to do here; manage fulfilment, cancellation or refunds on the order page.
+        {props.paymentPlan === 'half_prepaid'
+          ? 'The advance and the balance have both been verified. The order is fully paid; manage fulfilment, cancellation or refunds on the order page.'
+          : 'This payment has already been verified. Nothing more to do here; manage fulfilment, cancellation or refunds on the order page.'}
+      </Notice>
+    );
+  }
+  if (paymentStatus === 'refund_pending' || paymentStatus === 'refunded') {
+    return (
+      <Notice tone="neutral" title={paymentStatus === 'refunded' ? 'Refunded' : 'Refund pending'}>
+        {formatMoney(props.amountPaid)} was received for this order and {paymentStatus === 'refunded' ? 'has been refunded' : 'a refund is pending'}. Manage refunds on the
+        order page.
       </Notice>
     );
   }
@@ -74,14 +97,22 @@ export function PaymentDecision(props: PaymentDecisionProps) {
       {canApprove && inReview && !props.proofUtrConfirmedOn ? <ApproveForm {...props} onInsufficientStock={() => setShowRefundPath(true)} /> : null}
       {canApprove && !inReview ? (
         <div className="space-y-4">
-          <Notice tone="neutral" title="No proof is awaiting review">
-            {paymentStatus === 'rejected'
-              ? 'The last proof was rejected or a new one was requested. Wait for the customer to resubmit.'
-              : 'The customer has not submitted payment proof yet.'}
-          </Notice>
+          {paymentStatus === 'partially_paid' ? (
+            <Notice tone="info" title="Advance received — waiting for the balance">
+              {formatMoney(props.amountPaid)} is verified. The balance of {formatMoney(props.expectedAmount)} is due
+              {props.balanceDueAt ? ` by ${formatDate(props.balanceDueAt)}` : ''} and must be verified before dispatch. The customer pays it from their order page and
+              uploads a proof; it then appears here.
+            </Notice>
+          ) : (
+            <Notice tone="neutral" title="No proof is awaiting review">
+              {paymentStatus === 'rejected'
+                ? 'The last proof was rejected or a new one was requested. Wait for the customer to resubmit.'
+                : 'The customer has not submitted payment proof yet.'}
+            </Notice>
+          )}
           <details className="group rounded-lg border border-line">
             <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium marker:hidden focus-visible:outline-2">
-              I found the exact credit myself — approve without new proof
+              I found the exact {purpose === 'full' ? 'credit' : `${PURPOSE_NOUN[purpose]} credit`} myself — approve without new proof
             </summary>
             <div className="border-t border-line p-4">
               <ApproveForm {...props} onInsufficientStock={() => setShowRefundPath(true)} />
@@ -100,7 +131,11 @@ export function PaymentDecision(props: PaymentDecisionProps) {
               title="Request a new screenshot / UTR"
               description={
                 <div className="space-y-2">
-                  <p>Use this when the proof is unclear or the UTR does not match yet. The customer is asked to upload new proof and the order&apos;s stock stays reserved for the resubmission window.</p>
+                  <p>
+                    {isBalance
+                      ? 'Use this when the balance proof is unclear or the UTR does not match yet. The customer is asked to upload a new balance proof. The advance stays valid and the order keeps its status.'
+                      : 'Use this when the proof is unclear or the UTR does not match yet. The customer is asked to upload new proof and the order’s stock stays reserved for the resubmission window.'}
+                  </p>
                   <p className="font-medium text-warning">The customer will see the reason you type below.</p>
                 </div>
               }
@@ -117,7 +152,11 @@ export function PaymentDecision(props: PaymentDecisionProps) {
               variant="danger-outline"
               description={
                 <div className="space-y-2">
-                  <p>Use this when no matching credit exists. The proof is marked rejected; if stock is still reserved the order returns to awaiting payment for the resubmission window, otherwise it is cancelled.</p>
+                  <p>
+                    {isBalance
+                      ? 'Use this when no matching balance credit exists. The proof is marked rejected and the order returns to “Advance received — balance due”: the advance stays valid, nothing is cancelled and no stock moves.'
+                      : 'Use this when no matching credit exists. The proof is marked rejected; if stock is still reserved the order returns to awaiting payment for the resubmission window, otherwise it is cancelled.'}
+                  </p>
                   <p className="font-medium text-warning">The customer will see the reason you type below.</p>
                 </div>
               }
@@ -132,6 +171,16 @@ export function PaymentDecision(props: PaymentDecisionProps) {
         </div>
       ) : null}
       {expired || showRefundPath ? <RecordAndRefundForm {...props} /> : null}
+      {isBalance && inReview && !showRefundPath ? (
+        <details className="rounded-lg border border-line">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium marker:hidden focus-visible:outline-2">
+            The balance arrived but this order cannot be fulfilled
+          </summary>
+          <div className="border-t border-line p-4">
+            <RecordAndRefundForm {...props} />
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }
@@ -157,11 +206,13 @@ function StartReview({ orderId }: { orderId: string }) {
   );
 }
 
-function ApproveForm({ orderId, total, openProof, onInsufficientStock }: PaymentDecisionProps & { onInsufficientStock: () => void }) {
+function ApproveForm({ orderId, total, expectedAmount, purpose, amountPaid, openProof, onInsufficientStock }: PaymentDecisionProps & { onInsufficientStock: () => void }) {
   const { run, pending } = useActionRunner();
   const once = useOnce();
+  const noun = PURPOSE_NOUN[purpose];
   const [confirmed, setConfirmed] = React.useState(false);
-  const [amount, setAmount] = React.useState('');
+  // Pre-filled with the amount the database expects; staff confirm it against the bank statement.
+  const [amount, setAmount] = React.useState(expectedAmount > 0 ? paiseToRupeeString(expectedAmount) : '');
   const [reference, setReference] = React.useState(openProof?.utr ?? '');
   const [note, setNote] = React.useState('');
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -169,7 +220,9 @@ function ApproveForm({ orderId, total, openProof, onInsufficientStock }: Payment
   const amountError =
     errors.verifiedAmount ||
     (amount.trim() && amountPaise === null ? 'Enter a rupee amount like 7499 or 7499.00.' : '') ||
-    (amountPaise !== null && amountPaise !== total ? `Must equal the order total of ${formatMoney(total)} exactly. Partial or different payments cannot be approved.` : '') ||
+    (amountPaise !== null && amountPaise !== expectedAmount
+      ? `This does not match the expected ${noun} of ${formatMoney(expectedAmount)}. Partial or different payments cannot be approved.`
+      : '') ||
     undefined;
 
   const submit = (e: React.FormEvent) => {
@@ -206,7 +259,18 @@ function ApproveForm({ orderId, total, openProof, onInsufficientStock }: Payment
         <h3 id="approve-heading" className="flex items-center gap-2 text-sm font-semibold">
           <BadgeCheck className="size-4 text-success" aria-hidden /> Verify &amp; mark paid
         </h3>
-        <p className="mt-1 text-xs text-muted">Expected credit: <strong className="text-ink">{formatMoney(total)}</strong> (₹{paiseToRupeeString(total)})</p>
+        <p className="mt-1 text-xs text-muted">
+          Expected credit: <strong className="text-ink">{formatMoney(expectedAmount)}</strong> (₹{paiseToRupeeString(expectedAmount)})
+          {purpose === 'advance' ? ` — the advance on a ${formatMoney(total)} order` : null}
+          {purpose === 'balance' ? ` — the balance; ${formatMoney(amountPaid)} of ${formatMoney(total)} is already verified` : null}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {purpose === 'advance'
+            ? 'Approving confirms the order and deducts its stock once. The balance then becomes due and must be verified before dispatch.'
+            : purpose === 'balance'
+              ? 'Approving marks the order fully paid so it can be shipped. The balance needs its own bank credit and UTR; the advance UTR cannot be reused.'
+              : 'Approving confirms the order and deducts its stock once.'}
+        </p>
       </div>
       <div className="rounded-lg border border-warning/40 bg-warning/5 p-3">
         <label htmlFor="bank-confirmed" className="flex cursor-pointer items-start gap-3 text-sm">
@@ -222,8 +286,8 @@ function ApproveForm({ orderId, total, openProof, onInsufficientStock }: Payment
             className="mt-0.5"
           />
           <span>
-            I personally checked our bank account / UPI merchant records and confirmed a credit of <strong>exactly {formatMoney(total)}</strong> with a UTR matching the
-            reference below. I understand a screenshot alone is never sufficient.
+            I personally checked our bank account / UPI merchant records and confirmed a credit of <strong>exactly {formatMoney(expectedAmount)}</strong>
+            {purpose === 'full' ? '' : ` for the ${noun}`} with a UTR matching the reference below. I understand a screenshot alone is never sufficient.
           </span>
         </label>
         {errors.bankCreditConfirmed ? (
@@ -232,7 +296,13 @@ function ApproveForm({ orderId, total, openProof, onInsufficientStock }: Payment
           <p id="bank-confirmed-help" className="sr-only">Required before approving.</p>
         )}
       </div>
-      <Field label="Verified amount (₹)" htmlFor="verified-amount" required error={amountError} hint="Type the amount you saw credited, not the order total.">
+      <Field
+        label="Verified amount (₹)"
+        htmlFor="verified-amount"
+        required
+        error={amountError}
+        hint={`Pre-filled with the expected ${noun}. Confirm this exact amount in your bank statement; a different amount cannot be approved.`}
+      >
         <Input
           id="verified-amount"
           inputMode="decimal"
@@ -280,7 +350,8 @@ function ApproveForm({ orderId, total, openProof, onInsufficientStock }: Payment
   );
 }
 
-function RecordAndRefundForm({ orderId, total, openProof }: PaymentDecisionProps) {
+function RecordAndRefundForm({ orderId, total, amountPaid, purpose, openProof }: PaymentDecisionProps) {
+  const maxAmount = Math.max(total - amountPaid, 0);
   const { run, pending } = useActionRunner();
   const once = useOnce();
   const [confirmed, setConfirmed] = React.useState(false);
@@ -311,8 +382,9 @@ function RecordAndRefundForm({ orderId, total, openProof }: PaymentDecisionProps
           <ShieldAlert className="size-4 text-danger" aria-hidden /> Record payment &amp; refund
         </h3>
         <p className="mt-1 text-xs text-muted">
-          For a genuine payment that cannot be fulfilled (for example the order expired and its stock was sold). The order is cancelled, the money is recorded as
-          received and a refund becomes pending. The reason is shown to the customer.
+          {purpose === 'balance' || amountPaid > 0
+            ? `For a genuine balance payment on an order you cannot fulfil. The balance is recorded, the order is cancelled (its stock goes back on sale) and a refund of everything received (the ${formatMoney(amountPaid)} advance plus this payment) becomes pending. The reason is shown to the customer.`
+            : 'For a genuine payment that cannot be fulfilled (for example the order expired and its stock was sold). The order is cancelled, the money is recorded as received and a refund becomes pending. The reason is shown to the customer.'}
         </p>
       </div>
       <label htmlFor="refund-bank-confirmed" className="flex cursor-pointer items-start gap-3 text-sm">
@@ -320,7 +392,7 @@ function RecordAndRefundForm({ orderId, total, openProof }: PaymentDecisionProps
         <span>I personally confirmed this credit in our bank / UPI merchant records.</span>
       </label>
       {errors.bankCreditConfirmed ? <p role="alert" className="text-xs font-medium text-danger">{errors.bankCreditConfirmed}</p> : null}
-      <Field label="Amount received (₹)" htmlFor="refund-path-amount" required error={errors.verifiedAmount || undefined} hint={`At most ${formatMoney(total)}.`}>
+      <Field label="Amount received (₹)" htmlFor="refund-path-amount" required error={errors.verifiedAmount || undefined} hint={`At most ${formatMoney(maxAmount)}.`}>
         <Input id="refund-path-amount" inputMode="decimal" autoComplete="off" value={amount} onChange={(e) => setAmount(e.target.value)} maxLength={15} />
       </Field>
       <Field label="Bank reference / UTR" htmlFor="refund-path-reference" required error={errors.reference || undefined}>

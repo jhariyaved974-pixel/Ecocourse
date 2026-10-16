@@ -16,8 +16,9 @@ import {
   ResolveAttentionButton,
   SupportNotice,
 } from '@/components/admin/orders/order-actions';
-import { NEXT_FULFILMENT, PAYMENT_METHOD_TEXT } from '@/components/admin/orders/constants';
-import { formatDateTime, formatMoney } from '@/lib/utils';
+import { NEXT_FULFILMENT, PAYMENT_METHOD_TEXT, type OrderStatus } from '@/components/admin/orders/constants';
+import { balanceOutstanding, PAYMENT_PLAN_TEXT } from '@/lib/admin/payment-plans';
+import { cn, formatDate, formatDateTime, formatMoney } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Order' };
 
@@ -41,14 +42,40 @@ function FulfilmentFacts({ order }: { order: AdminOrder }) {
   return <FactList items={rows} />;
 }
 
-function fulfilmentBlockedReason(order: AdminOrder): string | null {
-  if (order.order_status === 'cancelled') return 'This order is cancelled.';
-  if (order.order_status === 'delivered') return 'This order has been delivered.';
-  if (order.payment_status !== 'verified_paid') {
-    if (order.payment_status === 'refund_pending' || order.payment_status === 'refunded') return 'Fulfilment is closed because the order has a refund.';
-    return 'Fulfilment unlocks once the payment is verified.';
+interface FulfilmentPlan {
+  /** Steps the database allows now. */
+  next: readonly OrderStatus[];
+  /** Steps shown as locked, with the reason. */
+  locked: readonly OrderStatus[];
+  lockedReason?: string;
+  /** Why fulfilment is closed altogether. */
+  blocked: string | null;
+}
+
+/**
+ * Mirrors update_order_fulfillment (the SQL function is the source of truth):
+ * Processing is allowed once the advance is verified; Shipped and Delivered
+ * need the payment status Verified & paid.
+ */
+function fulfilmentPlan(order: AdminOrder): FulfilmentPlan {
+  const none = { next: [], locked: [] };
+  if (order.order_status === 'cancelled') return { ...none, blocked: 'This order is cancelled.' };
+  if (order.order_status === 'delivered') return { ...none, blocked: 'This order has been delivered.' };
+  if (order.payment_status === 'verified_paid') return { next: NEXT_FULFILMENT[order.order_status] ?? [], locked: [], blocked: null };
+  if (order.payment_status === 'refund_pending' || order.payment_status === 'refunded') return { ...none, blocked: 'Fulfilment is closed because the order has a refund.' };
+  const advanceVerified =
+    order.amount_paid > 0 &&
+    ['partially_paid', 'proof_submitted', 'verification_pending'].includes(order.payment_status) &&
+    (order.order_status === 'confirmed' || order.order_status === 'processing');
+  if (advanceVerified) {
+    const outstanding = formatMoney(order.total - order.amount_paid);
+    const reason =
+      order.payment_status === 'partially_paid'
+        ? `Shipped and Delivered unlock once the balance of ${outstanding} is verified${order.balance_due_at ? ` (due ${formatDate(order.balance_due_at)})` : ''}. You can pack the order now; collect the balance before dispatch.`
+        : `Shipped and Delivered unlock once the balance of ${outstanding} is verified. A balance payment proof is waiting for review on the payment screen.`;
+    return { next: order.order_status === 'confirmed' ? ['processing'] : [], locked: ['shipped'], lockedReason: reason, blocked: null };
   }
-  return null;
+  return { ...none, blocked: order.payment_plan === 'half_prepaid' ? 'Fulfilment unlocks once the advance is verified.' : 'Fulfilment unlocks once the payment is verified.' };
 }
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,15 +87,19 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   if (!detail) notFound();
   const { order, items, events, refunds, transactions, audit } = detail;
 
-  const nextStatuses = NEXT_FULFILMENT[order.order_status] ?? [];
-  const blocked = fulfilmentBlockedReason(order);
-  const canFulfil = !blocked && nextStatuses.length > 0;
-  const paid = order.payment_status === 'verified_paid';
+  const plan = fulfilmentPlan(order);
+  const canFulfil = !plan.blocked && (plan.next.length > 0 || plan.locked.length > 0);
+  // Money received (the advance counts): cancelling refunds it, refunds are capped at it.
+  const paid = order.amount_paid > 0;
   const cancellable = !['cancelled', 'shipped', 'delivered'].includes(order.order_status);
   const pendingRefunds = refunds.filter((r) => r.status === 'pending');
   const pendingTotal = pendingRefunds.reduce((sum, r) => sum + r.amount, 0);
-  const refundable = order.payment_status === 'verified_paid' || order.payment_status === 'refund_pending';
+  const refundRoom = Math.max(0, order.amount_paid - order.refunded_total - pendingTotal);
+  const refundable = paid && ['verified_paid', 'partially_paid', 'refund_pending'].includes(order.payment_status);
   const isUpi = order.payment_method === 'upi_manual';
+  const halfPrepaid = order.payment_plan === 'half_prepaid';
+  const outstanding = balanceOutstanding(order);
+  const balanceOverdue = order.payment_status === 'partially_paid' && order.balance_due_at ? new Date(order.balance_due_at).getTime() <= detail.nowMs : false;
 
   return (
     <>
@@ -80,6 +111,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <PaymentStatusBadge status={order.payment_status} />
             <OrderStatusBadge status={order.order_status} />
             {order.expired ? <Badge tone="warning">Expired</Badge> : null}
+            {halfPrepaid ? <Badge tone="outline">Half prepaid</Badge> : null}
+            {balanceOverdue ? <Badge tone="danger">Balance overdue</Badge> : null}
           </span>
         }
         back={{ href: '/admin/orders', label: 'Orders' }}
@@ -129,14 +162,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <div className="mt-5 border-t border-line pt-5">
               {canFulfil ? (
                 <FulfilmentForm
-                  key={`${order.order_status}-${order.updated_at}`}
+                  key={`${order.order_status}-${order.payment_status}-${order.updated_at}`}
                   orderId={order.id}
                   currentStatus={order.order_status}
-                  nextStatuses={nextStatuses}
+                  nextStatuses={plan.next}
+                  lockedStatuses={plan.locked}
+                  lockedReason={plan.lockedReason}
                   tracking={{ carrier: order.tracking_carrier, number: order.tracking_number, url: order.tracking_url }}
                 />
               ) : (
-                <p className="text-sm text-muted">{blocked ?? 'No further fulfilment steps.'}</p>
+                <p className="text-sm text-muted">{plan.blocked ?? 'No further fulfilment steps.'}</p>
               )}
             </div>
           </Panel>
@@ -155,14 +190,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               description={
                 order.payment_status === 'refund_pending'
                   ? 'A refund is owed to the customer. Send it, then record it here.'
-                  : 'Record money returned to the customer.'
+                  : `Record money returned to the customer (at most the ${formatMoney(order.amount_paid)} received).`
               }
             >
               <RefundControls
                 key={`${order.payment_status}-${order.refunded_total}-${pendingRefunds.length}`}
                 orderId={order.id}
                 pendingRefunds={pendingRefunds.map((r) => ({ id: r.id, amount: r.amount, reason: r.reason, createdAt: r.created_at }))}
-                maxNewRefund={Math.max(0, order.total - order.refunded_total - pendingTotal)}
+                maxNewRefund={refundRoom}
                 canRestock={order.order_status === 'delivered'}
               />
             </Panel>
@@ -172,9 +207,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <Panel title="Cancel order">
               <p className="mb-3 text-sm text-muted">
                 Releases reserved stock and returns any deducted stock to inventory.
-                {paid ? ` Because this order is paid, a refund of ${formatMoney(order.total - order.refunded_total)} becomes pending.` : ''}
+                {paid && refundRoom > 0 ? ` Because ${formatMoney(order.amount_paid)} was received, a refund of ${formatMoney(refundRoom)} becomes pending.` : ''}
               </p>
-              <CancelOrderButton orderId={order.id} orderNumber={order.order_number} paid={paid} refundAmount={order.total - order.refunded_total} />
+              <CancelOrderButton orderId={order.id} orderNumber={order.order_number} paid={paid} amountPaid={order.amount_paid} refundAmount={refundRoom} />
             </Panel>
           ) : null}
 
@@ -194,11 +229,41 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           >
             <FactList
               items={[
+                ['Plan', PAYMENT_PLAN_TEXT[order.payment_plan]],
                 ['Method', PAYMENT_METHOD_TEXT[order.payment_method]],
                 ['Status', <PaymentStatusBadge key="s" status={order.payment_status} />],
-                ['Amount', <span key="a" className="font-medium tabular-nums">{formatMoney(order.total)}</span>],
-                ['Paid at', formatDateTime(order.paid_at)],
-                ['Reference', order.payment_reference ? <span key="r" className="font-mono">{order.payment_reference}</span> : '—'],
+                ['Order total', <span key="a" className="font-medium tabular-nums">{formatMoney(order.total)}</span>],
+                ...(halfPrepaid
+                  ? ([
+                      ['Advance', <span key="adv" className="tabular-nums">{formatMoney(order.advance_amount)} ({order.advance_percent}%)</span>],
+                      ['Balance', <span key="bal" className="tabular-nums">{formatMoney(order.total - order.advance_amount)}</span>],
+                    ] as [React.ReactNode, React.ReactNode][])
+                  : []),
+                ['Paid so far', <span key="paid" className="font-medium tabular-nums">{formatMoney(order.amount_paid)}</span>],
+                ...(outstanding > 0
+                  ? ([
+                      ['Balance outstanding', <span key="out" className="font-medium tabular-nums">{formatMoney(outstanding)}</span>],
+                      [
+                        'Balance due',
+                        order.balance_due_at ? (
+                          <span key="due" className={cn('inline-flex flex-wrap items-center justify-end gap-1.5', balanceOverdue && 'font-semibold text-danger')}>
+                            {formatDate(order.balance_due_at)}
+                            {balanceOverdue ? <Badge tone="danger">Overdue</Badge> : null}
+                          </span>
+                        ) : (
+                          '—'
+                        ),
+                      ],
+                    ] as [React.ReactNode, React.ReactNode][])
+                  : []),
+                [halfPrepaid ? 'Advance paid at' : 'Paid at', formatDateTime(order.paid_at)],
+                [halfPrepaid ? 'Advance reference' : 'Reference', order.payment_reference ? <span key="r" className="font-mono">{order.payment_reference}</span> : '—'],
+                ...(halfPrepaid && (order.balance_paid_at || order.balance_reference)
+                  ? ([
+                      ['Balance paid at', formatDateTime(order.balance_paid_at)],
+                      ['Balance reference', order.balance_reference ? <span key="br" className="font-mono">{order.balance_reference}</span> : '—'],
+                    ] as [React.ReactNode, React.ReactNode][])
+                  : []),
                 ...(isAdmin ? ([['Verified by', detail.verifiedByEmail ?? (order.payment_verified_by ? 'Staff member' : '—')]] as [React.ReactNode, React.ReactNode][]) : []),
                 ...(order.review_due_at ? ([['Review due', formatDateTime(order.review_due_at)]] as [React.ReactNode, React.ReactNode][]) : []),
                 ...(order.reservation_expires_at

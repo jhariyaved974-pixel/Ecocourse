@@ -36,6 +36,8 @@ export default async function PaymentSettingsPage() {
           reviewDeadlineHours: String(p.review_deadline_hours),
           reservationMinutes: String(p.reservation_minutes),
           resubmissionHours: String(p.resubmission_hours),
+          advancePercent: String(p.advance_percent),
+          balanceDueDays: String(p.balance_due_days),
           notifyCustomerEmails: p.notify_customer_emails,
           notifyAdminOnProof: p.notify_admin_on_proof,
           adminNotificationEmail: p.admin_notification_email ?? '',

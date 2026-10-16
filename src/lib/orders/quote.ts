@@ -29,6 +29,13 @@ export interface Quote {
   shippingOptions: { code: string; name: string; description: string; fee: number; baseFee: number; freeOver: number | null; minDays: number; maxDays: number }[];
   tax: { enabled: boolean; inclusive: boolean; label: string; amount: number };
   total: number;
+  /** Current advance percentage for Half prepaid (payment_settings.advance_percent). */
+  advancePercent: number;
+  /** What a Half prepaid checkout charges now (rounded up to a whole rupee) and before dispatch. */
+  halfPrepaidAdvance: number;
+  halfPrepaidBalance: number;
+  /** False when the total is 0 or the balance would be 0 (the order is then prepaid). */
+  halfPrepaidAvailable: boolean;
   itemCount: number;
   errors: { code: string; variantId?: string; available?: number }[];
   isValid: boolean;
@@ -93,6 +100,10 @@ export function mapQuote(raw: unknown): Quote {
     })),
     tax: { enabled: Boolean(tax.enabled), inclusive: tax.inclusive !== false, label: String(tax.label ?? 'GST'), amount: Number(tax.amount ?? 0) },
     total: Number(q.total ?? 0),
+    advancePercent: Number(q.advance_percent ?? 0),
+    halfPrepaidAdvance: Number(q.half_prepaid_advance ?? 0),
+    halfPrepaidBalance: Number(q.half_prepaid_balance ?? 0),
+    halfPrepaidAvailable: q.half_prepaid_available === true && Number(q.half_prepaid_balance ?? 0) > 0,
     itemCount: Number(q.item_count ?? 0),
     errors: (Array.isArray(q.errors) ? q.errors : []) as Quote['errors'],
     isValid: q.is_valid === true,

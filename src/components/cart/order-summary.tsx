@@ -1,4 +1,5 @@
 import type { Quote } from '@/lib/orders/quote';
+import type { PaymentPlan } from '@/lib/orders/payment-plan';
 import { cn, formatMoney } from '@/lib/utils';
 
 export function SummaryRow({ label, value, strong, tone }: { label: React.ReactNode; value: React.ReactNode; strong?: boolean; tone?: 'success' }) {
@@ -10,8 +11,12 @@ export function SummaryRow({ label, value, strong, tone }: { label: React.ReactN
   );
 }
 
-/** Totals exactly as computed by the server quote. */
-export function OrderTotals({ quote, loading, shippingPending }: { quote: Quote | null; loading?: boolean; shippingPending?: boolean }) {
+/**
+ * Totals exactly as computed by the server quote. With a payment plan (checkout)
+ * it also shows what is due now and, for Half prepaid, the balance paid online
+ * before dispatch.
+ */
+export function OrderTotals({ quote, loading, shippingPending, plan }: { quote: Quote | null; loading?: boolean; shippingPending?: boolean; plan?: PaymentPlan }) {
   if (!quote) {
     return (
       <div className="space-y-3" aria-busy="true">
@@ -37,6 +42,22 @@ export function OrderTotals({ quote, loading, shippingPending }: { quote: Quote 
           <p className="mt-1 text-right text-xs text-muted">Includes {formatMoney(quote.tax.amount)} {quote.tax.label}</p>
         ) : null}
       </div>
+      {plan ? <DueNow quote={quote} plan={plan} /> : null}
     </dl>
+  );
+}
+
+function DueNow({ quote, plan }: { quote: Quote; plan: PaymentPlan }) {
+  const half = plan === 'half_prepaid' && quote.halfPrepaidAvailable;
+  return (
+    <div className="space-y-2 rounded-xl bg-surface-2 px-4 py-3" data-testid="due-now">
+      <SummaryRow label={half ? `Due now (${quote.advancePercent}% advance)` : 'Due now'} value={formatMoney(half ? quote.halfPrepaidAdvance : quote.total)} strong />
+      {half ? (
+        <>
+          <SummaryRow label="Balance, paid online before dispatch" value={formatMoney(quote.halfPrepaidBalance)} />
+          <p className="text-xs text-muted">No cash on delivery. We dispatch once the balance is verified.</p>
+        </>
+      ) : null}
+    </div>
   );
 }

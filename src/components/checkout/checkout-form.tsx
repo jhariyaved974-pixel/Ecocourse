@@ -4,7 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, QrCode, ShieldCheck, Truck } from 'lucide-react';
+import { HandCoins, Lock, QrCode, ShieldCheck, Truck, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { placeOrder } from '@/app/(store)/checkout/actions';
 import { useServerQuote } from '@/components/store/cart-drawer';
@@ -15,7 +15,8 @@ import { Field, Input, NativeSelect, RadioGroup, RadioItem, Textarea } from '@/c
 import { EmptyState, Notice } from '@/components/ui/misc';
 import { cartStore, useCart } from '@/lib/cart/store';
 import { setCouponCode, useCouponCode } from '@/lib/cart/coupon';
-import { lineStatusMessage } from '@/lib/orders/quote';
+import { lineStatusMessage, type Quote } from '@/lib/orders/quote';
+import type { PaymentPlan } from '@/lib/orders/payment-plan';
 import { lineDetails } from '@/lib/catalog/variants';
 import { INDIAN_STATES } from '@/lib/india';
 import { cn, formatDuration, formatMoney } from '@/lib/utils';
@@ -62,6 +63,42 @@ function getIdempotencyKey(): string {
   }
 }
 
+function PlanOption({ value, selected, icon, title, children }: { value: PaymentPlan; selected: boolean; icon: React.ReactNode; title: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm transition-colors', selected ? 'border-ink' : 'border-line hover:border-line-strong')}>
+      <RadioItem value={value} className="mt-0.5" />
+      {icon}
+      <span className="flex-1">
+        <span className="font-medium">{title}</span>
+        <span className="mt-1 block text-muted">{children}</span>
+      </span>
+    </label>
+  );
+}
+
+/** Prepaid / Half prepaid, with the amounts from the server quote (never computed here). */
+function PaymentPlanChoice({ quote, plan, onChange }: { quote: Quote | null; plan: PaymentPlan; onChange: (plan: PaymentPlan) => void }) {
+  if (!quote) return <div className="skeleton h-20 w-full" aria-hidden />;
+  return (
+    <RadioGroup value={plan} onValueChange={(v) => onChange(v as PaymentPlan)} aria-labelledby="plan-heading">
+      <PlanOption value="prepaid" selected={plan === 'prepaid'} icon={<Wallet className="size-5 shrink-0 text-muted" />} title={`Prepaid — pay ${formatMoney(quote.total)} now`}>
+        Pay the full amount now. Nothing more to pay later.
+      </PlanOption>
+      {quote.halfPrepaidAvailable ? (
+        <PlanOption
+          value="half_prepaid"
+          selected={plan === 'half_prepaid'}
+          icon={<HandCoins className="size-5 shrink-0 text-muted" />}
+          title={`Half prepaid — pay ${formatMoney(quote.halfPrepaidAdvance)} now (${quote.advancePercent}%), ${formatMoney(quote.halfPrepaidBalance)} online before dispatch`}
+        >
+          The advance confirms your order. Once it is confirmed, pay the balance online from your order page with the same payment method. We dispatch
+          your order after the balance is verified. There is no cash on delivery.
+        </PlanOption>
+      ) : null}
+    </RadioGroup>
+  );
+}
+
 function Section({ step, title, children, aside }: { step: number; title: string; children: React.ReactNode; aside?: React.ReactNode }) {
   return (
     <section className="border-b border-line pb-8" aria-labelledby={`step-${step}`}>
@@ -88,6 +125,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
   const [saveAddress, setSaveAddress] = React.useState(addresses.length === 0);
   const [shippingMethod, setShippingMethod] = React.useState('');
   const [paymentMethod, setPaymentMethod] = React.useState<'upi_manual' | 'razorpay'>(upi?.enabled ? 'upi_manual' : 'razorpay');
+  const [chosenPlan, setPaymentPlan] = React.useState<PaymentPlan>('prepaid');
   const [note, setNote] = React.useState('');
   const [acceptTerms, setAcceptTerms] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -106,6 +144,9 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
   const lineProblems = quote?.lines.filter((l) => l.status !== 'ok') ?? [];
   const couponProblem = Boolean(quote?.coupon?.errorCode);
   const anyPayment = Boolean(upi?.enabled) || razorpayEnabled;
+  // Half prepaid only when the server quote offers it (a balance of 0 would make it prepaid).
+  const paymentPlan: PaymentPlan = chosenPlan === 'half_prepaid' && quote?.halfPrepaidAvailable ? 'half_prepaid' : 'prepaid';
+  const half = paymentPlan === 'half_prepaid' && quote !== null;
 
   if (placed) {
     return <div className="grid min-h-[40vh] place-items-center text-sm text-muted">Opening your order…</div>;
@@ -154,6 +195,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
         shippingMethod: activeShipping,
         couponCode: couponCode || undefined,
         paymentMethod,
+        paymentPlan,
         note: note || undefined,
         expectedTotal: quote.total,
         acceptTerms: acceptTerms as true,
@@ -161,7 +203,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
       if (!res.ok) {
         setErrors(res.fieldErrors ?? {});
         setFormError(res.error);
-        if (res.code === 'total_changed' || res.code === 'quote_invalid') {
+        if (res.code === 'total_changed' || res.code === 'quote_invalid' || res.code === 'invalid_payment_plan') {
           // Re-quote so the shopper sees the current prices and stock.
           cartStore.reconcile([]);
           router.refresh();
@@ -296,32 +338,44 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
           {!anyPayment ? (
             <Notice tone="warning">Payments are temporarily unavailable. Please try again later.</Notice>
           ) : (
-            <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as typeof paymentMethod)} aria-label="Payment method">
-              {upi?.enabled ? (
-                <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm', paymentMethod === 'upi_manual' ? 'border-ink' : 'border-line')}>
-                  <RadioItem value="upi_manual" className="mt-0.5" />
-                  <QrCode className="size-5 shrink-0 text-muted" />
-                  <span className="flex-1">
-                    <span className="font-medium">UPI (any UPI app)</span>
-                    <span className="mt-1 block text-muted">
-                      After you place the order you&apos;ll see our UPI ID and a QR code for the exact amount. Pay from GPay, PhonePe, Paytm or your bank app,
-                      then {upi.requireProof ? 'upload the payment screenshot and' : ''} enter the UTR reference. We reserve your items for {formatDuration(upi.reservationMinutes)} and confirm the order once
-                      the payment is verified in our bank records (usually within {upi.reviewDeadlineHours} hours).
-                    </span>
-                  </span>
-                </label>
-              ) : null}
-              {razorpayEnabled ? (
-                <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm', paymentMethod === 'razorpay' ? 'border-ink' : 'border-line')}>
-                  <RadioItem value="razorpay" className="mt-0.5" />
-                  <Lock className="size-5 shrink-0 text-muted" />
-                  <span className="flex-1">
-                    <span className="font-medium">Cards, netbanking & wallets (Razorpay)</span>
-                    <span className="mt-1 block text-muted">Pay securely on Razorpay. Card details never reach our servers.</span>
-                  </span>
-                </label>
-              ) : null}
-            </RadioGroup>
+            <div className="space-y-6">
+              <div>
+                <h3 id="plan-heading" className="mb-3 text-sm font-semibold">Payment plan</h3>
+                <PaymentPlanChoice quote={quote} plan={paymentPlan} onChange={setPaymentPlan} />
+              </div>
+              <div>
+                <h3 id="method-heading" className="mb-3 text-sm font-semibold">Payment method</h3>
+                <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as typeof paymentMethod)} aria-labelledby="method-heading">
+                  {upi?.enabled ? (
+                    <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm', paymentMethod === 'upi_manual' ? 'border-ink' : 'border-line')}>
+                      <RadioItem value="upi_manual" className="mt-0.5" />
+                      <QrCode className="size-5 shrink-0 text-muted" />
+                      <span className="flex-1">
+                        <span className="font-medium">UPI (any UPI app)</span>
+                        <span className="mt-1 block text-muted">
+                          After you place the order you&apos;ll see our UPI ID and a QR code for the exact amount{half ? ' of the advance' : ''}. Pay from GPay, PhonePe, Paytm or your bank app,
+                          then {upi.requireProof ? 'upload the payment screenshot and' : ''} enter the UTR reference. We reserve your items for {formatDuration(upi.reservationMinutes)} and confirm the order once
+                          the {half ? 'advance' : 'payment'} is verified in our bank records (usually within {upi.reviewDeadlineHours} hours).
+                          {half ? ' You pay the balance the same way from your order page before dispatch.' : ''}
+                        </span>
+                      </span>
+                    </label>
+                  ) : null}
+                  {razorpayEnabled ? (
+                    <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm', paymentMethod === 'razorpay' ? 'border-ink' : 'border-line')}>
+                      <RadioItem value="razorpay" className="mt-0.5" />
+                      <Lock className="size-5 shrink-0 text-muted" />
+                      <span className="flex-1">
+                        <span className="font-medium">Cards, netbanking & wallets (Razorpay)</span>
+                        <span className="mt-1 block text-muted">
+                          Pay securely on Razorpay. Card details never reach our servers.{half ? ' You pay the balance on Razorpay too, from your order page before dispatch.' : ''}
+                        </span>
+                      </span>
+                    </label>
+                  ) : null}
+                </RadioGroup>
+              </div>
+            </div>
           )}
           <Field label="Order note (optional)" htmlFor="note" className="mt-6">
             <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder="Delivery instructions, gate code…" />
@@ -359,7 +413,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
           </Notice>
         ) : null}
         <CouponForm code={couponCode} quote={quote} loading={loading} />
-        <OrderTotals quote={quote} loading={loading} />
+        <OrderTotals quote={quote} loading={loading} plan={paymentPlan} />
         {quoteError ? <p className="text-sm text-danger" role="alert">{quoteError}</p> : null}
         <label className="flex items-start gap-3 text-sm">
           <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="mt-0.5 size-4 accent-[var(--ink)]" />
@@ -371,13 +425,16 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
         </label>
         {err('acceptTerms') ? <p className="-mt-3 text-xs font-medium text-danger" role="alert">{err('acceptTerms')}</p> : null}
         <Button type="submit" size="lg" className="w-full" loading={submitting} disabled={!quote || loading || !anyPayment || lineProblems.length > 0}>
-          {quote ? `Place order · ${formatMoney(quote.total)}` : 'Place order'}
+          {!quote ? 'Place order' : half ? `Place order · pay ${formatMoney(quote.halfPrepaidAdvance)} now` : `Place order · ${formatMoney(quote.total)}`}
         </Button>
         <p className="flex items-start gap-2 text-xs text-muted">
           <ShieldCheck className="mt-px size-4 shrink-0" />
-          {paymentMethod === 'upi_manual'
-            ? 'You will pay on the next screen. Never share your UPI PIN, OTP or bank password with anyone — we will never ask for them.'
-            : 'You will be redirected to complete the payment securely.'}
+          <span>
+            {paymentMethod === 'upi_manual'
+              ? `You will pay ${half ? 'the advance ' : ''}on the next screen. Never share your UPI PIN, OTP or bank password with anyone — we will never ask for them.`
+              : `You will pay ${half ? 'the advance ' : ''}securely on Razorpay from the next screen.`}
+            {half && quote ? ` The balance of ${formatMoney(quote.halfPrepaidBalance)} is paid online after your order is confirmed, before dispatch.` : ''}
+          </span>
         </p>
       </aside>
     </form>

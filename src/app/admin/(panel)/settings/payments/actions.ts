@@ -8,6 +8,7 @@ import { fail, ok, zodFieldErrors } from '@/lib/errors';
 import { integrations } from '@/lib/env.server';
 import { PAYMENT_SETTINGS_TAG } from '@/lib/payments/settings';
 import { isValidUpiId } from '@/lib/payments/upi';
+import { ADVANCE_PERCENT_MAX, ADVANCE_PERCENT_MIN, BALANCE_DUE_DAYS_MAX, BALANCE_DUE_DAYS_MIN } from '@/lib/admin/payment-plans';
 
 const int = (min: number, max: number, label: string) => z.coerce.number({ error: `${label} must be a number.` }).int().min(min, `${label}: at least ${min}.`).max(max, `${label}: at most ${max}.`);
 
@@ -26,6 +27,9 @@ const schema = z
     reviewDeadlineHours: int(1, 336, 'Review deadline'),
     reservationMinutes: int(10, 10080, 'Reservation window'),
     resubmissionHours: int(1, 168, 'Resubmission window'),
+    // Half prepaid: advance at checkout (rounded up to a whole rupee by the database), balance before dispatch.
+    advancePercent: int(ADVANCE_PERCENT_MIN, ADVANCE_PERCENT_MAX, 'Half prepaid advance'),
+    balanceDueDays: int(BALANCE_DUE_DAYS_MIN, BALANCE_DUE_DAYS_MAX, 'Balance due within'),
     notifyCustomerEmails: z.boolean(),
     notifyAdminOnProof: z.boolean(),
     adminNotificationEmail: z.string().trim().max(254).refine((v) => v === '' || /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v), 'Enter a valid email.'),
@@ -63,6 +67,8 @@ export async function savePaymentSettings(input: PaymentSettingsInput) {
         review_deadline_hours: v.reviewDeadlineHours,
         reservation_minutes: v.reservationMinutes,
         resubmission_hours: v.resubmissionHours,
+        advance_percent: v.advancePercent,
+        balance_due_days: v.balanceDueDays,
         notify_customer_emails: v.notifyCustomerEmails,
         notify_admin_on_proof: v.notifyAdminOnProof,
         admin_notification_email: v.adminNotificationEmail || null,
@@ -70,7 +76,16 @@ export async function savePaymentSettings(input: PaymentSettingsInput) {
         updated_by: staff.user.id,
       })
       .eq('id', true);
-    if (error) return dbFail(error);
+    if (error) {
+      // payment_settings check constraints (the same ranges as above).
+      if (error.code === '23514' && /advance_percent/.test(error.message ?? '')) {
+        return fail('Please check the highlighted fields.', 'validation', { advancePercent: `Use ${ADVANCE_PERCENT_MIN}–${ADVANCE_PERCENT_MAX}%.` });
+      }
+      if (error.code === '23514' && /balance_due_days/.test(error.message ?? '')) {
+        return fail('Please check the highlighted fields.', 'validation', { balanceDueDays: `Use ${BALANCE_DUE_DAYS_MIN}–${BALANCE_DUE_DAYS_MAX} days.` });
+      }
+      return dbFail(error);
+    }
     updateTag(PAYMENT_SETTINGS_TAG);
     return ok(null, v.upiId !== v.currentUpiId ? `Saved. New orders now show ${v.upiId}.` : 'Payment settings saved');
   });

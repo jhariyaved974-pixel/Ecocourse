@@ -15,6 +15,25 @@ const ctx: EmailContext = {
 
 const orderPayload = { order_id: '4b69202b-8b20-4fb3-90f2-9dc8c067c55b', order_number: 'STM-123456-ABCDE', customer_name: 'Asha Rao', total: 149900 };
 
+// ₹999.99 at 50%: advance ₹500 (rounded up to a whole rupee), balance ₹499.99. Shape of enqueue_order_email's payload.
+const halfPayload = {
+  ...orderPayload,
+  total: 99999,
+  payment_plan: 'half_prepaid',
+  payment_method: 'upi_manual',
+  advance_amount: 50000,
+  balance_amount: 49999,
+  amount_paid: 0,
+  amount_due: 50000,
+  balance_due_at: null,
+  payment_status: 'unpaid',
+  order_status: 'pending_payment',
+};
+const advancePaid = { ...halfPayload, amount_paid: 50000, amount_due: 49999, payment_status: 'partially_paid', order_status: 'confirmed', balance_due_at: '2026-10-23T06:30:00Z' };
+
+/** Phrases that would tell the shopper a payment was verified or the order fully paid. */
+const VERIFIED_CLAIM = /we have verified|has been verified|fully paid|payment (is|has been) (verified|confirmed)|balance (is|has been) (verified|confirmed|received)/i;
+
 describe('email templates', () => {
   it('renders every known template with html, text and a subject', () => {
     for (const template of EMAIL_TEMPLATES) {
@@ -28,6 +47,18 @@ describe('email templates', () => {
       expect(out!.text.length).toBeGreaterThan(20);
       expect(out!.html).not.toMatch(/undefined|NaN|\[object Object\]/);
       expect(out!.text).not.toMatch(/undefined|NaN|\[object Object\]/);
+    }
+  });
+
+  it('renders every template for half-prepaid orders and every payment purpose', () => {
+    for (const template of EMAIL_TEMPLATES.filter((t) => t !== 'cart_reminder' && t !== 'newsletter_welcome')) {
+      for (const purpose of ['full', 'advance', 'balance']) {
+        const out = renderEmail(template, 'Subject', { ...halfPayload, purpose, expected_amount: 49999, utr: '123456789012', refund_amount: 50000 }, ctx);
+        expect(out, `${template}/${purpose}`).not.toBeNull();
+        expect(out!.text.length, `${template}/${purpose}`).toBeGreaterThan(20);
+        expect(out!.html).not.toMatch(/undefined|NaN|\[object Object\]|null/);
+        expect(out!.text).not.toMatch(/undefined|NaN|\[object Object\]|null/);
+      }
     }
   });
 
@@ -70,6 +101,90 @@ describe('email templates', () => {
     const out = renderEmail('proof_received', 'Received', orderPayload, ctx)!;
     expect(out.text.toLowerCase()).toContain('awaiting payment verification');
     expect(out.text.toLowerCase()).not.toMatch(/payment (is|has been) (verified|confirmed)/);
+  });
+
+  it('shows the advance and the balance in a half-prepaid order confirmation', () => {
+    const out = renderEmail('order_placed', 'Order', halfPayload, ctx)!;
+    expect(out.text).toContain('Half prepaid');
+    expect(out.text).toContain('advance of ₹500 now');
+    expect(out.text).toContain('balance of ₹499.99');
+    expect(out.text).toContain('Advance due now: ₹500');
+    expect(out.text).toContain('Balance, before dispatch: ₹499.99');
+    expect(out.text).toContain('Total: ₹999.99');
+    expect(out.text.toLowerCase()).toContain('no cash on delivery');
+    // Never asks for the full total now.
+    expect(out.text).not.toMatch(/Pay ₹999\.99/);
+    expect(out.html).toContain('₹499.99');
+
+    const prepaid = renderEmail('order_placed', 'Order', { ...orderPayload, payment_plan: 'prepaid', amount_due: 149900, balance_amount: 0 }, ctx)!;
+    expect(prepaid.text).toContain('Pay ₹1,499 by UPI');
+    expect(prepaid.text).not.toMatch(/advance|balance/i);
+  });
+
+  it('never claims a balance (or advance) is verified before staff approve it', () => {
+    const before = [
+      renderEmail('proof_received', 'P', { ...advancePaid, payment_status: 'proof_submitted', purpose: 'balance', expected_amount: 49999 }, ctx)!,
+      renderEmail('proof_received', 'P', { ...halfPayload, payment_status: 'proof_submitted', purpose: 'advance', expected_amount: 50000 }, ctx)!,
+      renderEmail('payment_resubmit', 'R', { ...advancePaid, purpose: 'balance', reason: 'UTR missing' }, ctx)!,
+      renderEmail('payment_rejected', 'R', { ...advancePaid, purpose: 'balance', reason: 'No credit found' }, ctx)!,
+      renderEmail('balance_reminder', 'Reminder', advancePaid, ctx)!,
+      renderEmail('admin_proof_submitted', 'A', { ...advancePaid, purpose: 'balance', expected_amount: 49999, utr: '412345678901' }, ctx)!,
+    ];
+    for (const out of before) {
+      expect(out.text).not.toMatch(VERIFIED_CLAIM);
+      expect(out.text).toContain('₹499.99');
+    }
+    expect(before[0].text.toLowerCase()).toContain('awaiting payment verification');
+    expect(before[0].text).toContain('balance payment is not confirmed');
+    // The advance is verified at this point, so saying the order is still confirmed is correct.
+    expect(before[3].text).toContain('order is still confirmed');
+    expect(before[4].text).toContain('was due on 23 Oct 2026');
+  });
+
+  it('confirms the advance with the balance and its due date, and the balance only after verification', () => {
+    const advance = renderEmail('advance_received', 'Advance received', advancePaid, ctx)!;
+    expect(advance.text).toContain('advance payment of ₹500');
+    expect(advance.text).toContain('balance of ₹499.99');
+    expect(advance.text).toContain('by 23 Oct 2026');
+    expect(advance.text).toContain('Paid so far: ₹500');
+    expect(advance.text).toContain(`Pay the balance: ${ctx.orderLink}`);
+    expect(advance.text).not.toMatch(/fully paid/i);
+
+    const balance = renderEmail('balance_received', 'Balance received', { ...advancePaid, amount_paid: 99999, amount_due: 0, payment_status: 'verified_paid' }, ctx)!;
+    expect(balance.text).toContain('balance payment of ₹499.99');
+    expect(balance.text).toContain('fully paid');
+    expect(balance.text).toContain('Paid so far: ₹999.99');
+  });
+
+  it('labels the proof purpose and expected amount for staff', () => {
+    const out = renderEmail('admin_proof_submitted', 'Balance proof', { ...advancePaid, purpose: 'balance', expected_amount: 49999, utr: '412345678901' }, ctx)!;
+    expect(out.text).toContain('Payment: Balance');
+    expect(out.text).toContain('Amount to verify: ₹499.99');
+    expect(out.text).toContain('Order total: ₹999.99');
+    expect(out.text).toContain('Payment note: STM-123456-ABCDE-BAL');
+    expect(out.text).toContain('exactly ₹499.99');
+    const full = renderEmail('admin_proof_submitted', 'Proof', { ...orderPayload, utr: '412345678901' }, ctx)!;
+    expect(full.text).toContain('Payment: Full payment');
+    expect(full.text).toContain('Amount to verify: ₹1,499');
+  });
+
+  it('states the exact refund amount on cancellation and refunds', () => {
+    const cancelled = renderEmail('order_cancelled', 'Cancelled', { ...advancePaid, order_status: 'cancelled', payment_status: 'refund_pending', refund_amount: 50000, reason: 'Out of stock' }, ctx)!;
+    expect(cancelled.text).toContain('A refund of ₹500');
+    const unpaid = renderEmail('order_cancelled', 'Cancelled', { ...halfPayload, order_status: 'cancelled', refund_amount: 0 }, ctx)!;
+    expect(unpaid.text).not.toMatch(/refund/i);
+    const refund = renderEmail('refund_initiated', 'Refund', { ...advancePaid, refund_amount: 50000 }, ctx)!;
+    expect(refund.text).toContain('A refund of ₹500 has been initiated');
+    expect(refund.text).toContain('Refund amount: ₹500');
+  });
+
+  it('escapes values in the new payment-plan emails', () => {
+    const evil = '<b onmouseover=x>"\'&';
+    for (const template of ['advance_received', 'balance_received', 'balance_reminder']) {
+      const out = renderEmail(template, 'S', { ...advancePaid, customer_name: evil, order_number: evil }, ctx)!;
+      expect(out.html, template).not.toContain('<b onmouseover');
+      expect(out.html, template).toContain('&lt;b onmouseover=x&gt;');
+    }
   });
 
   it('returns null for unknown templates and empty reminders', () => {

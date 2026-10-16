@@ -12,6 +12,7 @@ import { INDIAN_STATES, MOBILE, PIN_CODE, normalizeMobile } from '@/lib/india';
 import { getPublicPaymentSettings } from '@/lib/payments/settings';
 import { getStoreSettings } from '@/lib/content/queries';
 import { deliverEmailsSoon } from '@/lib/email/outbox';
+import { PAYMENT_PLANS } from '@/lib/orders/payment-plan';
 
 const addressSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter the recipient’s full name.').max(120),
@@ -33,6 +34,8 @@ const checkoutSchema = z.object({
   shippingMethod: z.string().regex(/^[a-z0-9_]{2,30}$/),
   couponCode: z.string().trim().max(32).regex(/^[A-Za-z0-9_-]*$/).optional(),
   paymentMethod: z.enum(['upi_manual', 'razorpay']),
+  // Only the choice is sent: the advance and balance are computed by the database.
+  paymentPlan: z.enum(PAYMENT_PLANS).default('prepaid'),
   note: z.string().trim().max(500).optional(),
   expectedTotal: z.number().int().positive(),
   acceptTerms: z.literal(true, { error: 'Please accept the terms to place your order.' }),
@@ -45,6 +48,7 @@ const HINT_MESSAGES: Record<string, string> = {
   coupon_invalid: 'Your coupon can no longer be applied. Remove it to continue.',
   total_changed: 'Prices or availability changed while you were checking out. Please review the updated total and place the order again.',
   payment_method_unavailable: 'That payment method is not available right now.',
+  invalid_payment_plan: 'That payment plan is not available for this order. Please choose Prepaid or Half prepaid and try again.',
   account_blocked: 'This account cannot place orders. Please contact support.',
   idempotency_conflict: 'This checkout was already submitted. Please refresh the page.',
 };
@@ -54,7 +58,7 @@ const HINT_MESSAGES: Record<string, string> = {
  * reserved inside the database in one transaction; the browser only sends what
  * the shopper chose. The same idempotency key always yields the same order.
  */
-export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ orderNumber: string; paymentMethod: string }>> {
+export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ orderNumber: string; paymentMethod: string; paymentPlan: string; amountDue: number }>> {
   if (!integrations.serviceRole || !integrations.orderTokens) {
     return fail('Checkout is not available until the store is fully configured.', 'not_configured');
   }
@@ -94,6 +98,7 @@ export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ o
       coupon_code: data.couponCode || null,
       shipping_method: data.shippingMethod,
       payment_method: data.paymentMethod,
+      payment_plan: data.paymentPlan,
       customer_note: data.note || null,
       expected_total: data.expectedTotal,
     },
@@ -104,7 +109,7 @@ export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ o
     console.error('place_order failed', error.code, error.message);
     return fail('We could not place your order. Nothing has been charged — please try again.', 'error');
   }
-  const placed = result as { order_number: string; payment_method: string };
+  const placed = result as { order_number: string; payment_method: string; payment_plan?: string; amount_due?: number; total?: number };
   deliverEmailsSoon();
 
   // The order cookie lets this browser open the order page and upload the
@@ -138,5 +143,10 @@ export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ o
     }
   }
 
-  return ok({ orderNumber: placed.order_number, paymentMethod: placed.payment_method });
+  return ok({
+    orderNumber: placed.order_number,
+    paymentMethod: placed.payment_method,
+    paymentPlan: placed.payment_plan ?? 'prepaid',
+    amountDue: placed.amount_due ?? placed.total ?? 0,
+  });
 }

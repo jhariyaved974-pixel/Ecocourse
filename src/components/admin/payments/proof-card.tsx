@@ -6,7 +6,8 @@ import { PROOF_URL_TTL_SECONDS } from '@/lib/admin/orders';
 import { Badge } from '@/components/ui/misc';
 import { PROOF_STATUS_TEXT, PROOF_STATUS_TONE, formatBytes } from '@/components/admin/orders/constants';
 import { FactList } from '@/components/admin/orders/order-summary';
-import { cn, formatDateTime } from '@/lib/utils';
+import { asPurpose, PURPOSE_TEXT, PURPOSE_TONE } from '@/lib/admin/payment-plans';
+import { cn, formatDateTime, formatMoney } from '@/lib/utils';
 
 /** Admin-only route that mints a fresh short-lived signed URL and redirects to it. */
 export function proofHref(proofId: string) {
@@ -15,10 +16,12 @@ export function proofHref(proofId: string) {
 
 export function ProofCard({ proof, isCurrent }: { proof: AdminProof; isCurrent: boolean }) {
   const isPdf = proof.file_mime === 'application/pdf';
+  const purpose = asPurpose(proof.purpose) ?? 'full';
   return (
     <article className={cn('rounded-xl border bg-surface', isCurrent ? 'border-info/50 ring-1 ring-info/20' : 'border-line')} aria-label={`Payment proof submitted ${formatDateTime(proof.submitted_at)}`}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={PURPOSE_TONE[purpose]}>{PURPOSE_TEXT[purpose]}</Badge>
           <Badge tone={PROOF_STATUS_TONE[proof.status]}>{PROOF_STATUS_TEXT[proof.status]}</Badge>
           {isCurrent ? <Badge tone="info">Awaiting decision</Badge> : null}
           <span className="text-xs text-muted">Submitted {formatDateTime(proof.submitted_at)}</span>
@@ -79,6 +82,8 @@ export function ProofCard({ proof, isCurrent }: { proof: AdminProof; isCurrent: 
         <div className="space-y-4">
           <FactList
             items={[
+              ['Pays for', PURPOSE_TEXT[purpose]],
+              ['Expected amount', proof.expected_amount !== null ? <span className="font-semibold tabular-nums">{formatMoney(proof.expected_amount)}</span> : <span className="text-muted">—</span>],
               ['UTR', proof.utr ? <span className="font-mono font-semibold tracking-wide">{proof.utr}</span> : <span className="text-muted">Not provided</span>],
               ['Paid at (customer)', formatDateTime(proof.paid_at)],
               ['Payer UPI ID', proof.payer_upi_id ? <span className="font-mono">{proof.payer_upi_id}</span> : '—'],

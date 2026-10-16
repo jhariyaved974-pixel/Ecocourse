@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { AlertTriangle, ShoppingBag } from 'lucide-react';
 import { requireStaffPage, roleAllowed, ROLE_GROUPS } from '@/lib/auth';
-import { asOrderStatus, asPaymentMethod, asPaymentStatus, listOrders, sanitizeSearch, type OrderListFilters } from '@/lib/admin/orders';
+import { asOrderStatus, asPaymentMethod, asPaymentPlan, asPaymentStatus, listOrders, sanitizeSearch, type OrderListFilters } from '@/lib/admin/orders';
 import {
   firstParam,
   ORDER_STATUS_TEXT,
@@ -22,7 +22,8 @@ import { SearchParamInput, SearchParamSelect } from '@/components/admin/client-u
 import { EmptyState, Notice } from '@/components/ui/misc';
 import { ExpireOrdersButton } from '@/components/admin/orders/order-actions';
 import { ORDER_STATUSES, PAYMENT_METHOD_TEXT, PAYMENT_METHODS, PAYMENT_STATUSES } from '@/components/admin/orders/constants';
-import { formatDateTime, formatMoney } from '@/lib/utils';
+import { PAYMENT_PLAN_TEXT } from '@/lib/admin/payment-plans';
+import { cn, formatDate, formatDateTime, formatMoney } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Orders' };
 
@@ -44,6 +45,15 @@ function Filters() {
         param="method"
         label="Payment method"
         options={[{ value: '', label: 'All methods' }, ...PAYMENT_METHODS.map((m) => ({ value: m, label: PAYMENT_METHOD_TEXT[m] }))]}
+      />
+      <SearchParamSelect
+        param="plan"
+        label="Payment plan"
+        options={[
+          { value: '', label: 'All plans' },
+          { value: 'prepaid', label: PAYMENT_PLAN_TEXT.prepaid },
+          { value: 'half_prepaid', label: PAYMENT_PLAN_TEXT.half_prepaid },
+        ]}
       />
       <SearchParamSelect
         param="attention"
@@ -69,7 +79,7 @@ function FiltersFallback() {
   return (
     <div className="mb-4 flex flex-wrap gap-2" aria-hidden>
       <div className="h-9 w-full max-w-sm rounded-full border border-line-strong bg-surface" />
-      {Array.from({ length: 5 }, (_, i) => (
+      {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className="h-9 w-36 rounded-full border border-line-strong bg-surface" />
       ))}
     </div>
@@ -85,12 +95,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     orderStatus: asOrderStatus(firstParam(sp.status)),
     paymentStatus: asPaymentStatus(firstParam(sp.payment)),
     paymentMethod: asPaymentMethod(firstParam(sp.method)),
+    paymentPlan: asPaymentPlan(firstParam(sp.plan)),
     attention: firstParam(sp.attention) === '1',
     sort: firstParam(sp.sort) === 'oldest' ? 'oldest' : 'newest',
     page: parsePage(sp.page),
   };
   const result = await listOrders(filters);
-  const filtered = Boolean(filters.q || filters.orderStatus || filters.paymentStatus || filters.paymentMethod || filters.attention);
+  const nowMs = result.nowMs;
+  const filtered = Boolean(filters.q || filters.orderStatus || filters.paymentStatus || filters.paymentMethod || filters.paymentPlan || filters.attention);
 
   return (
     <>
@@ -123,7 +135,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             {result.total} order{result.total === 1 ? '' : 's'}
           </p>
           <TableWrap>
-            <Table className="min-w-[980px]">
+            <Table className="min-w-[1120px]">
               <thead>
                 <tr>
                   <Th>Order</Th>
@@ -131,41 +143,57 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <Th>Customer</Th>
                   <Th className="text-right">Items</Th>
                   <Th className="text-right">Total</Th>
+                  <Th>Plan</Th>
                   <Th>Method</Th>
                   <Th>Payment</Th>
                   <Th>Status</Th>
                 </tr>
               </thead>
               <tbody>
-                {result.rows.map((o) => (
-                  <tr key={o.id} className="hover:bg-surface-2/50">
-                    <Td className="whitespace-nowrap">
-                      <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs font-semibold hover:underline">
-                        {o.orderNumber}
-                      </Link>
-                      {o.requiresAttention ? (
-                        <span className="mt-1 flex max-w-[220px] items-start gap-1 text-[11px] whitespace-normal text-danger" title={o.attentionReason ?? undefined}>
-                          <AlertTriangle className="mt-px size-3 shrink-0" aria-hidden /> {o.attentionReason ?? 'Needs attention'}
-                        </span>
-                      ) : null}
-                    </Td>
-                    <Td className="text-xs whitespace-nowrap text-muted">{formatDateTime(o.createdAt)}</Td>
-                    <Td className="min-w-[200px]">
-                      <p className="font-medium">{o.customerName}</p>
-                      <p className="text-xs break-words text-muted">{o.email}</p>
-                      <p className="text-xs text-muted">{o.phone}</p>
-                    </Td>
-                    <Td className="text-right tabular-nums">{o.itemCount}</Td>
-                    <Td className="text-right font-medium whitespace-nowrap tabular-nums">{formatMoney(o.total)}</Td>
-                    <Td className="text-xs whitespace-nowrap">{PAYMENT_METHOD_TEXT[o.paymentMethod]}</Td>
-                    <Td>
-                      <PaymentStatusBadge status={o.paymentStatus} />
-                    </Td>
-                    <Td>
-                      <OrderStatusBadge status={o.orderStatus} />
-                    </Td>
-                  </tr>
-                ))}
+                {result.rows.map((o) => {
+                  // Advance verified, balance still to collect before dispatch.
+                  const balanceDue = o.orderStatus !== 'cancelled' && o.amountPaid > 0 && o.amountPaid < o.total ? o.total - o.amountPaid : 0;
+                  const overdue = balanceDue > 0 && o.paymentStatus === 'partially_paid' && o.balanceDueAt ? new Date(o.balanceDueAt).getTime() <= nowMs : false;
+                  return (
+                    <tr key={o.id} className="hover:bg-surface-2/50">
+                      <Td className="whitespace-nowrap">
+                        <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs font-semibold hover:underline">
+                          {o.orderNumber}
+                        </Link>
+                        {o.requiresAttention ? (
+                          <span className="mt-1 flex max-w-[220px] items-start gap-1 text-[11px] whitespace-normal text-danger" title={o.attentionReason ?? undefined}>
+                            <AlertTriangle className="mt-px size-3 shrink-0" aria-hidden /> {o.attentionReason ?? 'Needs attention'}
+                          </span>
+                        ) : null}
+                      </Td>
+                      <Td className="text-xs whitespace-nowrap text-muted">{formatDateTime(o.createdAt)}</Td>
+                      <Td className="min-w-[200px]">
+                        <p className="font-medium">{o.customerName}</p>
+                        <p className="text-xs break-words text-muted">{o.email}</p>
+                        <p className="text-xs text-muted">{o.phone}</p>
+                      </Td>
+                      <Td className="text-right tabular-nums">{o.itemCount}</Td>
+                      <Td className="text-right font-medium whitespace-nowrap tabular-nums">{formatMoney(o.total)}</Td>
+                      <Td className="text-xs whitespace-nowrap">
+                        <p>{PAYMENT_PLAN_TEXT[o.paymentPlan]}</p>
+                        {balanceDue > 0 ? (
+                          <p className={cn('tabular-nums', overdue ? 'font-semibold text-danger' : 'text-warning')}>
+                            {overdue ? <AlertTriangle className="mr-1 inline size-3 align-[-1px]" aria-hidden /> : null}
+                            Balance {formatMoney(balanceDue)}
+                            {o.balanceDueAt ? ` · ${overdue ? 'overdue since' : 'due'} ${formatDate(o.balanceDueAt)}` : ''}
+                          </p>
+                        ) : null}
+                      </Td>
+                      <Td className="text-xs whitespace-nowrap">{PAYMENT_METHOD_TEXT[o.paymentMethod]}</Td>
+                      <Td>
+                        <PaymentStatusBadge status={o.paymentStatus} />
+                      </Td>
+                      <Td>
+                        <OrderStatusBadge status={o.orderStatus} />
+                      </Td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           </TableWrap>
@@ -178,6 +206,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
               status: filters.orderStatus,
               payment: filters.paymentStatus,
               method: filters.paymentMethod,
+              plan: filters.paymentPlan,
               attention: filters.attention ? '1' : undefined,
               sort: filters.sort === 'oldest' ? 'oldest' : undefined,
             }}

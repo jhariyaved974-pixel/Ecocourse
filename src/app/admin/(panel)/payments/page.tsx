@@ -8,6 +8,7 @@ import { firstParam, PageHeader, Pagination, parsePage, PaymentStatusBadge, Tabl
 import { SearchParamInput } from '@/components/admin/client-ui';
 import { Badge, EmptyState, Notice } from '@/components/ui/misc';
 import { proofHref } from '@/components/admin/payments/proof-card';
+import { amountDue, asPurpose, duePurpose, PAYMENT_PLAN_TEXT, PURPOSE_TEXT, PURPOSE_TONE, type PaymentPurpose } from '@/lib/admin/payment-plans';
 import { cn, formatDate, formatDateTime, formatMoney } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'UPI payments' };
@@ -15,13 +16,14 @@ export const metadata: Metadata = { title: 'UPI payments' };
 const TAB_LABEL: Record<PaymentTab, string> = {
   review: 'Needs verification',
   attention: 'Late / attention',
+  balance: 'Balance due',
   rejected: 'Rejected',
   verified: 'Verified',
   all: 'All UPI orders',
 };
 
-function QueueTabs({ tab, q, counts }: { tab: PaymentTab; q: string; counts: { review: number; attention: number } }) {
-  const tabs: PaymentTab[] = ['review', 'attention', 'rejected', 'verified', 'all'];
+function QueueTabs({ tab, q, counts }: { tab: PaymentTab; q: string; counts: { review: number; attention: number; balance: number } }) {
+  const tabs: PaymentTab[] = ['review', 'attention', 'balance', 'rejected', 'verified', 'all'];
   return (
     <nav aria-label="Payment queue" className="relative -mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
       <ul className="flex min-w-max gap-1 border-b border-line">
@@ -30,7 +32,7 @@ function QueueTabs({ tab, q, counts }: { tab: PaymentTab; q: string; counts: { r
           if (t !== 'review') sp.set('tab', t);
           if (q) sp.set('q', q);
           const qs = sp.toString();
-          const count = t === 'review' ? counts.review : t === 'attention' ? counts.attention : null;
+          const count = t === 'review' ? counts.review : t === 'attention' ? counts.attention : t === 'balance' ? counts.balance : null;
           const active = t === tab;
           return (
             <li key={t}>
@@ -44,7 +46,12 @@ function QueueTabs({ tab, q, counts }: { tab: PaymentTab; q: string; counts: { r
               >
                 {TAB_LABEL[t]}
                 {count ? (
-                  <span className={cn('rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums', t === 'attention' ? 'bg-danger/10 text-danger' : 'bg-info/10 text-info')}>
+                  <span
+                    className={cn(
+                      'rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
+                      t === 'attention' ? 'bg-danger/10 text-danger' : t === 'balance' ? 'bg-warning/10 text-warning' : 'bg-info/10 text-info',
+                    )}
+                  >
                     {count}
                   </span>
                 ) : null}
@@ -57,31 +64,94 @@ function QueueTabs({ tab, q, counts }: { tab: PaymentTab; q: string; counts: { r
   );
 }
 
-function ReviewDue({ row, nowMs }: { row: PaymentQueueRow; nowMs: number }) {
-  if (!row.reviewDueAt || !(row.paymentStatus === 'proof_submitted' || row.paymentStatus === 'verification_pending')) return <span className="text-muted">—</span>;
-  const overdue = new Date(row.reviewDueAt).getTime() < nowMs;
+/** Review deadline while a proof waits; balance due date while a half-prepaid balance is outstanding. */
+function DueCell({ row, nowMs }: { row: PaymentQueueRow; nowMs: number }) {
+  const inReview = row.paymentStatus === 'proof_submitted' || row.paymentStatus === 'verification_pending';
+  if (inReview && row.reviewDueAt) {
+    const overdue = new Date(row.reviewDueAt).getTime() < nowMs;
+    return (
+      <span className={cn('inline-flex items-center gap-1 whitespace-nowrap', overdue ? 'font-semibold text-danger' : 'text-ink-2')}>
+        {overdue ? <AlertTriangle className="size-3.5" aria-hidden /> : null}
+        <span className="sr-only">Review due </span>
+        {formatDateTime(row.reviewDueAt)}
+        {overdue ? <span className="sr-only">(overdue)</span> : null}
+      </span>
+    );
+  }
+  if (row.paymentStatus === 'partially_paid' && row.balanceDueAt) {
+    const overdue = new Date(row.balanceDueAt).getTime() <= nowMs;
+    return (
+      <span className={cn('inline-flex flex-col whitespace-nowrap', overdue ? 'font-semibold text-danger' : 'text-ink-2')}>
+        <span className="text-[11px] font-normal text-muted">Balance due</span>
+        <span className="inline-flex items-center gap-1">
+          {overdue ? <AlertTriangle className="size-3.5" aria-hidden /> : null}
+          {formatDate(row.balanceDueAt)}
+          {overdue ? ' (overdue)' : ''}
+        </span>
+      </span>
+    );
+  }
+  return <span className="text-muted">—</span>;
+}
+
+/** The amount staff must find in the bank records: the open proof's expected amount, else what is due now. */
+function rowAmount(row: PaymentQueueRow): { amount: number; purpose: PaymentPurpose; open: boolean } | null {
+  const proof = row.latestProof;
+  const open = proof && (proof.status === 'submitted' || proof.status === 'under_review');
+  if (proof && open) {
+    const purpose = asPurpose(proof.purpose) ?? 'full';
+    const fallback = purpose === 'balance' ? row.total - row.amountPaid : row.advanceAmount;
+    return { amount: proof.expected_amount ?? fallback, purpose, open: true };
+  }
+  const o = {
+    order_status: row.orderStatus,
+    payment_status: row.paymentStatus,
+    payment_plan: row.paymentPlan,
+    total: row.total,
+    advance_amount: row.advanceAmount,
+    amount_paid: row.amountPaid,
+  };
+  const due = amountDue(o);
+  const purpose = duePurpose(o);
+  return due > 0 && purpose ? { amount: due, purpose, open: false } : null;
+}
+
+function AmountCell({ row }: { row: PaymentQueueRow }) {
+  const a = rowAmount(row);
+  if (!a) return <span className="text-muted">—</span>;
   return (
-    <span className={cn('inline-flex items-center gap-1 whitespace-nowrap', overdue ? 'font-semibold text-danger' : 'text-ink-2')}>
-      {overdue ? <AlertTriangle className="size-3.5" aria-hidden /> : null}
-      {formatDateTime(row.reviewDueAt)}
-      {overdue ? <span className="sr-only">(overdue)</span> : null}
-    </span>
+    <div className="flex flex-col items-end gap-1">
+      <span className={cn('font-medium whitespace-nowrap tabular-nums', !a.open && 'text-ink-2')}>{formatMoney(a.amount)}</span>
+      <Badge tone={PURPOSE_TONE[a.purpose]}>{a.open ? PURPOSE_TEXT[a.purpose] : `${PURPOSE_TEXT[a.purpose]} due`}</Badge>
+    </div>
+  );
+}
+
+function PlanCell({ row }: { row: PaymentQueueRow }) {
+  return (
+    <div className="text-xs whitespace-nowrap">
+      <p className="font-medium text-ink">{PAYMENT_PLAN_TEXT[row.paymentPlan]}</p>
+      <p className="text-muted tabular-nums">
+        Paid {formatMoney(row.amountPaid)} of {formatMoney(row.total)}
+      </p>
+    </div>
   );
 }
 
 function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number }) {
   return (
     <TableWrap>
-      <Table className="min-w-[1080px]">
+      <Table className="min-w-[1180px]">
         <thead>
           <tr>
             <Th>Order</Th>
             <Th>Customer</Th>
-            <Th className="text-right">Total</Th>
+            <Th>Plan</Th>
+            <Th className="text-right">Amount to verify</Th>
             <Th>UTR</Th>
             <Th>Proof submitted</Th>
             <Th>Status</Th>
-            <Th>Review due</Th>
+            <Th>Due</Th>
             <Th>Created</Th>
             <Th>
               <span className="sr-only">Actions</span>
@@ -106,7 +176,12 @@ function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number })
                 <p className="font-medium">{row.customerName}</p>
                 <p className="text-xs break-words text-muted">{row.email}</p>
               </Td>
-              <Td className="text-right font-medium whitespace-nowrap tabular-nums">{formatMoney(row.total)}</Td>
+              <Td>
+                <PlanCell row={row} />
+              </Td>
+              <Td className="text-right">
+                <AmountCell row={row} />
+              </Td>
               <Td className="font-mono text-xs">
                 {row.paymentReference ? (
                   <>
@@ -127,7 +202,7 @@ function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number })
                 <PaymentStatusBadge status={row.paymentStatus} />
               </Td>
               <Td className="text-xs">
-                <ReviewDue row={row} nowMs={nowMs} />
+                <DueCell row={row} nowMs={nowMs} />
               </Td>
               <Td className="text-xs whitespace-nowrap text-muted">{formatDate(row.createdAt)}</Td>
               <Td className="whitespace-nowrap">
@@ -172,12 +247,21 @@ export default async function PaymentsQueuePage({ searchParams }: { searchParams
     <>
       <PageHeader
         title="UPI payments"
-        description="Verify manual UPI payments against your bank or UPI merchant records before confirming orders. Customer screenshots are evidence, never proof that money arrived."
+        description="Verify manual UPI payments against your bank or UPI merchant records: full payments and advances confirm orders, balances must be verified before dispatch. Customer screenshots are evidence, never proof that money arrived."
         actions={
-          counts.overdue ? (
-            <Badge tone="danger" className="px-3 py-1 text-xs">
-              <AlertTriangle className="size-3.5" aria-hidden /> {counts.overdue} overdue
-            </Badge>
+          counts.overdue || counts.balanceOverdue ? (
+            <>
+              {counts.overdue ? (
+                <Badge tone="danger" className="px-3 py-1 text-xs">
+                  <AlertTriangle className="size-3.5" aria-hidden /> {counts.overdue} review{counts.overdue === 1 ? '' : 's'} overdue
+                </Badge>
+              ) : null}
+              {counts.balanceOverdue ? (
+                <Badge tone="warning" className="px-3 py-1 text-xs">
+                  <AlertTriangle className="size-3.5" aria-hidden /> {counts.balanceOverdue} balance{counts.balanceOverdue === 1 ? '' : 's'} overdue
+                </Badge>
+              ) : null}
+            </>
           ) : null
         }
       />
@@ -199,16 +283,22 @@ export default async function PaymentsQueuePage({ searchParams }: { searchParams
       ) : queue.rows.length === 0 ? (
         <EmptyState
           icon={<Inbox className="size-5" />}
-          title={q ? 'No matching orders' : tab === 'review' ? 'Nothing to verify' : 'No orders here'}
+          title={q ? 'No matching orders' : tab === 'review' ? 'Nothing to verify' : tab === 'balance' ? 'No balances due' : 'No orders here'}
           description={
-            q ? 'Try a different order number, UTR or email.' : tab === 'review' ? 'New payment proofs appear here as soon as customers submit them.' : 'Orders matching this view will appear here.'
+            q
+              ? 'Try a different order number, UTR or email.'
+              : tab === 'review'
+                ? 'New payment proofs appear here as soon as customers submit them.'
+                : tab === 'balance'
+                  ? 'Half-prepaid orders whose advance is verified and whose balance is still unpaid appear here.'
+                  : 'Orders matching this view will appear here.'
           }
         />
       ) : (
         <>
           <p className="mb-2 text-xs text-muted">
             {queue.total} order{queue.total === 1 ? '' : 's'}
-            {tab === 'review' ? ' · most urgent first' : ' · newest first'}
+            {tab === 'review' ? ' · most urgent first' : tab === 'balance' ? ' · earliest due date first' : ' · newest first'}
           </p>
           <QueueTable rows={queue.rows} nowMs={nowMs} />
           <Pagination page={page} pageCount={queue.pageCount} basePath="/admin/payments" params={{ tab: tab === 'review' ? undefined : tab, q: q || undefined }} />

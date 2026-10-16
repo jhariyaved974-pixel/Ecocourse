@@ -40,16 +40,23 @@ export function FulfilmentForm({
   orderId,
   currentStatus,
   nextStatuses,
+  lockedStatuses = [],
+  lockedReason,
   tracking,
 }: {
   orderId: string;
   currentStatus: OrderStatus;
   nextStatuses: readonly OrderStatus[];
+  /** Steps shown but not allowed yet (e.g. Shipped while a half-prepaid balance is unpaid). */
+  lockedStatuses?: readonly OrderStatus[];
+  /** Why the locked steps are unavailable. */
+  lockedReason?: string;
   tracking: { carrier: string | null; number: string | null; url: string | null };
 }) {
   const { run, pending } = useActionRunner();
   const once = useOnce();
-  const [status, setStatus] = React.useState<OrderStatus>(nextStatuses[0]);
+  const lockedId = React.useId();
+  const [status, setStatus] = React.useState<OrderStatus | undefined>(nextStatuses[0]);
   const [carrier, setCarrier] = React.useState(tracking.carrier ?? '');
   const [number, setNumber] = React.useState(tracking.number ?? '');
   const [url, setUrl] = React.useState(tracking.url ?? '');
@@ -57,6 +64,27 @@ export function FulfilmentForm({
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const showTracking = status === 'shipped';
   const isTrackingUpdate = status === currentStatus;
+
+  const lockedNotice =
+    lockedStatuses.length && lockedReason ? (
+      <Notice tone="warning" title={`${lockedStatuses.map((s) => FULFILMENT_LABEL[s] ?? s).join(' and ')} locked`}>
+        <span id={lockedId}>{lockedReason}</span>
+      </Notice>
+    ) : null;
+
+  if (!status) {
+    // Nothing allowed yet: show what is locked and why.
+    return (
+      <div className="space-y-4">
+        {lockedNotice}
+        {lockedStatuses.map((s) => (
+          <Button key={s} type="button" className="w-full" disabled aria-describedby={lockedReason ? lockedId : undefined}>
+            {s === 'delivered' ? <CheckCircle2 /> : <Truck />} Mark as {s}
+          </Button>
+        ))}
+      </div>
+    );
+  }
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,14 +115,25 @@ export function FulfilmentForm({
   return (
     <form onSubmit={submit} noValidate className="space-y-4">
       <Field label="Next step" htmlFor="fulfil-status" required>
-        <NativeSelect id="fulfil-status" value={status} onChange={(e) => setStatus(e.target.value as OrderStatus)}>
+        <NativeSelect
+          id="fulfil-status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as OrderStatus)}
+          aria-describedby={lockedNotice ? lockedId : undefined}
+        >
           {nextStatuses.map((s) => (
             <option key={s} value={s}>
               {s === currentStatus ? 'Update tracking details' : `Mark as ${FULFILMENT_LABEL[s] ?? s}`}
             </option>
           ))}
+          {lockedStatuses.map((s) => (
+            <option key={`locked-${s}`} value={`locked-${s}`} disabled>
+              {`Mark as ${FULFILMENT_LABEL[s] ?? s} (locked until the balance is verified)`}
+            </option>
+          ))}
         </NativeSelect>
       </Field>
+      {lockedNotice}
       {showTracking ? (
         <>
           <Field label="Carrier" htmlFor="fulfil-carrier" error={errors.trackingCarrier || undefined}>
@@ -146,7 +185,21 @@ export function FulfilmentForm({
 // ---------------------------------------------------------------------------
 // Cancellation
 // ---------------------------------------------------------------------------
-export function CancelOrderButton({ orderId, orderNumber, paid, refundAmount }: { orderId: string; orderNumber: string; paid: boolean; refundAmount: number }) {
+export function CancelOrderButton({
+  orderId,
+  orderNumber,
+  paid,
+  amountPaid,
+  refundAmount,
+}: {
+  orderId: string;
+  orderNumber: string;
+  /** Any money was verified as received (the advance counts). */
+  paid: boolean;
+  amountPaid: number;
+  /** What cancel_order will put into a pending refund: amount_paid − refunded − pending refunds. */
+  refundAmount: number;
+}) {
   return (
     <ConfirmActionButton
       title={`Cancel order ${orderNumber}?`}
@@ -155,9 +208,10 @@ export function CancelOrderButton({ orderId, orderNumber, paid, refundAmount }: 
       description={
         <div className="space-y-2">
           <p>This cannot be undone. Reserved stock is released and any stock already deducted for this order is put back into inventory.</p>
-          {paid ? (
+          {paid && refundAmount > 0 ? (
             <p className="font-medium text-ink">
-              This order was paid: a refund of {formatMoney(refundAmount)} becomes pending. Send it to the customer, then record it under Refunds.
+              {formatMoney(amountPaid)} was received for this order: a refund of {formatMoney(refundAmount)} becomes pending. Send it to the customer, then record it
+              under Refunds.
             </p>
           ) : null}
           <p className="text-warning">The customer sees the reason in their order history and cancellation email.</p>
@@ -412,6 +466,7 @@ export function ExpireOrdersButton() {
         <div className="space-y-2">
           <p>Orders still awaiting payment after their payment window are cancelled and their reserved stock is released. Customers are emailed.</p>
           <p>Orders with a payment proof under review are never expired; overdue reviews are flagged for attention instead.</p>
+          <p>Half-prepaid orders whose balance is past its due date are flagged once and the customer gets one reminder. They are never cancelled, because money was received.</p>
         </div>
       }
       confirmLabel="Expire now"

@@ -12,7 +12,8 @@ import { OrderNoteForm, ResolveAttentionButton } from '@/components/admin/orders
 import { PAYMENT_METHOD_TEXT } from '@/components/admin/orders/constants';
 import { ProofCard } from '@/components/admin/payments/proof-card';
 import { PaymentDecision } from '@/components/admin/payments/payment-decision';
-import { cn, formatDateTime, formatMoney } from '@/lib/utils';
+import { amountDue, asPurpose, balanceOutstanding, duePurpose, PAYMENT_PLAN_TEXT, PURPOSE_NOUN, PURPOSE_TEXT, PURPOSE_TONE, type PaymentPurpose } from '@/lib/admin/payment-plans';
+import { cn, formatDate, formatDateTime, formatMoney } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Verify payment' };
 
@@ -47,6 +48,17 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
   const inReview = order.payment_status === 'proof_submitted' || order.payment_status === 'verification_pending';
   const overdue = inReview && order.review_due_at ? new Date(order.review_due_at).getTime() < detail.nowMs : false;
   const cancelledByStaff = order.order_status === 'cancelled' && !order.expired;
+  const halfPrepaid = order.payment_plan === 'half_prepaid';
+
+  // The exact credit to find: the open proof's expected amount, else what is due now
+  // (an expired order still accepts a late proof for the advance / full amount).
+  const openPurpose = openProof ? (asPurpose(openProof.purpose) ?? 'full') : null;
+  const purpose: PaymentPurpose = openPurpose ?? duePurpose(order) ?? (order.amount_paid > 0 ? 'balance' : halfPrepaid ? 'advance' : 'full');
+  const fallbackAmount = purpose === 'balance' ? Math.max(order.total - order.amount_paid, 0) : order.advance_amount;
+  const expectedAmount = openProof ? (openProof.expected_amount ?? fallbackAmount) : amountDue(order) || fallbackAmount;
+  const outstanding = balanceOutstanding(order);
+  const balanceOverdue = order.payment_status === 'partially_paid' && order.balance_due_at ? new Date(order.balance_due_at).getTime() <= detail.nowMs : false;
+  const settled = order.payment_status === 'verified_paid' || order.payment_status === 'refund_pending' || order.payment_status === 'refunded';
 
   return (
     <>
@@ -69,7 +81,13 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
 
       <div className="mb-6 space-y-3">
         <Notice tone="warning" title="Before you approve">
-          <p className="whitespace-pre-line">{settings?.instructions ?? 'Open your bank statement or UPI merchant app and confirm a credit of the exact order amount with the matching UTR before approving. A screenshot alone is never sufficient.'}</p>
+          {!settled ? (
+            <p className="mb-2 font-medium text-ink">
+              Confirm a credit of exactly {formatMoney(expectedAmount)} ({PURPOSE_TEXT[purpose].toLowerCase()}) in your bank statement or UPI merchant app, with the
+              customer&apos;s UTR.
+            </p>
+          ) : null}
+          <p className="whitespace-pre-line">{settings?.instructions ?? 'Open your bank statement or UPI merchant app and confirm a credit of the exact expected amount with the matching UTR before approving. A screenshot alone is never sufficient.'}</p>
         </Notice>
         {order.requires_attention ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3" role="alert">
@@ -109,10 +127,25 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
 
         <aside className="space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <Panel>
-            <p className="text-xs font-medium text-muted">Credit to find in your bank records</p>
-            <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">{formatMoney(order.total)}</p>
+            {settled ? (
+              <>
+                <p className="text-xs font-medium text-muted">Money received</p>
+                <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">{formatMoney(order.amount_paid)}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-medium text-muted">Credit to find in your bank records</p>
+                <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums" data-testid="expected-credit">
+                  {formatMoney(expectedAmount)}
+                </p>
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <Badge tone={PURPOSE_TONE[purpose]}>{PURPOSE_TEXT[purpose]}</Badge>
+                  {purpose === 'full' ? `the full order amount` : `the ${PURPOSE_NOUN[purpose]} of a ${formatMoney(order.total)} order`}
+                </p>
+              </>
+            )}
             {openProof?.utr ? (
-              <p className="mt-1 text-sm">
+              <p className="mt-2 text-sm">
                 UTR <span className="font-mono font-semibold tracking-wide">{openProof.utr}</span>
               </p>
             ) : null}
@@ -120,10 +153,36 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
               <PaymentStatusBadge status={order.payment_status} />
               <OrderStatusBadge status={order.order_status} />
               {order.expired ? <Badge tone="warning">Expired</Badge> : null}
+              {balanceOverdue ? <Badge tone="danger">Balance overdue</Badge> : null}
             </div>
             <div className="mt-4 border-t border-line pt-4">
               <FactList
                 items={[
+                  ['Plan', PAYMENT_PLAN_TEXT[order.payment_plan]],
+                  ['Order total', <span key="t" className="tabular-nums">{formatMoney(order.total)}</span>],
+                  ...(halfPrepaid
+                    ? ([
+                        ['Advance', <span key="a" className="tabular-nums">{formatMoney(order.advance_amount)} ({order.advance_percent}%)</span>],
+                        ['Balance', <span key="b" className="tabular-nums">{formatMoney(order.total - order.advance_amount)}</span>],
+                      ] as [React.ReactNode, React.ReactNode][])
+                    : []),
+                  ['Paid so far', <span key="p" className="font-medium tabular-nums">{formatMoney(order.amount_paid)}</span>],
+                  ...(outstanding > 0
+                    ? ([
+                        ['Balance outstanding', <span key="o" className="font-medium tabular-nums">{formatMoney(outstanding)}</span>],
+                        [
+                          'Balance due',
+                          order.balance_due_at ? (
+                            <span key="d" className={cn(balanceOverdue && 'font-semibold text-danger')}>
+                              {formatDate(order.balance_due_at)}
+                              {balanceOverdue ? ' (overdue)' : ''}
+                            </span>
+                          ) : (
+                            '—'
+                          ),
+                        ],
+                      ] as [React.ReactNode, React.ReactNode][])
+                    : []),
                   [
                     'Review due',
                     inReview && order.review_due_at ? (
@@ -140,8 +199,14 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
                   ['Phone', order.phone],
                   ...(order.paid_at
                     ? ([
-                        ['Paid at', formatDateTime(order.paid_at)],
-                        ['Reference', <span key="r" className="font-mono">{order.payment_reference ?? '—'}</span>],
+                        [halfPrepaid ? 'Advance paid at' : 'Paid at', formatDateTime(order.paid_at)],
+                        [halfPrepaid ? 'Advance reference' : 'Reference', <span key="r" className="font-mono">{order.payment_reference ?? '—'}</span>],
+                        ...(order.balance_paid_at
+                          ? ([
+                              ['Balance paid at', formatDateTime(order.balance_paid_at)],
+                              ['Balance reference', <span key="br" className="font-mono">{order.balance_reference ?? '—'}</span>],
+                            ] as [React.ReactNode, React.ReactNode][])
+                          : []),
                         ['Verified by', detail.verifiedByEmail ?? '—'],
                       ] as [React.ReactNode, React.ReactNode][])
                     : []),
@@ -156,6 +221,11 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
               orderId={order.id}
               orderNumber={order.order_number}
               total={order.total}
+              paymentPlan={order.payment_plan}
+              amountPaid={order.amount_paid}
+              expectedAmount={expectedAmount}
+              purpose={purpose}
+              balanceDueAt={order.balance_due_at}
               paymentStatus={order.payment_status}
               cancelledByStaff={cancelledByStaff}
               expired={order.expired}

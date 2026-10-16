@@ -20,6 +20,7 @@ export const PAYMENT_STATUSES: readonly PaymentStatus[] = [
   'unpaid',
   'proof_submitted',
   'verification_pending',
+  'partially_paid',
   'verified_paid',
   'rejected',
   'refund_pending',
@@ -66,7 +67,7 @@ export const FULFILMENT_LABEL: Partial<Record<OrderStatus, string>> = {
   delivered: 'Delivered',
 };
 
-/** Payment statuses that mean money was verified as received. */
+/** Payment statuses that mean the full order amount was verified as received. */
 export const PAID_STATUSES: readonly PaymentStatus[] = ['verified_paid', 'refund_pending', 'refunded'];
 
 /** Payment statuses waiting for an admin decision. */
@@ -94,6 +95,13 @@ export function eventLabel(type: string): string {
     refund_pending: 'Refund pending',
     refund_processed: 'Refund processed',
     payment_failed: 'Payment attempt failed',
+    // Half prepaid: advance at checkout, balance online before dispatch.
+    advance_verified: 'Advance verified',
+    balance_proof_submitted: 'Balance proof submitted',
+    balance_verified: 'Balance verified',
+    balance_resubmission_requested: 'New balance proof requested',
+    balance_payment_rejected: 'Balance payment rejected',
+    balance_overdue: 'Balance payment overdue',
   };
   return known[type] ?? type.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }

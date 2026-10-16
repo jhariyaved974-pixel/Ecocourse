@@ -2,30 +2,54 @@ import { Check, CircleX } from 'lucide-react';
 import type { CustomerOrder } from '@/lib/orders/customer';
 import { cn, formatDateTime } from '@/lib/utils';
 
-const STEPS = [
-  { key: 'placed', label: 'Order placed' },
-  { key: 'payment', label: 'Payment verified' },
-  { key: 'processing', label: 'Packed' },
-  { key: 'shipped', label: 'Shipped' },
-  { key: 'delivered', label: 'Delivered' },
-] as const;
+type Order = Pick<CustomerOrder, 'orderStatus' | 'paymentStatus' | 'paymentPlan' | 'amountPaid' | 'total' | 'expired' | 'createdAt' | 'events'>;
 
-function reached(o: CustomerOrder): number {
-  switch (o.orderStatus) {
-    case 'delivered':
-      return 4;
-    case 'shipped':
-      return 3;
-    case 'processing':
-      return 2;
-    case 'confirmed':
-      return 1;
-    default:
-      return 0;
-  }
+interface Step {
+  key: string;
+  label: string;
+  done: boolean;
+  /** Event types (or the order status an event moved to) that date this step. */
+  events: string[];
 }
 
-export function OrderProgress({ order }: { order: CustomerOrder }) {
+const RANK: Record<CustomerOrder['orderStatus'], number> = {
+  pending_payment: 0,
+  payment_review: 0,
+  cancelled: 0,
+  confirmed: 1,
+  processing: 2,
+  shipped: 3,
+  delivered: 4,
+};
+
+/**
+ * Prepaid: placed → payment verified → packed → shipped → delivered.
+ * Half prepaid: placed → advance verified → packed → balance verified →
+ * shipped → delivered. Packing may happen before or after the balance is
+ * verified, so each step is done on its own condition; shipping always needs
+ * the full payment (enforced by the database).
+ */
+function steps(o: Order): Step[] {
+  const rank = RANK[o.orderStatus];
+  const fullyPaid = o.paymentStatus === 'verified_paid' || o.paymentStatus === 'refund_pending' || o.paymentStatus === 'refunded' || o.amountPaid >= o.total;
+  const placed: Step = { key: 'placed', label: 'Order placed', done: true, events: ['placed'] };
+  const packed: Step = { key: 'processing', label: 'Packed', done: rank >= 2, events: ['processing'] };
+  const shipped: Step = { key: 'shipped', label: 'Shipped', done: rank >= 3, events: ['shipped'] };
+  const delivered: Step = { key: 'delivered', label: 'Delivered', done: rank >= 4, events: ['delivered'] };
+  if (o.paymentPlan === 'half_prepaid') {
+    return [
+      placed,
+      { key: 'advance', label: 'Advance verified', done: rank >= 1 || o.amountPaid > 0, events: ['advance_verified'] },
+      packed,
+      { key: 'balance', label: 'Balance verified', done: fullyPaid && rank >= 1, events: ['balance_verified'] },
+      shipped,
+      delivered,
+    ];
+  }
+  return [placed, { key: 'payment', label: 'Payment verified', done: rank >= 1, events: ['payment_verified'] }, packed, shipped, delivered];
+}
+
+export function OrderProgress({ order }: { order: Order }) {
   if (order.orderStatus === 'cancelled') {
     return (
       <div className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm">
@@ -34,23 +58,23 @@ export function OrderProgress({ order }: { order: CustomerOrder }) {
       </div>
     );
   }
-  const step = reached(order);
-  const timeFor = (key: string) => {
-    const map: Record<string, string> = { placed: 'placed', payment: 'payment_verified', processing: 'processing', shipped: 'shipped', delivered: 'delivered' };
-    return order.events.findLast((e) => e.type === map[key] || e.toStatus === key)?.createdAt;
-  };
+  const list = steps(order);
+  const currentIndex = list.findIndex((s) => !s.done);
+  const timeFor = (s: Step) => (s.key === 'placed' ? order.createdAt : order.events.findLast((e) => s.events.includes(e.type) || e.toStatus === s.key)?.createdAt);
   return (
-    <ol className="grid grid-cols-5 gap-2" aria-label="Order progress">
-      {STEPS.map((s, i) => {
-        const done = i <= step;
-        const current = i === step + 1 && order.orderStatus !== 'delivered';
-        const at = done ? (i === 0 ? order.createdAt : timeFor(s.key)) : undefined;
+    <ol className={cn('grid gap-2', list.length === 6 ? 'grid-cols-6' : 'grid-cols-5')} aria-label="Order progress">
+      {list.map((s, i) => {
+        const current = i === currentIndex;
+        const at = s.done ? timeFor(s) : undefined;
         return (
           <li key={s.key} className="flex flex-col gap-2" aria-current={current ? 'step' : undefined}>
-            <span className={cn('h-1 rounded-full', done ? 'bg-ink' : current ? 'bg-ink/30' : 'bg-line')} />
-            <span className="flex items-center gap-1.5 text-xs font-medium">
-              {done ? <Check className="size-3.5" /> : null}
-              <span className={done ? 'text-ink' : 'text-muted'}>{s.label}</span>
+            <span className={cn('h-1 rounded-full', s.done ? 'bg-ink' : current ? 'bg-ink/30' : 'bg-line')} />
+            <span className="flex items-start gap-1 text-[11px] leading-tight font-medium sm:items-center sm:gap-1.5 sm:text-xs">
+              {s.done ? <Check className="size-3.5 shrink-0" aria-hidden /> : null}
+              <span className={s.done ? 'text-ink' : 'text-muted'}>
+                {s.label}
+                {s.done ? <span className="sr-only"> (done)</span> : null}
+              </span>
             </span>
             {at ? <span className="hidden text-[11px] text-muted sm:block">{formatDateTime(at)}</span> : null}
           </li>

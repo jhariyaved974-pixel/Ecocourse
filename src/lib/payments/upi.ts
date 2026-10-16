@@ -61,6 +61,15 @@ export function buildUpiUri(input: UpiLinkInput): string {
   return `upi://pay?${params.map(([k, v, keep]) => `${k}=${encodeParam(v, keep)}`).join('&')}`;
 }
 
+/**
+ * Payment note / reference the shopper adds to a UPI payment: the order number,
+ * or "<order number>-BAL" for the balance of a half-prepaid order (so staff can
+ * tell the two credits apart in the bank statement).
+ */
+export function upiReference(orderNumber: string, purpose: 'full' | 'advance' | 'balance'): string {
+  return purpose === 'balance' ? `${orderNumber}-BAL` : orderNumber;
+}
+
 /** Normalises a UTR / RRN as typed by the shopper (spaces removed, upper-case). */
 export function normalizeUtr(value: string | null | undefined): string | null {
   const v = (value ?? '').replace(/\s+/g, '').toUpperCase();

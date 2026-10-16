@@ -113,7 +113,7 @@ export const PAYMENT_STATUS_TEXT: Record<Enums<'payment_status'>, string> = {
   unpaid: 'Unpaid',
   proof_submitted: 'Proof submitted',
   verification_pending: 'Verification pending',
-  partially_paid: 'Advance paid',
+  partially_paid: 'Advance received — balance due',
   verified_paid: 'Verified & paid',
   rejected: 'Rejected',
   refund_pending: 'Refund pending',

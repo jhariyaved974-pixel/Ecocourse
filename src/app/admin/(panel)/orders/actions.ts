@@ -61,7 +61,7 @@ export async function updateFulfillment(input: z.input<typeof fulfilmentSchema>)
 
     const { data: order, error: readError } = await supabase
       .from('orders')
-      .select('order_status, payment_status, tracking_number')
+      .select('order_status, payment_status, tracking_number, total, amount_paid')
       .eq('id', v.orderId)
       .maybeSingle();
     if (readError) return dbFail(readError);
@@ -80,7 +80,16 @@ export async function updateFulfillment(input: z.input<typeof fulfilmentSchema>)
       p_tracking_url: v.trackingUrl || undefined,
       p_note: v.note || undefined,
     });
-    if (error) return dbFail(error);
+    if (error) {
+      if (error.hint === 'balance_not_paid') {
+        const outstanding = Math.max(order.total - order.amount_paid, 0);
+        return fail(
+          `Collect the balance first: Shipped and Delivered need the balance${outstanding ? ` of ${formatMoney(outstanding)}` : ''} to be verified. You can still mark the order as processing.`,
+          'balance_not_paid',
+        );
+      }
+      return dbFail(error);
+    }
     const message =
       order.order_status === v.status ? 'Tracking details updated.' : `Order marked as ${v.status}.`;
     deliverEmailsSoon();
@@ -106,11 +115,17 @@ export async function cancelOrder(input: z.input<typeof cancelSchema>) {
     const status = jsonStatus(data);
     if (status === 'already_cancelled') return ok({ status }, 'This order was already cancelled. Nothing changed.');
     await invalidateOrderStock(supabase, orderId);
-    const refundPending = Boolean(data && typeof data === 'object' && (data as { refund_pending?: boolean }).refund_pending);
+    const result = data && typeof data === 'object' ? (data as { refund_pending?: boolean; refund_amount?: number }) : {};
+    const refundPending = Boolean(result.refund_pending);
+    const refundAmount = typeof result.refund_amount === 'number' ? result.refund_amount : 0;
     deliverEmailsSoon();
     return ok(
-      { status: status ?? 'cancelled', refundPending },
-      refundPending ? 'Order cancelled. Stock restored and a refund is now pending.' : 'Order cancelled and stock restored.',
+      { status: status ?? 'cancelled', refundPending, refundAmount },
+      refundAmount > 0
+        ? `Order cancelled. Stock restored and a refund of ${formatMoney(refundAmount)} is now pending.`
+        : refundPending
+          ? 'Order cancelled. Stock restored and a refund is still pending.'
+          : 'Order cancelled and stock restored.',
     );
   });
 }
@@ -236,17 +251,24 @@ export async function resolveOrderAttention(input: z.input<typeof resolveSchema>
 // ---------------------------------------------------------------------------
 export async function expireStaleOrdersNow() {
   return staffAction(ROLE_GROUPS.admin, async ({ supabase }) => {
-    // expire_stale_orders also flags overdue payment reviews; count those first
-    // so the result can report both numbers.
+    // expire_stale_orders also flags overdue payment reviews (advance, full and
+    // balance proofs) and overdue half-prepaid balances; count the reviews first
+    // so the result can report every number.
     const nowIso = new Date().toISOString();
     const { count: toFlag } = await supabase
       .from('orders')
       .select('id', { count: 'exact', head: true })
-      .eq('order_status', 'payment_review')
+      .or('order_status.eq.payment_review,payment_status.in.(proof_submitted,verification_pending)')
       .lt('review_due_at', nowIso)
       .eq('requires_attention', false);
     const { data, error } = await supabase.rpc('expire_stale_orders', { p_limit: 200 });
     if (error) return dbFail(error);
+    // Overdue balances are flagged once, with a 'balance_overdue' event (never cancelled).
+    const { count: balancesFlagged } = await supabase
+      .from('order_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_type', 'balance_overdue')
+      .gte('created_at', nowIso);
     const expired = typeof data === 'number' ? data : 0;
     if (expired > 0) {
       const { data: justExpired } = await supabase.from('orders').select('id').eq('expired', true).gte('cancelled_at', nowIso).limit(500);
@@ -257,7 +279,11 @@ export async function expireStaleOrdersNow() {
       expired === 0 ? 'No unpaid orders were past their payment window.' : `Expired ${expired} unpaid order${expired === 1 ? '' : 's'} and released their stock.`,
     ];
     if (flagged > 0) parts.push(`Flagged ${flagged} overdue payment review${flagged === 1 ? '' : 's'} for attention.`);
+    const overdueBalances = balancesFlagged ?? 0;
+    if (overdueBalances > 0) {
+      parts.push(`Flagged ${overdueBalances} overdue balance payment${overdueBalances === 1 ? '' : 's'} (not cancelled; the customer was sent one reminder).`);
+    }
     deliverEmailsSoon();
-    return ok({ expired, flagged }, parts.join(' '));
+    return ok({ expired, flagged, overdueBalances }, parts.join(' '));
   });
 }

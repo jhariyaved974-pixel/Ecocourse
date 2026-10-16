@@ -7,6 +7,7 @@ import { hashToken, orderCookieName } from '@/lib/security';
 import { resolveMediaUrl } from '@/lib/media';
 import type { Enums } from '@/lib/database.types';
 import { sqlNull } from '@/lib/errors';
+import { isPaymentPurpose, paymentDue, type PaymentPlan, type PaymentPurpose } from '@/lib/orders/payment-plan';
 
 export const ORDER_NUMBER = /^[A-Z]{2,4}-[0-9]{6}-[0-9A-Z]{5}$/;
 
@@ -32,12 +33,37 @@ export interface CustomerOrder {
   orderStatus: Enums<'order_status'>;
   reservationExpiresAt: string | null;
   expired: boolean;
+  /** Time of the first verified payment (the advance for half prepaid). */
   paidAt: string | null;
+  paymentPlan: PaymentPlan;
+  /** The order's own advance percentage (100 for prepaid). */
+  advancePercent: number;
+  /** Total for prepaid; the rounded advance for half prepaid. */
+  advanceAmount: number;
+  /** total − advanceAmount (0 for prepaid). */
+  balanceAmount: number;
+  /** Verified money received so far. */
+  amountPaid: number;
+  /** What the shopper has to pay now (0 when fully paid or cancelled). */
+  amountDue: number;
+  duePurpose: PaymentPurpose | null;
+  balanceDueAt: string | null;
+  balancePaidAt: string | null;
   tracking: { carrier: string | null; number: string | null; url: string | null };
   items: { productName: string; productSlug: string | null; colorName: string | null; sizeLabel: string; variantLabel: string; image: string | null; unitPrice: number; unitRegularPrice: number; quantity: number; lineTotal: number }[];
   events: { type: string; message: string | null; toStatus: string | null; createdAt: string }[];
-  latestProof: { status: Enums<'proof_status'>; utr: string | null; submittedAt: string; reviewReason: string | null; hasFile: boolean } | null;
+  latestProof: {
+    status: Enums<'proof_status'>;
+    utr: string | null;
+    submittedAt: string;
+    reviewReason: string | null;
+    hasFile: boolean;
+    purpose: PaymentPurpose | null;
+    expectedAmount: number | null;
+  } | null;
 }
+
+const int = (v: unknown, fallback = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
 
 /** How the visitor proved access: the order cookie (guest link) or their account. */
 export async function getOrderAccess(orderNumber: string) {
@@ -83,6 +109,15 @@ export async function getCustomerOrder(orderNumber: string): Promise<CustomerOrd
     reservationExpiresAt: o.reservation_expires_at,
     expired: o.expired,
     paidAt: o.paid_at,
+    paymentPlan: o.payment_plan === 'half_prepaid' ? 'half_prepaid' : 'prepaid',
+    advancePercent: int(o.advance_percent, 100),
+    advanceAmount: int(o.advance_amount, o.total),
+    balanceAmount: int(o.balance_amount),
+    amountPaid: int(o.amount_paid),
+    amountDue: int(o.amount_due),
+    duePurpose: isPaymentPurpose(o.due_purpose) ? o.due_purpose : null,
+    balanceDueAt: o.balance_due_at ?? null,
+    balancePaidAt: o.balance_paid_at ?? null,
     tracking: { carrier: o.tracking_carrier, number: o.tracking_number, url: o.tracking_url },
     items: (o.items ?? []).map((i: Record<string, any>) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       productName: i.product_name,
@@ -98,7 +133,15 @@ export async function getCustomerOrder(orderNumber: string): Promise<CustomerOrd
     })),
     events: (o.events ?? []).map((e: Record<string, any>) => ({ type: e.type, message: e.message, toStatus: e.to_status, createdAt: e.created_at })), // eslint-disable-line @typescript-eslint/no-explicit-any
     latestProof: o.latest_proof
-      ? { status: o.latest_proof.status, utr: o.latest_proof.utr, submittedAt: o.latest_proof.submitted_at, reviewReason: o.latest_proof.review_reason, hasFile: o.latest_proof.has_file }
+      ? {
+          status: o.latest_proof.status,
+          utr: o.latest_proof.utr,
+          submittedAt: o.latest_proof.submitted_at,
+          reviewReason: o.latest_proof.review_reason,
+          hasFile: o.latest_proof.has_file,
+          purpose: isPaymentPurpose(o.latest_proof.purpose) ? o.latest_proof.purpose : null,
+          expectedAmount: typeof o.latest_proof.expected_amount === 'number' ? o.latest_proof.expected_amount : null,
+        }
       : null,
   };
 }
@@ -124,9 +167,23 @@ export const PAYMENT_STATUS_LABEL: Record<Enums<'payment_status'>, string> = {
   refunded: 'Refunded',
 };
 
-/** Whether the shopper should be offered the UPI payment + proof form. */
-export function canSubmitProof(o: Pick<CustomerOrder, 'paymentMethod' | 'orderStatus' | 'paymentStatus' | 'expired'>) {
-  if (o.paymentMethod !== 'upi_manual') return false;
-  if (!['unpaid', 'rejected'].includes(o.paymentStatus)) return false;
-  return o.orderStatus === 'pending_payment' || (o.orderStatus === 'cancelled' && o.expired);
+type PaymentFields = Pick<
+  CustomerOrder,
+  'paymentMethod' | 'orderStatus' | 'paymentStatus' | 'expired' | 'paymentPlan' | 'total' | 'advanceAmount' | 'amountPaid' | 'amountDue' | 'duePurpose'
+>;
+
+/**
+ * Whether the shopper should be offered the UPI payment + proof form: the
+ * advance/full amount while the order awaits payment (or late, after it
+ * expired), or the balance once the advance is verified (due_purpose =
+ * 'balance'). The database decides the proof's purpose and expected amount.
+ */
+export function canSubmitProof(o: PaymentFields) {
+  return o.paymentMethod === 'upi_manual' && paymentDue(o) !== null;
+}
+
+/** Whether a Razorpay order can be paid online now (advance/full or balance; never late). */
+export function canPayOnline(o: PaymentFields) {
+  const due = paymentDue(o);
+  return o.paymentMethod === 'razorpay' && due !== null && !due.late;
 }

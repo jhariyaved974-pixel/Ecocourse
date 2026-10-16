@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AlertTriangle, ArrowRight, BadgeIndianRupee, Clock3 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BadgeIndianRupee, Clock3, Wallet } from 'lucide-react';
 import { requireStaffPage, roleAllowed, ROLE_GROUPS } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { OrderStatusBadge, PageHeader, Panel, PaymentStatusBadge, StatCard } from '@/components/admin/ui';
@@ -8,6 +8,7 @@ import { RevenueChart, type DayPoint } from '@/components/admin/dashboard/revenu
 import { EmptyState, Notice } from '@/components/ui/misc';
 import { Button } from '@/components/ui/button';
 import type { Enums } from '@/lib/database.types';
+import { PAYMENT_PLAN_TEXT } from '@/lib/admin/payment-plans';
 import { formatDateTime, formatMoney } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Dashboard' };
@@ -20,14 +21,37 @@ interface Metrics {
   orders_to_fulfil: number;
   orders_cancelled: number;
   orders_needing_attention: number;
+  /** Confirmed/processing orders whose advance is verified and balance still unpaid. */
+  orders_balance_due: number;
+  orders_balance_overdue: number;
   products_published: number;
   products_draft: number;
   low_stock_variants: number;
   customers_total: number;
   pending_reviews: number;
-  revenue: null | { paid_gross: number; paid_net: number; refunded: number; refund_pending: number; awaiting_payment: number; paid_last_30_days: number; by_day: DayPoint[] };
+  /** Money received (verified advances and balances), not order value. */
+  revenue: null | {
+    paid_gross: number;
+    paid_net: number;
+    refunded: number;
+    refund_pending: number;
+    awaiting_payment: number;
+    balance_outstanding: number;
+    paid_last_30_days: number;
+    by_day: DayPoint[];
+  };
   top_products: { product_id: string; name: string; units: number; revenue: number }[];
-  recent_orders: { id: string; order_number: string; customer_name: string; total: number; payment_status: Enums<'payment_status'>; order_status: Enums<'order_status'>; created_at: string }[];
+  recent_orders: {
+    id: string;
+    order_number: string;
+    customer_name: string;
+    total: number;
+    payment_status: Enums<'payment_status'>;
+    order_status: Enums<'order_status'>;
+    created_at: string;
+    payment_plan?: Enums<'payment_plan'>;
+    amount_paid?: number;
+  }[];
   recent_activity: { action: string; entity_type: string; summary: string | null; actor_email: string | null; created_at: string }[];
 }
 
@@ -40,7 +64,13 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
   const supabase = await createSupabaseServerClient();
   const [{ data, error }, overdue, openRequests] = await Promise.all([
     supabase.rpc('admin_dashboard_metrics'),
-    canOrders ? supabase.from('orders').select('id', { count: 'exact', head: true }).eq('order_status', 'payment_review').lt('review_due_at', new Date().toISOString()) : Promise.resolve({ count: 0 }),
+    canOrders
+      ? supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .in('payment_status', ['proof_submitted', 'verification_pending']) // advance, full and balance proofs
+          .lt('review_due_at', new Date().toISOString())
+      : Promise.resolve({ count: 0 }),
     canOrders ? supabase.from('customer_requests').select('id', { count: 'exact', head: true }).in('status', ['open', 'in_progress']) : Promise.resolve({ count: 0 }),
   ]);
   const m = data as unknown as Metrics | null;
@@ -61,18 +91,31 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
           ) : null}
           {canOrders && (m.orders_needing_attention > 0 || (overdue.count ?? 0) > 0) ? (
             <Notice tone="warning" title="Needs attention">
-              {m.orders_needing_attention} order{m.orders_needing_attention === 1 ? '' : 's'} flagged (late payments, duplicate UTRs or overdue reviews)
+              {m.orders_needing_attention} order{m.orders_needing_attention === 1 ? '' : 's'} flagged (late payments, duplicate UTRs, overdue reviews or overdue balances)
               {(overdue.count ?? 0) > 0 ? `, ${overdue.count} past the review deadline` : ''}.{' '}
               <Link href="/admin/orders?attention=1" className="font-medium underline">Open</Link>
             </Notice>
           ) : null}
 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {isAdmin && m.revenue ? <StatCard label="Revenue, last 30 days" value={formatMoney(m.revenue.paid_last_30_days)} hint="Verified payments, net of refunds" /> : null}
+            {isAdmin && m.revenue ? (
+              <StatCard label="Received, last 30 days" value={formatMoney(m.revenue.paid_last_30_days)} hint="Verified advances, balances and full payments, net of refunds" />
+            ) : null}
             {canOrders ? <StatCard label="Orders today" value={m.orders_today} hint={`${m.orders_total} in total`} /> : null}
             {canOrders ? <StatCard label="Awaiting verification" value={m.orders_awaiting_verification} tone={m.orders_awaiting_verification ? 'warning' : undefined} hint="UPI proofs submitted" /> : null}
             {canOrders ? <StatCard label="To fulfil" value={m.orders_to_fulfil} hint="Confirmed or processing" /> : null}
             {canOrders ? <StatCard label="Awaiting payment" value={m.orders_pending_payment} hint={isAdmin && m.revenue ? formatMoney(m.revenue.awaiting_payment) : 'Reserved stock'} /> : null}
+            {canOrders ? (
+              <StatCard
+                label="Balance due"
+                value={m.orders_balance_due ?? 0}
+                tone={(m.orders_balance_overdue ?? 0) > 0 ? 'danger' : (m.orders_balance_due ?? 0) > 0 ? 'warning' : undefined}
+                hint={(m.orders_balance_overdue ?? 0) > 0 ? `${m.orders_balance_overdue} overdue · collect before dispatch` : 'Half prepaid, collect before dispatch'}
+              />
+            ) : null}
+            {isAdmin && m.revenue ? (
+              <StatCard label="Balance outstanding" value={formatMoney(m.revenue.balance_outstanding ?? 0)} hint="Still to collect on confirmed half-prepaid orders" />
+            ) : null}
             {canCatalog ? <StatCard label="Low-stock variants" value={m.low_stock_variants} tone={m.low_stock_variants ? 'warning' : undefined} hint="At or below threshold" /> : null}
             {canCatalog ? <StatCard label="Products live" value={m.products_published} hint={`${m.products_draft} draft`} /> : null}
             {canOrders ? <StatCard label="Pending reviews" value={m.pending_reviews} hint={`${openRequests.count ?? 0} open customer request(s)`} /> : null}
@@ -81,13 +124,16 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
           <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-6">
               {isAdmin && m.revenue ? (
-                <Panel title="Verified revenue per day" description="Last 30 days, India time. Only payments confirmed against bank records or a verified gateway event.">
+                <Panel
+                  title="Money received per day"
+                  description="Last 30 days, India time. Advances and balances count on the day they are verified against bank records or a verified gateway event."
+                >
                   <RevenueChart points={m.revenue.by_day.slice(-30)} />
                   <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm sm:grid-cols-4">
-                    <div><dt className="text-xs text-muted">Paid (gross)</dt><dd className="tabular-nums">{formatMoney(m.revenue.paid_gross)}</dd></div>
+                    <div><dt className="text-xs text-muted">Received (gross)</dt><dd className="tabular-nums">{formatMoney(m.revenue.paid_gross)}</dd></div>
                     <div><dt className="text-xs text-muted">Refunded</dt><dd className="tabular-nums">{formatMoney(m.revenue.refunded)}</dd></div>
                     <div><dt className="text-xs text-muted">Refunds pending</dt><dd className="tabular-nums">{formatMoney(m.revenue.refund_pending)}</dd></div>
-                    <div><dt className="text-xs text-muted">Paid (net)</dt><dd className="tabular-nums">{formatMoney(m.revenue.paid_net)}</dd></div>
+                    <div><dt className="text-xs text-muted">Received (net)</dt><dd className="tabular-nums">{formatMoney(m.revenue.paid_net)}</dd></div>
                   </dl>
                 </Panel>
               ) : null}
@@ -102,7 +148,14 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
                             <span className="block text-xs text-muted">{o.customer_name} · {formatDateTime(o.created_at)}</span>
                           </span>
                           <span className="flex flex-wrap gap-1.5"><OrderStatusBadge status={o.order_status} /><PaymentStatusBadge status={o.payment_status} /></span>
-                          <span className="w-24 text-right tabular-nums">{formatMoney(o.total)}</span>
+                          <span className="w-32 text-right tabular-nums">
+                            {formatMoney(o.total)}
+                            {o.payment_plan === 'half_prepaid' ? (
+                              <span className="block text-xs text-muted">
+                                {PAYMENT_PLAN_TEXT.half_prepaid} · paid {formatMoney(o.amount_paid ?? 0)}
+                              </span>
+                            ) : null}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -117,7 +170,8 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
                 <Panel title="Quick links">
                   <ul className="space-y-2 text-sm">
                     {isAdmin ? <li><Link href="/admin/payments" className="flex items-center gap-2 hover:underline"><BadgeIndianRupee className="size-4" /> UPI payments to verify ({m.orders_awaiting_verification})</Link></li> : null}
-                    <li><Link href="/admin/orders?order_status=confirmed" className="flex items-center gap-2 hover:underline"><Clock3 className="size-4" /> Orders to fulfil ({m.orders_to_fulfil})</Link></li>
+                    <li><Link href="/admin/orders?status=confirmed" className="flex items-center gap-2 hover:underline"><Clock3 className="size-4" /> Orders to fulfil ({m.orders_to_fulfil})</Link></li>
+                    <li><Link href="/admin/orders?payment=partially_paid" className="flex items-center gap-2 hover:underline"><Wallet className="size-4" /> Balances to collect ({m.orders_balance_due ?? 0}{(m.orders_balance_overdue ?? 0) > 0 ? `, ${m.orders_balance_overdue} overdue` : ''})</Link></li>
                     {canCatalog ? <li><Link href="/admin/inventory?filter=low" className="flex items-center gap-2 hover:underline"><AlertTriangle className="size-4" /> Low stock ({m.low_stock_variants})</Link></li> : null}
                   </ul>
                 </Panel>

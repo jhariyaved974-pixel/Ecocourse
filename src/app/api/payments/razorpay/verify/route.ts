@@ -19,9 +19,12 @@ function error(status: number, message: string) {
 /**
  * Called by the browser after Razorpay Checkout succeeds. The signature proves
  * the callback came from Razorpay for this order; the payment itself is then
- * fetched from Razorpay's API and only a captured payment for the exact order
- * amount confirms the order. The signed webhook does the same independently,
- * so the order is confirmed even if this request never arrives.
+ * fetched from Razorpay's API and only a captured payment for the exact amount
+ * of that Razorpay order (the full amount, the advance or the balance due when
+ * it was created) is applied. The signed webhook does the same independently,
+ * so the payment is recorded even if this request never arrives. The response
+ * is only a hint for the browser to refresh; the order page shows the database
+ * state.
  */
 export async function POST(request: NextRequest) {
   if (!isSameOrigin(request)) return error(403, 'Invalid request origin.');
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   const keys = { keyId: serverEnv.razorpayKeyId, keySecret: serverEnv.razorpayKeySecret };
   const db = createSupabaseServiceClient();
-  const { data: tx } = await db.from('payment_transactions').select('order_id, amount').eq('provider_order_id', orderId).maybeSingle();
+  const { data: tx } = await db.from('payment_transactions').select('order_id, amount, purpose').eq('provider_order_id', orderId).maybeSingle();
   if (!tx) return error(404, 'Payment not found.');
 
   try {
@@ -57,9 +60,12 @@ export async function POST(request: NextRequest) {
     });
     if (rpcError) throw new Error(rpcError.message);
     deliverEmailsSoon();
-    const result = (data as { result?: string } | null)?.result ?? 'processed';
+    const outcome = (data ?? {}) as { result?: string; refund_pending?: boolean };
+    const result = outcome.result ?? 'processed';
+    // amount_mismatch, or captured after the order was cancelled/expired (now a pending refund): staff follow up.
+    const needsReview = result === 'amount_mismatch' || outcome.refund_pending === true;
     return NextResponse.json(
-      { ok: result !== 'amount_mismatch', status: result === 'amount_mismatch' ? 'needs_review' : 'paid' },
+      { ok: !needsReview, status: needsReview ? 'needs_review' : 'paid', purpose: tx.purpose },
       { headers: { 'Cache-Control': 'no-store' } },
     );
   } catch (err) {

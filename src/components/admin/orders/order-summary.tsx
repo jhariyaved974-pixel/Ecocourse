@@ -95,10 +95,21 @@ export function OrderTotals({ order }: { order: AdminOrder }) {
       <Row label={`Shipping · ${order.shipping_method_name}`} value={order.shipping_total ? formatMoney(order.shipping_total) : 'Free'} />
       <Row label={order.tax_inclusive ? 'Tax (included in prices)' : 'Tax'} value={formatMoney(order.tax_total)} />
       <Row label="Order total" value={formatMoney(order.total)} strong />
+      {order.payment_plan === 'half_prepaid' ? (
+        <>
+          <Row label={`Advance (${order.advance_percent}%)`} value={formatMoney(order.advance_amount)} />
+          <Row label="Balance" value={formatMoney(order.total - order.advance_amount)} />
+        </>
+      ) : null}
+      {order.payment_plan === 'half_prepaid' || order.amount_paid > 0 ? <Row label="Paid so far" value={formatMoney(order.amount_paid)} /> : null}
+      {order.order_status !== 'cancelled' && order.amount_paid > 0 && order.amount_paid < order.total ? (
+        <Row label="Balance outstanding" value={formatMoney(order.total - order.amount_paid)} />
+      ) : null}
       {order.refunded_total > 0 ? (
         <>
           <Row label="Refunded" value={`−${formatMoney(order.refunded_total)}`} tone="danger" />
-          <Row label="Net received" value={formatMoney(order.total - order.refunded_total)} />
+          {/* Money actually kept: what was received minus what went back. */}
+          <Row label="Net received" value={formatMoney(order.amount_paid - order.refunded_total)} />
         </>
       ) : null}
     </dl>

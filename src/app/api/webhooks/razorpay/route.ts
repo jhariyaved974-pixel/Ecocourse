@@ -10,8 +10,9 @@ const MAX_BODY = 256 * 1024;
 /**
  * Razorpay webhook (payment.captured, order.paid, payment.failed). The raw body
  * is verified against RAZORPAY_WEBHOOK_SECRET before anything is parsed; event
- * ids are recorded so redeliveries are idempotent, and the database confirms
- * the order only when the captured amount matches the order total.
+ * ids are recorded so redeliveries are idempotent, and the database applies a
+ * captured payment only when it equals the amount of that Razorpay order (the
+ * full amount, the advance or the balance due when it was created).
  */
 export async function POST(request: Request) {
   if (!integrations.razorpay || !integrations.serviceRole) return NextResponse.json({ ok: false }, { status: 503 });

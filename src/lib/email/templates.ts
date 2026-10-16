@@ -57,6 +57,51 @@ function formatIst(value: string): string {
   return Number.isNaN(d.getTime()) ? '' : `${istFormat.format(d)} IST`;
 }
 
+const istDateFormat = new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'Asia/Kolkata' });
+/** Calendar date in India time (balance due dates), e.g. "23 Oct 2026". */
+function formatIstDate(value: string): string {
+  const d = new Date(value);
+  return value && !Number.isNaN(d.getTime()) ? istDateFormat.format(d) : '';
+}
+
+/** Exact rupee amount, or '' when the payload has no such number (the row is then left out). */
+function money(amount: number | null): string {
+  return amount !== null ? formatMoney(amount) : '';
+}
+
+// ---------------------------------------------------------------------------
+// Payment plans. Amounts always come from the payload the database queued.
+// ---------------------------------------------------------------------------
+type Purpose = 'full' | 'advance' | 'balance';
+
+function purposeOf(payload: Payload): Purpose {
+  const v = str(payload, 'purpose');
+  return v === 'advance' || v === 'balance' ? v : 'full';
+}
+
+function isHalfPrepaid(payload: Payload): boolean {
+  return str(payload, 'payment_plan') === 'half_prepaid';
+}
+
+/** Balance of a half-prepaid order (total − advance). */
+function balanceAmount(payload: Payload): number | null {
+  const balance = num(payload, 'balance_amount');
+  if (balance !== null) return balance;
+  const total = num(payload, 'total');
+  const advance = num(payload, 'advance_amount');
+  return total !== null && advance !== null ? total - advance : null;
+}
+
+/** Balance still to pay: total − verified money received. */
+function outstanding(payload: Payload): number | null {
+  const total = num(payload, 'total');
+  const paid = num(payload, 'amount_paid');
+  return total !== null && paid !== null && paid > 0 ? Math.max(total - paid, 0) : balanceAmount(payload);
+}
+
+const PURPOSE_LABEL: Record<Purpose, string> = { full: 'Full payment', advance: 'Advance', balance: 'Balance' };
+const PLAN_LABEL: Record<string, string> = { prepaid: 'Prepaid', half_prepaid: 'Half prepaid' };
+
 /** Only http(s) links built from the site URL are ever rendered. */
 function safeLink(href: string | null | undefined): string | null {
   if (!href) return null;
@@ -83,11 +128,14 @@ const button = (label: string, href: string | null | undefined): Block => ({ kin
 
 const SAFETY = 'We will never ask for your UPI PIN, OTP, card details or passwords.';
 
-function orderBlocks(payload: Payload, ctx: EmailContext): Block[] {
+function orderBlocks(payload: Payload, ctx: EmailContext, label = 'View your order'): Block[] {
+  const paid = num(payload, 'amount_paid');
   return [facts([
     ['Order', str(payload, 'order_number')],
-    ['Total', num(payload, 'total') !== null ? formatMoney(num(payload, 'total')) : ''],
-  ]), button('View your order', ctx.orderLink)];
+    ['Total', money(num(payload, 'total'))],
+    // Half prepaid: verified money received so far (never shown before anything was verified).
+    ['Paid so far', isHalfPrepaid(payload) && paid !== null && paid > 0 ? formatMoney(paid) : ''],
+  ]), button(label, ctx.orderLink)];
 }
 
 function greeting(payload: Payload): string {
@@ -103,6 +151,27 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
       const expires = str(payload, 'reservation_expires_at');
       const total = num(payload, 'total');
       const manual = str(payload, 'payment_method') !== 'razorpay';
+      const balance = balanceAmount(payload);
+      const advance = num(payload, 'amount_due') ?? num(payload, 'advance_amount');
+      if (isHalfPrepaid(payload) && balance !== null && balance > 0 && advance !== null) {
+        const by = expires ? ` Please pay before ${formatIst(expires)}.` : '';
+        return [
+          p(greeting(payload)),
+          p(`Thanks for your order ${order}. We are holding your items while you pay the advance.`),
+          p(`You chose Half prepaid: pay the advance of ${formatMoney(advance)} now to confirm your order, then the balance of ${formatMoney(balance)} online after we confirm it, before we dispatch your order. There is no cash on delivery.`),
+          manual
+            ? p(`Pay the advance of ${formatMoney(advance)} by UPI from your order page, then upload your payment screenshot and UTR so our team can verify it against our bank records.${by}`)
+            : p(`Pay the advance of ${formatMoney(advance)} online from your order page.${by}`),
+          facts([
+            ['Order', order],
+            ['Total', money(total)],
+            ['Advance due now', formatMoney(advance)],
+            ['Balance, before dispatch', formatMoney(balance)],
+          ]),
+          button('Pay the advance', ctx.orderLink),
+          p(SAFETY, true),
+        ];
+      }
       return [
         p(greeting(payload)),
         p(`Thanks for your order ${order}. We are holding your items while you complete the payment.`),
@@ -113,14 +182,87 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
         p(SAFETY, true),
       ];
     }
-    case 'proof_received':
+    case 'proof_received': {
+      const purpose = purposeOf(payload);
+      const expected = num(payload, 'expected_amount');
+      if (purpose === 'balance') {
+        return [
+          p(greeting(payload)),
+          p(`We received your balance payment proof for order ${order}. Its status is now “Awaiting payment verification”.`),
+          p(`Our team checks every payment against our bank records. We will email you once your balance${expected !== null ? ` of ${formatMoney(expected)}` : ''} has been checked, and dispatch your order after it is verified. Your balance payment is not confirmed until then.`),
+          facts([['Order', order], ['Balance being checked', money(expected)], ['Total', money(num(payload, 'total'))]]),
+          button('View your order', ctx.orderLink),
+          p(SAFETY, true),
+        ];
+      }
       return [
         p(greeting(payload)),
-        p(`We received your payment proof for order ${order}. Its status is now “Awaiting payment verification”.`),
-        p('Our team checks every payment against our bank records before confirming the order. We will email you as soon as it is verified. Your payment is not confirmed until then.'),
-        ...orderBlocks(payload, ctx),
+        p(`We received your ${purpose === 'advance' ? 'advance ' : ''}payment proof for order ${order}. Its status is now “Awaiting payment verification”.`),
+        p(
+          purpose === 'advance'
+            ? `Our team checks every payment against our bank records before confirming the order. We will email you as soon as your advance${expected !== null ? ` of ${formatMoney(expected)}` : ''} has been checked. Your payment is not confirmed until then.`
+            : 'Our team checks every payment against our bank records before confirming the order. We will email you as soon as it is verified. Your payment is not confirmed until then.',
+        ),
+        ...(purpose === 'advance'
+          ? [
+              facts([
+                ['Order', order],
+                ['Advance being checked', money(expected)],
+                ['Total', money(num(payload, 'total'))],
+                ['Balance, before dispatch', money(balanceAmount(payload))],
+              ]),
+              button('View your order', ctx.orderLink),
+            ]
+          : orderBlocks(payload, ctx)),
         p(SAFETY, true),
       ];
+    }
+    case 'advance_received': {
+      const advance = num(payload, 'amount_paid') ?? num(payload, 'advance_amount');
+      const balance = outstanding(payload);
+      const dueAt = formatIstDate(str(payload, 'balance_due_at'));
+      return [
+        p(greeting(payload)),
+        p(`We have verified your advance payment${advance !== null ? ` of ${formatMoney(advance)}` : ''} for order ${order}. Your order is confirmed and we are getting it ready.`),
+        p(`Please pay the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} online from your order page${dueAt ? ` by ${dueAt}` : ''}. We dispatch your order once the balance is verified. There is no cash on delivery.`),
+        facts([
+          ['Order', order],
+          ['Total', money(num(payload, 'total'))],
+          ['Paid so far', money(advance)],
+          ['Balance due', money(balance)],
+          ['Due by', dueAt],
+        ]),
+        button('Pay the balance', ctx.orderLink),
+        p(SAFETY, true),
+      ];
+    }
+    case 'balance_received': {
+      const balance = balanceAmount(payload);
+      const paid = num(payload, 'amount_paid') ?? num(payload, 'total');
+      return [
+        p(greeting(payload)),
+        p(`We have verified your balance payment${balance !== null ? ` of ${formatMoney(balance)}` : ''} for order ${order}. Your order is now fully paid and will be dispatched. We will email you when it is on its way.`),
+        facts([['Order', order], ['Total', money(num(payload, 'total'))], ['Paid so far', money(paid)]]),
+        button('View your order', ctx.orderLink),
+      ];
+    }
+    case 'balance_reminder': {
+      const balance = num(payload, 'amount_due') ?? outstanding(payload);
+      const dueAt = formatIstDate(str(payload, 'balance_due_at'));
+      return [
+        p(greeting(payload)),
+        p(`This is a reminder that the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} for order ${order} was due${dueAt ? ` on ${dueAt}` : ''}. We have received your advance and your order is still confirmed.`),
+        p('Please pay the balance online from your order page so we can dispatch your order. If you have already paid it and submitted the payment details, no action is needed: we will email you once we have checked them. If you no longer want the order, reply to this email.'),
+        facts([
+          ['Order', order],
+          ['Total', money(num(payload, 'total'))],
+          ['Paid so far', money(num(payload, 'amount_paid'))],
+          ['Balance due', money(balance)],
+        ]),
+        button('Pay the balance', ctx.orderLink),
+        p(SAFETY, true),
+      ];
+    }
     case 'order_confirmed':
       return [
         p(greeting(payload)),
@@ -134,29 +276,50 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
         p('If you already paid, upload your payment proof from the order page and we will review it, or contact us with your UTR.'),
         ...orderBlocks(payload, ctx),
       ];
-    case 'payment_rejected':
+    case 'payment_rejected': {
+      const purpose = purposeOf(payload);
+      if (purpose === 'balance') {
+        const balance = num(payload, 'amount_due') ?? outstanding(payload);
+        return [
+          p(greeting(payload)),
+          p(`We could not verify the balance payment for order ${order}.`),
+          reason ? facts([['Reason', reason]]) : p(''),
+          p(`We have received your advance and your order is still confirmed. Please check your payment and submit the correct details from your order page, or pay the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} if you have not paid it yet. We dispatch your order once the balance is verified.`),
+          p('If money was debited from your account, reply to this email or contact support with your UTR / transaction reference and we will look into it.'),
+          ...orderBlocks(payload, ctx),
+          p(SAFETY, true),
+        ];
+      }
       return [
         p(greeting(payload)),
-        p(`We could not verify the payment for order ${order}.`),
+        p(`We could not verify the ${purpose === 'advance' ? 'advance ' : ''}payment for order ${order}.`),
         reason ? facts([['Reason', reason]]) : p(''),
         p('If money was debited from your account, reply to this email or contact support with your UTR / transaction reference and we will look into it.'),
         ...orderBlocks(payload, ctx),
         p(SAFETY, true),
       ];
-    case 'payment_resubmit':
+    }
+    case 'payment_resubmit': {
+      const purpose = purposeOf(payload);
+      const amount = num(payload, 'amount_due') ?? (purpose === 'balance' ? outstanding(payload) : null);
+      const what = purpose === 'balance' ? 'your balance payment' : purpose === 'advance' ? 'your advance payment' : 'your payment';
       return [
         p(greeting(payload)),
-        p(`Please upload a corrected payment proof for order ${order} so we can verify your payment.`),
+        p(`Please upload a corrected proof of ${what}${amount !== null && purpose !== 'full' ? ` of ${formatMoney(amount)}` : ''} for order ${order} so we can verify it.${purpose === 'balance' ? ' Your order is still confirmed.' : ''}`),
         reason ? facts([['What we need', reason]]) : p(''),
         ...orderBlocks(payload, ctx),
         p(SAFETY, true),
       ];
-    case 'refund_initiated':
+    }
+    case 'refund_initiated': {
+      const refund = num(payload, 'refund_amount');
       return [
         p(greeting(payload)),
-        p(`A refund has been initiated for order ${order}. We will email you again when it has been processed.`),
+        p(`A refund${refund !== null && refund > 0 ? ` of ${formatMoney(refund)}` : ''} has been initiated for order ${order}. We will email you again when it has been processed.`),
+        facts([['Refund amount', refund !== null && refund > 0 ? formatMoney(refund) : '']]),
         ...orderBlocks(payload, ctx),
       ];
+    }
     case 'refund_processed': {
       const amount = num(payload, 'amount');
       return [
@@ -170,14 +333,25 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
         button('View your order', ctx.orderLink),
       ];
     }
-    case 'order_cancelled':
+    case 'order_cancelled': {
+      const refund = num(payload, 'refund_amount');
+      // refund_amount is what is being returned of the money received (the advance, or everything paid).
+      const refundText =
+        refund !== null
+          ? refund > 0
+            ? `A refund of ${formatMoney(refund)} (the money we received for this order) has been initiated. We will email you when it has been processed.`
+            : 'If you have any questions, just reply to this email.'
+          : ['verified_paid', 'refund_pending'].includes(str(payload, 'payment_status'))
+            ? 'Because the order was paid, a refund has been initiated.'
+            : 'If you have any questions, just reply to this email.';
       return [
         p(greeting(payload)),
         p(`Order ${order} has been cancelled.`),
         reason ? facts([['Reason', reason]]) : p(''),
-        p(['verified_paid', 'refund_pending'].includes(str(payload, 'payment_status')) ? 'Because the order was paid, a refund has been initiated.' : 'If you have any questions, just reply to this email.'),
+        p(refundText),
         ...orderBlocks(payload, ctx),
       ];
+    }
     case 'order_shipped':
       return [
         p(greeting(payload)),
@@ -194,15 +368,25 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
       const flags = [payload.late === true ? 'Submitted after the payment window closed.' : '', payload.attention === true ? 'Flagged for attention.' : '']
         .filter(Boolean)
         .join(' ');
+      const purpose = purposeOf(payload);
+      const total = num(payload, 'total');
+      const expected = num(payload, 'expected_amount') ?? total;
+      const plan = PLAN_LABEL[str(payload, 'payment_plan')] ?? '';
       return [
-        p(`A customer submitted payment proof for order ${order}.`),
+        p(`A customer submitted ${purpose === 'balance' ? 'balance ' : purpose === 'advance' ? 'advance ' : ''}payment proof for order ${order}.`),
         facts([
           ['Order', order],
-          ['Amount due', num(payload, 'total') !== null ? formatMoney(num(payload, 'total')) : ''],
+          ['Payment', PURPOSE_LABEL[purpose]],
+          ['Amount to verify', money(expected)],
+          ['Order total', purpose === 'full' ? '' : money(total)],
+          ['Plan', plan],
+          ['Payment note', purpose === 'balance' && order ? `${order}-BAL` : ''],
           ['UTR', str(payload, 'utr')],
           ['Notes', flags],
         ]),
-        p('A screenshot is not proof of payment. Confirm the credit in your bank or UPI app statement (amount and UTR) before approving.'),
+        p(
+          `A screenshot is not proof of payment. Confirm a credit of exactly ${money(expected) || 'the expected amount'} in your bank or UPI app statement (amount and UTR) before approving.${purpose === 'balance' ? ' The balance must be a separate credit from the advance.' : ''}`,
+        ),
         button('Review payment', ctx.adminLink),
       ];
     }
@@ -283,6 +467,7 @@ function blockText(b: Block): string {
 
 export const EMAIL_TEMPLATES = [
   'order_placed', 'proof_received', 'order_confirmed', 'order_expired', 'payment_rejected', 'payment_resubmit',
+  'advance_received', 'balance_received', 'balance_reminder',
   'refund_initiated', 'refund_processed', 'order_cancelled', 'order_shipped', 'order_delivered',
   'admin_proof_submitted', 'cart_reminder', 'newsletter_welcome',
 ] as const;

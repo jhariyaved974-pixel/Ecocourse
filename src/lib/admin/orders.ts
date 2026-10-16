@@ -13,13 +13,23 @@ type ServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 type OrderStatus = Enums<'order_status'>;
 type PaymentStatus = Enums<'payment_status'>;
 type PaymentMethod = Enums<'payment_method'>;
+type PaymentPlan = Enums<'payment_plan'>;
 
 export const ADMIN_PAGE_SIZE = 25;
 /** Lifetime of signed URLs for private payment evidence (seconds). */
 export const PROOF_URL_TTL_SECONDS = 120;
 
 const ORDER_STATUS_VALUES: readonly OrderStatus[] = ['pending_payment', 'payment_review', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
-const PAYMENT_STATUS_VALUES: readonly PaymentStatus[] = ['unpaid', 'proof_submitted', 'verification_pending', 'verified_paid', 'rejected', 'refund_pending', 'refunded'];
+const PAYMENT_STATUS_VALUES: readonly PaymentStatus[] = [
+  'unpaid',
+  'proof_submitted',
+  'verification_pending',
+  'partially_paid',
+  'verified_paid',
+  'rejected',
+  'refund_pending',
+  'refunded',
+];
 const PAYMENT_METHOD_VALUES: readonly PaymentMethod[] = ['upi_manual', 'razorpay'];
 const REVIEW: PaymentStatus[] = ['proof_submitted', 'verification_pending'];
 const PAID: PaymentStatus[] = ['verified_paid', 'refund_pending', 'refunded'];
@@ -37,6 +47,10 @@ export function asPaymentStatus(value: string | undefined): PaymentStatus | unde
 }
 export function asPaymentMethod(value: string | undefined): PaymentMethod | undefined {
   return PAYMENT_METHOD_VALUES.find((s) => s === value);
+}
+const PAYMENT_PLAN_VALUES: readonly PaymentPlan[] = ['prepaid', 'half_prepaid'];
+export function asPaymentPlan(value: string | undefined): PaymentPlan | undefined {
+  return PAYMENT_PLAN_VALUES.find((s) => s === value);
 }
 
 /**
@@ -62,19 +76,24 @@ function pageRange(page: number) {
 // ---------------------------------------------------------------------------
 // Payment verification queue
 // ---------------------------------------------------------------------------
-export const PAYMENT_TABS = ['review', 'attention', 'rejected', 'verified', 'all'] as const;
+export const PAYMENT_TABS = ['review', 'attention', 'balance', 'rejected', 'verified', 'all'] as const;
 export type PaymentTab = (typeof PAYMENT_TABS)[number];
 export function asPaymentTab(value: string | undefined): PaymentTab {
   return PAYMENT_TABS.find((t) => t === value) ?? 'review';
 }
 
-type QueueProof = Pick<Tables<'payment_proofs'>, 'id' | 'utr' | 'submitted_at' | 'status' | 'file_path' | 'file_mime'>;
+type QueueProof = Pick<Tables<'payment_proofs'>, 'id' | 'utr' | 'submitted_at' | 'status' | 'file_path' | 'file_mime' | 'purpose' | 'expected_amount'>;
 export interface PaymentQueueRow {
   id: string;
   orderNumber: string;
   customerName: string;
   email: string;
   total: number;
+  paymentPlan: PaymentPlan;
+  advanceAmount: number;
+  /** Verified money received so far (advance, then the total). */
+  amountPaid: number;
+  balanceDueAt: string | null;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
   reviewDueAt: string | null;
@@ -103,13 +122,14 @@ export async function listPaymentQueue({ tab, q, page }: { tab: PaymentTab; q: s
   let query = supabase
     .from('orders')
     .select(
-      'id, order_number, customer_name, email, total, payment_status, order_status, review_due_at, requires_attention, attention_reason, expired, created_at, payment_reference, payment_proofs(id, utr, submitted_at, status, file_path, file_mime)',
+      'id, order_number, customer_name, email, total, payment_plan, advance_amount, amount_paid, balance_due_at, payment_status, order_status, review_due_at, requires_attention, attention_reason, expired, created_at, payment_reference, payment_proofs(id, utr, submitted_at, status, file_path, file_mime, purpose, expected_amount)',
       { count: 'exact' },
     )
     .eq('payment_method', 'upi_manual');
 
   if (tab === 'review') query = query.in('payment_status', REVIEW);
   else if (tab === 'attention') query = query.or(`requires_attention.is.true,${overdue}`);
+  else if (tab === 'balance') query = query.eq('payment_status', 'partially_paid');
   else if (tab === 'rejected') query = query.eq('payment_status', 'rejected');
   else if (tab === 'verified') query = query.in('payment_status', PAID);
 
@@ -122,6 +142,9 @@ export async function listPaymentQueue({ tab, q, page }: { tab: PaymentTab; q: s
 
   if (tab === 'review') {
     query = query.order('review_due_at', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
+  } else if (tab === 'balance') {
+    // Earliest (or overdue) balance due date first.
+    query = query.order('balance_due_at', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
   } else {
     query = query.order('created_at', { ascending: false });
   }
@@ -139,6 +162,10 @@ export async function listPaymentQueue({ tab, q, page }: { tab: PaymentTab; q: s
     customerName: o.customer_name,
     email: o.email,
     total: o.total,
+    paymentPlan: o.payment_plan,
+    advanceAmount: o.advance_amount,
+    amountPaid: o.amount_paid,
+    balanceDueAt: o.balance_due_at,
     paymentStatus: o.payment_status,
     orderStatus: o.order_status,
     reviewDueAt: o.review_due_at,
@@ -165,12 +192,20 @@ export async function paymentQueueCounts() {
   const supabase = await createSupabaseServerClient();
   const nowIso = new Date().toISOString();
   const base = () => supabase.from('orders').select('id', { count: 'exact', head: true }).eq('payment_method', 'upi_manual');
-  const [review, attention, overdue] = await Promise.all([
+  const [review, attention, overdue, balance, balanceOverdue] = await Promise.all([
     base().in('payment_status', REVIEW),
     base().or(`requires_attention.is.true,and(payment_status.in.(${REVIEW.join(',')}),review_due_at.lt.${nowIso})`),
     base().in('payment_status', REVIEW).lt('review_due_at', nowIso),
+    base().eq('payment_status', 'partially_paid'),
+    base().eq('payment_status', 'partially_paid').lte('balance_due_at', nowIso),
   ]);
-  return { review: review.count ?? 0, attention: attention.count ?? 0, overdue: overdue.count ?? 0 };
+  return {
+    review: review.count ?? 0,
+    attention: attention.count ?? 0,
+    overdue: overdue.count ?? 0,
+    balance: balance.count ?? 0,
+    balanceOverdue: balanceOverdue.count ?? 0,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -181,6 +216,7 @@ export interface OrderListFilters {
   orderStatus?: OrderStatus;
   paymentStatus?: PaymentStatus;
   paymentMethod?: PaymentMethod;
+  paymentPlan?: PaymentPlan;
   attention: boolean;
   sort: 'newest' | 'oldest';
   page: number;
@@ -191,12 +227,13 @@ export async function listOrders(filters: OrderListFilters) {
   let query = supabase
     .from('orders')
     .select(
-      'id, order_number, customer_name, email, phone, total, payment_method, payment_status, order_status, requires_attention, attention_reason, created_at, order_items(count)',
+      'id, order_number, customer_name, email, phone, total, payment_method, payment_plan, advance_amount, amount_paid, balance_due_at, payment_status, order_status, requires_attention, attention_reason, created_at, order_items(count)',
       { count: 'exact' },
     );
   if (filters.orderStatus) query = query.eq('order_status', filters.orderStatus);
   if (filters.paymentStatus) query = query.eq('payment_status', filters.paymentStatus);
   if (filters.paymentMethod) query = query.eq('payment_method', filters.paymentMethod);
+  if (filters.paymentPlan) query = query.eq('payment_plan', filters.paymentPlan);
   if (filters.attention) query = query.eq('requires_attention', true);
   if (filters.q) {
     const like = `%${filters.q}%`;
@@ -217,6 +254,10 @@ export async function listOrders(filters: OrderListFilters) {
     phone: o.phone,
     total: o.total,
     paymentMethod: o.payment_method,
+    paymentPlan: o.payment_plan,
+    advanceAmount: o.advance_amount,
+    amountPaid: o.amount_paid,
+    balanceDueAt: o.balance_due_at,
     paymentStatus: o.payment_status,
     orderStatus: o.order_status,
     requiresAttention: o.requires_attention,
@@ -224,7 +265,15 @@ export async function listOrders(filters: OrderListFilters) {
     createdAt: o.created_at,
     itemCount: (o.order_items as unknown as { count: number }[])[0]?.count ?? 0,
   }));
-  return { rows, total: count ?? 0, pageCount: Math.max(1, Math.ceil((count ?? 0) / ADMIN_PAGE_SIZE)), failed: Boolean(error) && !outOfRange, outOfRange };
+  return {
+    rows,
+    total: count ?? 0,
+    pageCount: Math.max(1, Math.ceil((count ?? 0) / ADMIN_PAGE_SIZE)),
+    failed: Boolean(error) && !outOfRange,
+    outOfRange,
+    /** Server time of the read (for overdue checks during render). */
+    nowMs: Date.now(),
+  };
 }
 
 // ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ import { ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Notice } from '@/components/ui/misc';
 import { formatMoney } from '@/lib/utils';
+import type { PaymentPurpose } from '@/lib/orders/payment-plan';
 
 // Razorpay Checkout collects the card/UPI/netbanking details on Razorpay's own
 // page; this component never sees them. The order is confirmed only after the
@@ -50,9 +51,21 @@ function loadCheckout(): Promise<void> {
   });
 }
 
-type State = { kind: 'idle' } | { kind: 'busy' } | { kind: 'confirming' } | { kind: 'error'; message: string };
+type State = { kind: 'idle' } | { kind: 'busy' } | { kind: 'confirming' } | { kind: 'review' } | { kind: 'error'; message: string };
 
-export function RazorpayPayButton({ orderNumber, amount }: { orderNumber: string; amount: number }) {
+const COPY: Record<PaymentPurpose, { heading: string; button: string }> = {
+  full: { heading: 'Pay online', button: 'Pay' },
+  advance: { heading: 'Pay the advance online', button: 'Pay advance' },
+  balance: { heading: 'Pay the balance online', button: 'Pay balance' },
+};
+
+/**
+ * Starts Razorpay Checkout for the amount due now (the full amount, the advance
+ * or the balance). The server creates the Razorpay order from the database
+ * amount; `amount` here is only what the page shows, and a mismatch (the order
+ * changed meanwhile) reloads the page instead of opening the payment window.
+ */
+export function RazorpayPayButton({ orderNumber, amount, purpose = 'full' }: { orderNumber: string; amount: number; purpose?: PaymentPurpose }) {
   const router = useRouter();
   const [state, setState] = React.useState<State>({ kind: 'idle' });
 
@@ -79,9 +92,25 @@ export function RazorpayPayButton({ orderNumber, amount }: { orderNumber: string
         }),
         loadCheckout(),
       ]);
-      const data = (await res.json()) as { ok: boolean; error?: string; keyId: string; razorpayOrderId: string; amount: number; currency: string; name: string; description: string; prefill: CheckoutOptions['prefill'] };
+      const data = (await res.json()) as {
+        ok: boolean;
+        error?: string;
+        keyId: string;
+        razorpayOrderId: string;
+        amount: number;
+        purpose?: PaymentPurpose;
+        currency: string;
+        name: string;
+        description: string;
+        prefill: CheckoutOptions['prefill'];
+      };
       if (!res.ok || !data.ok || !window.Razorpay) {
         setState({ kind: 'error', message: data.error ?? 'Could not start the payment. Please try again.' });
+        return;
+      }
+      if (data.amount !== amount || (data.purpose && data.purpose !== purpose)) {
+        setState({ kind: 'error', message: 'The amount due for this order has changed. The page has been refreshed: please check the amount and try again.' });
+        router.refresh();
         return;
       }
       const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || undefined;
@@ -103,6 +132,7 @@ export function RazorpayPayButton({ orderNumber, amount }: { orderNumber: string
           }).catch(() => null);
           const result = (await verify?.json().catch(() => null)) as { status?: string } | null;
           if (result?.status === 'paid') router.refresh();
+          else if (result?.status === 'needs_review') setState({ kind: 'review' });
         },
         modal: { ondismiss: () => setState({ kind: 'idle' }) },
       });
@@ -111,6 +141,15 @@ export function RazorpayPayButton({ orderNumber, amount }: { orderNumber: string
     } catch {
       setState({ kind: 'error', message: 'Could not load the payment window. Check your connection and try again.' });
     }
+  }
+
+  if (state.kind === 'review') {
+    return (
+      <Notice tone="warning" title="Your payment needs a manual check">
+        Razorpay reported a payment that does not match the amount due. Our team will check it and contact you; please don&apos;t pay again. If money was
+        debited and the payment is not needed, it will be refunded.
+      </Notice>
+    );
   }
 
   if (state.kind === 'confirming') {
@@ -123,11 +162,17 @@ export function RazorpayPayButton({ orderNumber, amount }: { orderNumber: string
 
   return (
     <section aria-labelledby="pay-online-heading" className="rounded-[var(--radius)] border border-line bg-surface p-6">
-      <h2 id="pay-online-heading" className="text-lg font-semibold">Pay online</h2>
-      <p className="mt-1 text-sm text-muted">UPI, cards, netbanking and wallets through Razorpay&apos;s secure checkout.</p>
+      <h2 id="pay-online-heading" className="text-lg font-semibold">{COPY[purpose].heading}</h2>
+      <p className="mt-1 text-sm text-muted">
+        {purpose === 'balance'
+          ? 'Pay the balance with UPI, cards, netbanking or wallets through Razorpay’s secure checkout. We dispatch your order once Razorpay confirms it.'
+          : purpose === 'advance'
+            ? 'Pay the advance with UPI, cards, netbanking or wallets through Razorpay’s secure checkout. Your order is confirmed once Razorpay confirms it.'
+            : 'UPI, cards, netbanking and wallets through Razorpay’s secure checkout.'}
+      </p>
       {state.kind === 'error' ? <Notice tone="danger" className="mt-4">{state.message}</Notice> : null}
       <Button size="lg" className="mt-5 w-full sm:w-auto" onClick={pay} loading={state.kind === 'busy'}>
-        Pay {formatMoney(amount)}
+        {COPY[purpose].button} {formatMoney(amount)}
       </Button>
       <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted">
         <ShieldCheck className="size-3.5" aria-hidden /> Your payment details are entered on Razorpay, never on this site.
