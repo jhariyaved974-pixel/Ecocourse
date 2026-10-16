@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import pg from 'pg';
 import { createServerClient } from '@supabase/ssr';
-import type { BrowserContext, Page } from '@playwright/test';
+import { expect, type BrowserContext, type Page } from '@playwright/test';
 
 export const DB_URL = process.env.E2E_DATABASE_URL ?? 'postgres://postgres@127.0.0.1:54322/postgres';
 export const db = new pg.Pool({ connectionString: DB_URL, max: 4, allowExitOnIdle: true });
@@ -110,6 +110,14 @@ export async function addToCart(page: Page, slug: string, opts: { color?: string
   if (opts.color) await page.getByRole('radiogroup', { name: 'Colour' }).getByRole('radio', { name: opts.color }).click();
   await page.getByRole('radiogroup', { name: 'Size' }).getByRole('radio', { name: new RegExp(`^${opts.size}\\b`) }).click();
   await page.getByRole('button', { name: 'Add to cart' }).click();
+  // On a cold dev server the click can land before hydration; retry once if the cart is still empty.
+  const cart = page.locator('button[aria-label^="Open cart"]').first();
+  try {
+    await expect(cart).not.toHaveAttribute('aria-label', 'Open cart, empty', { timeout: 5_000 });
+  } catch {
+    await page.getByRole('button', { name: 'Add to cart' }).click();
+    await expect(cart).not.toHaveAttribute('aria-label', 'Open cart, empty', { timeout: 10_000 });
+  }
 }
 
 export interface CheckoutDetails {

@@ -5,7 +5,7 @@
 // The shopper places the order through the real checkout and submits both
 // proofs from the real order page (tests/e2e/support.ts helpers); every staff
 // step goes through the admin screens.
-import { expect, test, type Browser } from '@playwright/test';
+import { expect, test, type Browser, type Page } from '@playwright/test';
 import {
   addToCart,
   db,
@@ -50,6 +50,26 @@ async function adminPage(browser: Browser) {
   return { owner, context, page: await context.newPage() };
 }
 
+/**
+ * Adds one unit from the product page and waits until the cart holds it. On a
+ * cold dev server the first click can land before the page has hydrated, so the
+ * click is retried only while the cart is still empty.
+ */
+async function addOneToCart(page: Page, slug: string, opts: { color?: string; size: string }) {
+  await addToCart(page, slug, opts);
+  // Adding opens the cart drawer (which hides the header from assistive tech); either signal means the item is in.
+  const added = page
+    .getByRole('dialog')
+    .getByText(/^Your cart \([1-9]\d*\)$/)
+    .or(page.getByRole('button', { name: /^Open cart, [1-9]/ }));
+  let first = true;
+  await expect(async () => {
+    if (!first && !(await added.count())) await page.getByRole('button', { name: 'Add to cart' }).click();
+    first = false;
+    await expect(added.first()).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
+}
+
 async function count(sql: string, params: unknown[]) {
   const { rows } = await db.query<{ n: number }>(sql, params);
   return rows[0].n;
@@ -78,7 +98,7 @@ test('the settings preview rounds the advance exactly like the database', async 
 
 test('staff verify the advance, pack the order, verify the balance and only then ship', async ({ page, browser }) => {
   // Shopper: a half-prepaid manual UPI order through the checkout, then the advance proof.
-  await addToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '7' });
+  await addOneToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '7' });
   const orderNumber = await placeHalfPrepaidUpiOrder(page, { email: `e2e+halfadmin${Date.now()}@example.com` });
   const placed = await orderByNumber(orderNumber);
   expect(placed).toMatchObject({ payment_plan: 'half_prepaid', payment_method: 'upi_manual', amount_paid: 0, payment_status: 'unpaid' });

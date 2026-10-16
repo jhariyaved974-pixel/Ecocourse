@@ -67,11 +67,12 @@ export function OrderProgress({ order }: { order: Order }) {
         const current = i === currentIndex;
         const at = s.done ? timeFor(s) : undefined;
         return (
-          <li key={s.key} className="flex flex-col gap-2" aria-current={current ? 'step' : undefined}>
+          <li key={s.key} className="flex min-w-0 flex-col gap-2" aria-current={current ? 'step' : undefined}>
             <span className={cn('h-1 rounded-full', s.done ? 'bg-ink' : current ? 'bg-ink/30' : 'bg-line')} />
             <span className="flex items-start gap-1 text-[11px] leading-tight font-medium sm:items-center sm:gap-1.5 sm:text-xs">
-              {s.done ? <Check className="size-3.5 shrink-0" aria-hidden /> : null}
-              <span className={s.done ? 'text-ink' : 'text-muted'}>
+              {/* Six steps (half prepaid) leave no room for the tick on phones; the bar and the sr-only text mark done steps. */}
+              {s.done ? <Check className={cn('size-3.5 shrink-0', list.length === 6 && 'max-sm:hidden')} aria-hidden /> : null}
+              <span className={cn('min-w-0 [overflow-wrap:anywhere]', s.done ? 'text-ink' : 'text-muted')}>
                 {s.label}
                 {s.done ? <span className="sr-only"> (done)</span> : null}
               </span>

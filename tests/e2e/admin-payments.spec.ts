@@ -1,14 +1,17 @@
 import { expect, test, type Browser } from '@playwright/test';
-import { addToCart, db, ensureUser, orderByNumber, OWNER_EMAIL, placeUpiOrder, PNG_1PX, randomUtr, signInContext, topUpStock, variantStock } from './support';
+import { addToCart, db, ensureUser, orderByNumber, placeUpiOrder, PNG_1PX, randomUtr, signInContext, topUpStock, variantStock } from './support';
 
 const SKU = 'STM-CSE-OAT-6';
+// A dedicated owner: other specs (and their global setup) reset the shared
+// OWNER_EMAIL password, which signs that account out mid-test.
+const PAYMENTS_OWNER_EMAIL = 'e2e-owner-payments@auren.test';
 
 test.beforeAll(async () => {
   await topUpStock(SKU, 30);
 });
 
 async function adminPage(browser: Browser) {
-  const owner = await ensureUser(OWNER_EMAIL, { staffRole: 'owner' });
+  const owner = await ensureUser(PAYMENTS_OWNER_EMAIL, { staffRole: 'owner' });
   const context = await browser.newContext();
   await signInContext(context, owner.email, owner.password);
   return { context, page: await context.newPage() };
@@ -54,7 +57,7 @@ test('an approved UPI payment confirms the order once, deducts stock once and is
   expect(sales.rows[0].n).toBe(1);
   const audit = await db.query("select actor_email from audit_logs where action = 'payment.approved' and entity_id = $1", [order.id]);
   expect(audit.rows).toHaveLength(1);
-  expect(audit.rows[0].actor_email).toBe(OWNER_EMAIL);
+  expect(audit.rows[0].actor_email).toBe(PAYMENTS_OWNER_EMAIL);
 
   // Admin order view and the customer's order page agree.
   await admin.page.goto(`/admin/orders/${order.id}`);
