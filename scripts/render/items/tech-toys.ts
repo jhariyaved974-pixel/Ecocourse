@@ -4,7 +4,6 @@
 // selected colourway (the same contract as the shoe models).
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { ItemColorway } from '../catalog';
 import { grounded, lathe, mat, mesh, type Builder } from './kit';
 
 // ------------------------------------------------------------------ helpers
@@ -178,6 +177,12 @@ function onEllipsoid(centre: THREE.Vector3, radii: THREE.Vector3, dir: THREE.Vec
   return centre.clone().addScaledVector(d, k + lift);
 }
 
+/** Resamples a lathe profile through a smooth spline (keeps silhouettes from faceting). */
+function splineProfile(points: [number, number][], samples = 48): [number, number][] {
+  const curve = new THREE.SplineCurve(points.map(([r, y]) => new THREE.Vector2(r, y)));
+  return curve.getSpacedPoints(samples).map((p) => [Math.max(p.x, 0), p.y]);
+}
+
 /** Orients an object so its local +y axis points along `dir`. */
 function pointAlong(obj: THREE.Object3D, dir: THREE.Vector3) {
   obj.quaternion.setFromUnitVectors(UP, dir.clone().normalize());
@@ -294,6 +299,43 @@ function normalTexture(size: number, height: (u: number, v: number) => number, s
   return t;
 }
 
+/** Deterministic PRNG (mulberry32), so renders are reproducible. */
+function rng(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Periodic value noise on a cells × cells lattice (tiles seamlessly), summed over octaves. */
+function tileNoise(cells: number, octaves: number, seed: number) {
+  const rand = rng(seed);
+  const grids = Array.from({ length: octaves }, (_, o) => {
+    const n = cells << o;
+    return { n, v: Float32Array.from({ length: n * n }, rand) };
+  });
+  const fade = (t: number) => t * t * (3 - 2 * t);
+  return (u: number, v: number) => {
+    let sum = 0, amp = 1, norm = 0;
+    for (const { n, v: grid } of grids) {
+      const x = u * n, y = v * n;
+      const x0 = Math.floor(x), y0 = Math.floor(y);
+      const fx = fade(x - x0), fy = fade(y - y0);
+      const g = (i: number, j: number) => grid[(((j % n) + n) % n) * n + (((i % n) + n) % n)];
+      const a = g(x0, y0) + (g(x0 + 1, y0) - g(x0, y0)) * fx;
+      const b = g(x0, y0 + 1) + (g(x0 + 1, y0 + 1) - g(x0, y0 + 1)) * fx;
+      sum += (a + (b - a) * fy) * amp;
+      norm += amp;
+      amp *= 0.5;
+    }
+    return sum / norm;
+  };
+}
+
 /** Remaps a geometry's UVs to its x/y bounding box (for flat printed faces). */
 function planarUV(geo: THREE.BufferGeometry) {
   geo.computeBoundingBox();
@@ -303,6 +345,11 @@ function planarUV(geo: THREE.BufferGeometry) {
   for (let i = 0; i < p.count; i++) uv.push((p.getX(i) - b.min.x) / (b.max.x - b.min.x), (p.getY(i) - b.min.y) / (b.max.y - b.min.y));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   return geo;
+}
+
+function placed<T extends THREE.Object3D>(obj: T, p: THREE.Vector3) {
+  obj.position.copy(p);
+  return obj;
 }
 
 /** Lifts an object so its lowest point rests on y = 0 (for loose parts in a scene). */
@@ -341,7 +388,7 @@ function earbud(shell: THREE.Material, tip: THREE.Material, metal: THREE.Materia
 const buildEarbuds: Builder = (c) => {
   const g = new THREE.Group();
   const shell = named(mat.glossy(c.primary), 'upper');
-  const inner = mat.plastic(c.secondary, 0.6);
+  const inner = mat.matte(c.secondary, 0.75);
   const tip = mat.rubber(luminance(c.primary) > 0.5 ? shade(c.secondary, -0.06) : shade(c.secondary, 0.04));
   const metal = mat.metal(c.accent, 0.25);
   const grille = mat.matte(shade(c.secondary, -0.08), 0.7);
@@ -378,13 +425,10 @@ const buildEarbuds: Builder = (c) => {
   hinge.add(lidGroup);
   hinge.rotation.x = THREE.MathUtils.degToRad(-105);
   g.add(hinge);
-  const pin = mesh(new THREE.CylinderGeometry(0.0016, 0.0016, 0.014, 20).rotateZ(Math.PI / 2), mat.metal(shade(c.accent, -0.1), 0.35));
-  pin.position.set(0, Hb + gap / 2, -D / 2 - 0.0002);
-  g.add(pin);
 
   // One bud seated in the case, the other resting in front of it.
   const seated = earbud(shell, tip, metal, grille);
-  seated.rotation.set(0, 0.35, 0);
+  seated.rotation.set(0, 1.95, 0);
   seated.position.set(-0.0145, Hb + 0.0052, 0.0005);
   g.add(seated);
 
@@ -412,7 +456,7 @@ const buildHeadphones: Builder = (c) => {
 
   const cupH = 0.092, cupW = 0.074; // oval cup outline (height × width)
   const sy = cupH / 2, sz = cupW / 2;
-  const shellT = 0.026, cushT = 0.022, inner = 0.05;
+  const cushT = 0.022, inner = 0.05;
   const cx = inner + cushT; // cup back plane (shell starts here)
   const cy = cupH / 2;
 
@@ -430,15 +474,15 @@ const buildHeadphones: Builder = (c) => {
     cg.add(mesh(ring, metalMat));
     // Cushion: a puffy ring with a superellipse section.
     const sec: [number, number][] = [];
-    const rc = 0.725, ra = 0.255, yc = -cushT / 2, yb = cushT / 2 + 0.0004;
+    const rc = 0.755, ra = 0.225, yc = -cushT / 2, yb = cushT / 2 + 0.0004;
     for (let i = 0; i <= 40; i++) {
       const a = (i / 40) * TAU;
       const co = Math.cos(a), si = Math.sin(a);
-      sec.push([rc + ra * Math.sign(co) * Math.abs(co) ** (2 / 2.6), yc + yb * Math.sign(si) * Math.abs(si) ** (2 / 2.6)]);
+      sec.push([rc + ra * Math.sign(co) * Math.abs(co) ** (2 / 3.4), yc + yb * Math.sign(si) * Math.abs(si) ** (2 / 3.4)]);
     }
     cg.add(mesh(toCup(lathe(sec, 72)), cushionMat, 'cushion'));
     // Fabric driver cover inside the cushion.
-    cg.add(mesh(toCup(lathe([[0, -0.007], [0.5, -0.007], [0.52, -0.004], [0.52, 0.0]], 64)), fabricMat));
+    cg.add(mesh(toCup(lathe([[0, -0.007], [0.55, -0.007], [0.57, -0.004], [0.57, 0.0]], 64)), fabricMat));
     return cg;
   };
 
@@ -480,8 +524,10 @@ const buildHeadphones: Builder = (c) => {
   };
   const Z = v3(0, 0, 1);
   g.add(mesh(band(arch(0, 0, Math.PI), { width: (t) => 0.024 + 0.008 * Math.sin(t * Math.PI), thickness: 0.0075, side: Z, segments: 140, radial: 28 }), shellMat, 'headband'));
-  const pad = band(arch(0.0078, 0.32, Math.PI - 0.32), {
-    width: (t) => 0.022 + 0.004 * Math.sin(t * Math.PI), thickness: (t) => 0.003 + 0.0072 * Math.sin(t * Math.PI) ** 0.6, side: Z, segments: 120, radial: 28, round: 3,
+  // Inner padding hugging the underside of the band (N points out of the arch).
+  const padT = (t: number) => 0.003 + 0.0072 * Math.sin(t * Math.PI) ** 0.6;
+  const pad = band(arch(0, 0.3, Math.PI - 0.3), {
+    width: (t) => 0.022 + 0.004 * Math.sin(t * Math.PI), thickness: padT, offset: (t) => -(0.0037 + padT(t) / 2 - 0.0012), side: Z, segments: 120, radial: 28, round: 3,
   });
   g.add(mesh(pad, cushionMat, 'headband-pad'));
   return grounded(g);
@@ -527,10 +573,10 @@ const buildSmartwatch: Builder = (c) => {
   const g = new THREE.Group();
   const strapMat = named(new THREE.MeshPhysicalMaterial({ color: c.primary, roughness: 0.55, clearcoat: 0.15, clearcoatRoughness: 0.5 }), 'upper');
   const caseMat = mat.metal(c.secondary, 0.32);
-  const glassMat = new THREE.MeshPhysicalMaterial({ color: '#050506', roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.04 });
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: '#050506', roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 0.6 });
 
   const W = 0.038, H = 0.045, T = 0.0105, R = 0.0105;
-  const yc = 0.0415; // case centre height (the strap loop rests on the floor)
+  const yc = 0.0285 + 0.0032 / 2 + 0.0001; // case centre height: the strap loop rests on the floor
   const caseG = new THREE.Group();
   caseG.position.set(0, yc, 0);
   caseG.add(mesh(slab(W, H, T, R, 0.0036, 10, 7), caseMat, 'case'));
@@ -540,7 +586,7 @@ const buildSmartwatch: Builder = (c) => {
   caseG.add(glass);
   const screenGeo = planarUV(new THREE.ShapeGeometry(new THREE.Shape(rrect(W - 0.0074, H - 0.0074, R - 0.0042, 0, 0, 10))));
   const face = watchFace(c.accent);
-  const screen = mesh(screenGeo, new THREE.MeshStandardMaterial({ color: '#ffffff', map: face, emissive: '#ffffff', emissiveMap: face, emissiveIntensity: 0.75, roughness: 0.18 }), 'screen');
+  const screen = mesh(screenGeo, new THREE.MeshStandardMaterial({ color: '#ffffff', map: face, emissive: '#ffffff', emissiveMap: face, emissiveIntensity: 0.75, roughness: 0.2, envMapIntensity: 0.5 }), 'screen');
   screen.position.z = T / 2 + 0.0006 + 0.00005;
   caseG.add(screen);
   // Crown with an accent ring, and a side button.
@@ -559,27 +605,17 @@ const buildSmartwatch: Builder = (c) => {
   caseG.add(sensor);
   g.add(caseG);
 
-  // Strap: one silicone loop from the top lug, round the back, to the bottom lug.
+  // Strap: one continuous silicone loop from the top lug, round the back, to the bottom lug.
   const SW = 0.024, ST = 0.0032;
-  const ry = yc - ST / 2 - 0.0002; // loop rests on the floor
-  const yl = ry + ST / 2 + 0.0002;
-  const rz = 0.026, zl = -rz - 0.0035;
+  const ry = 0.0285, rz = 0.024; // loop radii (vertical, depth)
+  const yl = yc, zl = -rz - 0.003;
   const loop: THREE.Vector3[] = [v3(0, yc + H / 2 - 0.006, -0.0012), v3(0, yc + H / 2 + 0.0018, -0.0038)];
   for (let i = 0; i <= 18; i++) {
     const a = THREE.MathUtils.degToRad(62 + (i / 18) * 236);
-    loop.push(v3(0, yl + Math.sin(a) * (ry + 0.0006), zl + Math.cos(a) * rz));
+    loop.push(v3(0, yl + Math.sin(a) * ry, zl + Math.cos(a) * rz));
   }
   loop.push(v3(0, yc - H / 2 - 0.0018, -0.0038), v3(0, yc - H / 2 + 0.006, -0.0012));
   g.add(mesh(band(loop, { width: SW, thickness: ST, side: v3(1, 0, 0), segments: 160, radial: 28, round: 5 }), strapMat, 'strap'));
-  // Keeper loop round the strap at the back.
-  const keeperAt = new THREE.CatmullRomCurve3(loop, false, 'centripetal');
-  const kp = keeperAt.getPointAt(0.56);
-  const kt = keeperAt.getTangentAt(0.56);
-  const keeper = mesh(slab(SW + 0.0026, 0.0058, ST + 0.0024, 0.0022, 0.0011, 6, 3), new THREE.MeshPhysicalMaterial({ color: shade(c.primary, -0.03), roughness: 0.5, clearcoat: 0.2 }), 'keeper');
-  keeper.position.copy(kp);
-  keeper.quaternion.setFromUnitVectors(v3(0, 1, 0), kt);
-  keeper.rotateY(0);
-  g.add(keeper);
   return grounded(g);
 };
 
@@ -625,9 +661,9 @@ const buildPowerbank: Builder = (c) => {
       g.add(tg);
     }
   };
-  port(0.0128, 0.0048, 0.0004, -0.016, 0.011);
+  port(0.0128, 0.0048, 0.0004, -0.0145, 0.011);
   port(0.0128, 0.0048, 0.0004, 0.0, 0.011);
-  port(0.0088, 0.0029, 0.00144, 0.016, 0.0064);
+  port(0.0088, 0.0029, 0.00144, 0.0145, 0.0064);
   // Power button on the side.
   const btn = mesh(new THREE.CapsuleGeometry(0.0013, 0.007, 6, 16), mat.plastic(shade(c.primary, luminance(c.primary) > 0.5 ? -0.06 : 0.06), 0.4));
   btn.position.set(W / 2 + 0.0002, 0.118, 0);
@@ -645,7 +681,7 @@ const buildSpeaker: Builder = (c) => {
     return 0.5 + 0.25 * Math.abs(a) * (b > 0 ? 1 : 0.4) + 0.25 * Math.abs(b) * (a > 0 ? 0.4 : 1);
   }, 3, [48, 22]);
   const fabric = named(new THREE.MeshPhysicalMaterial({
-    color: c.primary, roughness: 0.92, sheen: 1, sheenRoughness: 0.75, sheenColor: new THREE.Color(c.primary).lerp(new THREE.Color('#ffffff'), 0.3), normalMap: weave, normalScale: new THREE.Vector2(0.9, 0.9),
+    color: c.primary, roughness: 0.9, sheen: 0.45, sheenRoughness: 0.7, sheenColor: new THREE.Color(c.primary).lerp(new THREE.Color('#ffffff'), 0.15), normalMap: weave, normalScale: new THREE.Vector2(0.9, 0.9),
   }), 'upper');
   const rubber = mat.plastic(c.secondary, 0.7);
   const icon = mat.plastic(c.accent, 0.45);
@@ -668,7 +704,7 @@ const buildSpeaker: Builder = (c) => {
   const pwr = mesh(new THREE.TorusGeometry(0.0034, 0.0008, 8, 40, TAU * 0.8).rotateX(-Math.PI / 2).rotateY(Math.PI / 2 + TAU * 0.1), icon);
   pwr.position.set(-0.019, H + 0.0002, 0);
   g.add(pwr);
-  bar(0.0036, 0.0016, -0.019, -0.0032, Math.PI / 2);
+  bar(0.0044, 0.0016, -0.019, -0.0024, Math.PI / 2);
   const play = new THREE.Shape([new THREE.Vector2(-0.0026, -0.003), new THREE.Vector2(0.0034, 0), new THREE.Vector2(-0.0026, 0.003)]);
   const playGeo = new THREE.ExtrudeGeometry(play, { depth: 0.0005, bevelEnabled: true, bevelThickness: 0.0002, bevelSize: 0.0003, bevelSegments: 2 }).rotateX(-Math.PI / 2);
   const pl = mesh(playGeo, icon);
@@ -699,7 +735,7 @@ const buildLantern: Builder = (c) => {
 
   // Base with a rubber grip band.
   g.add(mesh(lathe([[0, 0], [0.043, 0], [0.0475, 0.0018], [0.0498, 0.0055], [0.05, 0.036], [0.0494, 0.0405], [0.0472, 0.0432], [0.0435, 0.0445], [0, 0.0446]], 96), body, 'base'));
-  g.add(mesh(lathe([[0.0499, 0.0095], [0.0508, 0.0102], [0.0511, 0.0118], [0.0511, 0.0262], [0.0508, 0.0278], [0.0499, 0.0285]], 96), rubber, 'grip'));
+  g.add(mesh(lathe([[0.0499, 0.0068], [0.0508, 0.0075], [0.0511, 0.009], [0.0511, 0.0168], [0.0508, 0.0183], [0.0499, 0.019]], 96), rubber, 'grip'));
   g.add(mesh(lathe([[0, -0.0001], [0.04, -0.0001], [0.0425, 0.0006], [0.043, 0.0016], [0, 0.0016]], 64), rubber));
 
   // Frosted, fluted diffuser that glows.
@@ -723,12 +759,11 @@ const buildLantern: Builder = (c) => {
     dp.setXYZ(i, x * k, y, z * k);
   }
   dGeo.computeVertexNormals();
-  dGeo.translate(0, 0.043 + 0.041, 0);
+  dGeo.rotateY(Math.PI).translate(0, 0.043 + 0.041, 0); // UV seam to the back
   const diffuser = new THREE.MeshPhysicalMaterial({
     color: mix('#fffdf5', c.accent, 0.35), roughness: 0.55, clearcoat: 0.5, clearcoatRoughness: 0.3, emissive: new THREE.Color(c.accent), emissiveMap: glowTex, emissiveIntensity: 0.95,
   });
   g.add(mesh(dGeo, diffuser, 'diffuser'));
-  // Inner cap closing the diffuser (seen through nothing, but keeps the model watertight).
   // Top cap.
   g.add(mesh(lathe([[0.0425, 0.1235], [0.0462, 0.125], [0.0478, 0.1285], [0.048, 0.1405], [0.0466, 0.1452], [0.0425, 0.1482], [0.03, 0.1505], [0, 0.151]], 96), body, 'cap'));
   // Guard bars between base and cap.
@@ -762,13 +797,15 @@ const buildLantern: Builder = (c) => {
 
   // Power button and USB-C flap on the front of the base.
   const btn = mesh(lathe([[0, 0], [0.0062, 0], [0.0064, 0.0008], [0.0058, 0.0018], [0, 0.002]], 40).rotateX(Math.PI / 2), dark, 'button');
-  btn.position.set(0, 0.032, 0.0496);
+  btn.position.set(0, 0.0285, 0.0496);
   g.add(btn);
   const ring = mesh(new THREE.TorusGeometry(0.0039, 0.0005, 8, 40), mat.emissive(c.accent, 1.3));
-  ring.position.set(0, 0.032, 0.0512);
+  ring.position.set(0, 0.0285, 0.0515);
   g.add(ring);
+  const fa = 0.42;
   const flap = mesh(slab(0.011, 0.0045, 0.0016, 0.0022, 0.0006, 6, 2), rubber);
-  flap.position.set(0, 0.0175, 0.0505);
+  flap.position.set(Math.sin(fa) * 0.0504, 0.0285, Math.cos(fa) * 0.0504);
+  flap.rotation.y = fa;
   g.add(flap);
   return grounded(g);
 };
@@ -805,19 +842,19 @@ const buildBlocks: Builder = (c) => {
     g.add(m);
     return m;
   };
-  // A small stepped tower...
-  brick(2, 4, 1, 0, 0, 0, Math.PI / 2); // blue base (long along x)
-  brick(2, 4, 3, -1, 0, -2.0, Math.PI / 2); // green behind
-  brick(2, 4, 0, 0.5, 1, -1.0, Math.PI / 2); // red bridging both
-  brick(2, 2, 2, -1, 2, -1.0); // yellow
-  brick(2, 2, 6, 1, 2, -1.0); // sky
-  brick(2, 4, 4, 0, 3, -1.0, Math.PI / 2); // orange
-  brick(2, 2, 5, 0, 4, -1.0); // purple on top
+  // A small stepped tower (positions in studs, levels in brick heights)...
+  brick(2, 4, 1, 0, 0, 0, Math.PI / 2); // blue, long along x
+  brick(2, 4, 3, 0, 0, -2, Math.PI / 2); // green behind it
+  brick(2, 4, 0, -1, 1, -1); // red, long along z, bridging both
+  brick(2, 2, 2, 1, 1, 0); // yellow
+  brick(2, 2, 6, 1, 1, -2); // sky
+  brick(2, 4, 4, 0, 2, -1, Math.PI / 2); // orange
+  brick(2, 2, 5, 0, 3, -1); // purple on top
   // ...and a few loose bricks in front.
-  brick(2, 2, 7, 3.6, 0, 1.8, 0.35); // white
-  brick(2, 4, 5, -3.4, 0, 1.6, -0.25 + Math.PI / 2); // purple
-  brick(2, 2, 0, 0.6, 0, 2.6, -0.2); // red
-  brick(2, 2, 2, 3.4, 0, -1.4, 0.7); // yellow
+  brick(2, 2, 7, 3.7, 0, 1.9, 0.35); // white
+  brick(2, 4, 2, -3.6, 0, 1.4, Math.PI / 2 - 0.3); // yellow
+  brick(2, 2, 0, 0.7, 0, 2.9, -0.2); // red
+  brick(2, 2, 3, 3.6, 0, -1.6, 0.7); // green
   return grounded(g);
 };
 
@@ -825,14 +862,18 @@ const buildBlocks: Builder = (c) => {
 
 const buildPlush: Builder = (c) => {
   const g = new THREE.Group();
+  // Short-pile coat: fine tiling noise as a normal map.
+  const pile = normalTexture(128, tileNoise(16, 3, 7), 5, [16, 9]);
   const fur = named(new THREE.MeshPhysicalMaterial({
-    color: c.primary, roughness: 1, sheen: 1, sheenRoughness: 0.55, sheenColor: new THREE.Color(c.primary).lerp(new THREE.Color('#ffffff'), 0.45),
+    color: c.primary, roughness: 1, sheen: 0.7, sheenRoughness: 0.55, sheenColor: new THREE.Color(c.primary).lerp(new THREE.Color('#ffffff'), 0.25), normalMap: pile, normalScale: new THREE.Vector2(0.4, 0.4),
   }), 'upper');
-  const light = new THREE.MeshPhysicalMaterial({ color: c.secondary, roughness: 1, sheen: 1, sheenRoughness: 0.6, sheenColor: new THREE.Color(c.secondary).lerp(new THREE.Color('#ffffff'), 0.4) });
+  const light = new THREE.MeshPhysicalMaterial({
+    color: c.secondary, roughness: 1, sheen: 0.8, sheenRoughness: 0.6, sheenColor: new THREE.Color(c.secondary).lerp(new THREE.Color('#ffffff'), 0.3), normalMap: pile, normalScale: new THREE.Vector2(0.25, 0.25),
+  });
   const thread = new THREE.MeshPhysicalMaterial({ color: c.accent, roughness: 0.55, sheen: 0.6, sheenColor: new THREE.Color('#ffffff'), sheenRoughness: 0.4 });
 
   // Seated body: a pear-shaped lathe, slightly flattened front to back.
-  const bodyGeo = lathe([[0, 0.004], [0.04, 0.006], [0.064, 0.02], [0.074, 0.048], [0.07, 0.085], [0.058, 0.118], [0.04, 0.142], [0.018, 0.156], [0, 0.16]], 64).scale(1, 1, 0.9);
+  const bodyGeo = lathe(splineProfile([[0, 0.004], [0.04, 0.006], [0.064, 0.02], [0.074, 0.048], [0.07, 0.085], [0.058, 0.118], [0.04, 0.142], [0.018, 0.156], [0, 0.16]]), 72).scale(1, 1, 0.9);
   const bodyM = mesh(bodyGeo, fur, 'body');
   bodyM.rotation.x = -0.08;
   g.add(bodyM);
@@ -843,9 +884,9 @@ const buildPlush: Builder = (c) => {
 
   // Head with muzzle, nose, mouth, eyes and ears.
   const hc = v3(0, 0.205, 0.006), hr = v3(0.07, 0.064, 0.066);
-  g.add(Object.assign(mesh(ellipsoid(hr.x, hr.y, hr.z, 48, 32), fur, 'head'), { position: hc }));
+  g.add(placed(mesh(ellipsoid(hr.x, hr.y, hr.z, 48, 32), fur, 'head'), hc));
   const mc = v3(0, 0.186, 0.058), mr = v3(0.033, 0.025, 0.022);
-  g.add(Object.assign(mesh(ellipsoid(mr.x, mr.y, mr.z), light, 'muzzle'), { position: mc }));
+  g.add(placed(mesh(ellipsoid(mr.x, mr.y, mr.z), light, 'muzzle'), mc));
   const nose = mesh(ellipsoid(0.0115, 0.0078, 0.0068), thread, 'nose');
   nose.position.copy(onEllipsoid(mc, mr, v3(0, 0.42, 1), -0.0025));
   g.add(nose);
@@ -881,12 +922,12 @@ const buildPlush: Builder = (c) => {
     return m;
   };
   for (const s of [-1, 1]) {
-    limb(v3(s * 0.058, 0.128, 0.012), v3(s * 0.07, 0.066, 0.05), 0.023, 'arm');
+    limb(v3(s * 0.056, 0.13, 0.014), v3(s * 0.078, 0.09, 0.055), 0.022, 'arm');
     const legFrom = v3(s * 0.044, 0.031, 0.006), legTo = v3(s * 0.058, 0.031, 0.08);
     limb(legFrom, legTo, 0.031, 'leg');
     const dir = legTo.clone().sub(legFrom).normalize();
-    const pad = mesh(ellipsoid(0.021, 0.023, 0.006), light, 'paw-pad');
-    pad.position.copy(legTo.clone().addScaledVector(dir, 0.0275));
+    const pad = mesh(ellipsoid(0.019, 0.021, 0.0085), light, 'paw-pad');
+    pad.position.copy(legTo.clone().addScaledVector(dir, 0.0243));
     pad.lookAt(pad.position.clone().add(dir));
     g.add(pad);
   }

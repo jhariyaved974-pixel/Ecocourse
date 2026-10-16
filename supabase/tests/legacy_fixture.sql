@@ -1,7 +1,9 @@
 -- Test fixture: reproduces the previous single-page-app schema found in the
 -- original Supabase project (migration "001_schema") with a subset of its seed
 -- rows, so the archive + import migrations can be tested against a database
--- that looks exactly like that project.
+-- that looks exactly like that project. Exercised by tests/db/legacy-import.test.ts.
+-- ('outdoor' is not in the original seed: it collides with a non-footwear
+-- category of the new catalogue on purpose.)
 create extension if not exists pgcrypto with schema extensions;
 
 create table public.admins (
@@ -86,11 +88,13 @@ create policy media_admin_list on storage.objects for select to authenticated us
 insert into public.categories(id,name,blurb,sort) values
  ('running','Running','Cushioned, light, made for miles',1),
  ('sneakers','Sneakers','Everyday court and street styles',2),
- ('slides','Slides','Easy, soft, ready for home and travel',4);
+ ('slides','Slides','Easy, soft, ready for home and travel',4),
+ ('outdoor','Outdoor','Trail-ready grip for weekends away',5);
 insert into public.products(id,name,cat,gender,type,price,mrp,tag,material,description,features,colors,sort) values
 ('aero-run-2','Aero Run 2','running','men','runner',1799,3299,'bestseller','Breathable mesh upper, EVA midsole','A light everyday runner with a soft landing and a grippy outsole.','["Breathable mesh upper","Cushioned EVA midsole","Grippy rubber outsole"]','[{"name":"Midnight","upper":"#1d2a4a","accent":"#e8e6e1","sole":"#f4f2ee","fam":"blue"},{"name":"Coal","upper":"#1b1b1d","accent":"#f2c230","sole":"#f4f2ee","fam":"black"}]',1),
 ('court-classic','Court Classic','sneakers','unisex','court',1399,2499,'bestseller','Vegan leather upper, rubber cupsole','A clean low-top court sneaker that goes with everything.','["Easy-clean upper","Durable cupsole","Padded insole"]','[{"name":"Chalk","upper":"#f4f2ee","accent":"#0b6b47","sole":"#ffffff","fam":"white"}]',3),
-('cloud-slide','Cloud Slide','slides','unisex','slide',599,999,'bestseller','Soft EVA','Pillow-soft slides for home, gym bags and travel.','["Pillow-soft footbed","Quick-dry","Lightweight"]','[{"name":"Sand","upper":"#d9cdb8","accent":"#ffffff","sole":"#d9cdb8","fam":"brown"}]',7);
+('cloud-slide','Cloud Slide','slides','unisex','slide',599,999,'bestseller','Soft EVA','Pillow-soft slides for home, gym bags and travel.','["Pillow-soft footbed","Quick-dry","Lightweight"]','[{"name":"Sand","upper":"#d9cdb8","accent":"#ffffff","sole":"#d9cdb8","fam":"brown"}]',7),
+('trail-grip','Trail Grip','outdoor','men','boot',2499,3999,'','Suede-look upper, lugged rubber outsole','A mid-cut trail shoe with a grippy lugged outsole.','["Lugged outsole","Padded collar"]','[{"name":"Moss","upper":"#4d5b3a","accent":"#c2410c","sole":"#3f3a33","fam":"green"}]',9);
 insert into public.coupons(code,type,value,min,first_order,label) values
  ('WELCOME10','pct',10,999,true,'10% off your first order over ₹999'),
  ('SAVE200','flat',200,1999,false,'₹200 off orders over ₹1,999');

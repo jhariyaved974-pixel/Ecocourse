@@ -74,11 +74,18 @@ export interface TestVariant {
   sku: string;
 }
 
-/** Creates a published product with one colour and the given sizes/stock. */
+/**
+ * Creates a published product with one colour and one variant per entry in
+ * `stock`. Option values default to UK shoe sizes ("UK 6", "UK 7", ...); pass
+ * `options` (same length as `stock`) and `variantLabel` for other products.
+ */
 export async function createProduct(opts: {
   price?: number;
   salePrice?: number | null;
   stock?: number[];
+  options?: string[];
+  variantLabel?: string;
+  gender?: 'men' | 'women' | 'kids' | 'unisex';
   categorySlug?: string;
   status?: 'draft' | 'published';
 } = {}): Promise<{ productId: string; slug: string; variants: TestVariant[] }> {
@@ -92,9 +99,10 @@ export async function createProduct(opts: {
       `insert into public.media_assets (kind, external_url, mime_type, label) values ('image', '/images/test.webp', 'image/webp', 'test') returning id`,
     );
     const { rows: [product] } = await client.query(
-      `insert into public.products (name, slug, sku, price, sale_price, status, category_id)
-       values ($1, $2, $3, $4, $5, 'draft', (select id from public.categories where slug = $6)) returning id`,
-      [`Test Shoe ${slug.slice(-4)}`, slug, sku, opts.price ?? 250000, opts.salePrice ?? null, opts.categorySlug ?? 'running'],
+      `insert into public.products (name, slug, sku, price, sale_price, status, category_id, variant_label, gender)
+       values ($1, $2, $3, $4, $5, 'draft', (select id from public.categories where slug = $6), $7, $8) returning id`,
+      [`Test Shoe ${slug.slice(-4)}`, slug, sku, opts.price ?? 250000, opts.salePrice ?? null, opts.categorySlug ?? 'running',
+        opts.variantLabel ?? 'Size', opts.gender ?? 'unisex'],
     );
     await client.query(`insert into public.product_media (product_id, asset_id, is_cover) values ($1, $2, true)`, [product.id, asset.id]);
     const { rows: [color] } = await client.query(
@@ -106,7 +114,7 @@ export async function createProduct(opts: {
       const vsku = `${sku}-${i}`;
       const { rows: [v] } = await client.query(
         `insert into public.product_variants (product_id, color_id, size_label, size_sort, sku, stock_on_hand) values ($1, $2, $3, $4, $5, $6) returning id`,
-        [product.id, color.id, `UK ${6 + i}`, 6 + i, vsku, stock],
+        [product.id, color.id, opts.options?.[i] ?? `UK ${6 + i}`, i + 1, vsku, stock],
       );
       variants.push({ productId: product.id, variantId: v.id, sku: vsku });
     }

@@ -1,6 +1,8 @@
 -- -----------------------------------------------------------------------------
--- Catalogue: media library, brands, categories, size guides, products,
--- colours, size/colour variants with stock, product media, collections.
+-- Catalogue: media library, brands, categories (departments and their
+-- sub-categories), generic size guides, products (each with a variant label
+-- such as "Size" or "Weight"), colours, option/colour variants with stock,
+-- product media, collections.
 -- -----------------------------------------------------------------------------
 
 create type public.media_kind as enum ('image', 'video', 'model');

@@ -941,9 +941,18 @@ as $$
             where cp.product_id = p.id and col.slug = p_collection_slug))
   )
   select jsonb_build_object(
+    -- size_sort is a position within one product, so values from different
+    -- products are ordered as: letter sizes (S, M, L ...), then by their first
+    -- number (UK 3 < UK 10), then by average position, then alphabetically.
     'sizes', (
-      select coalesce(jsonb_agg(s.size_label order by s.size_sort, s.size_label), '[]'::jsonb) from (
-        select v.size_label, min(v.size_sort) as size_sort from public.product_variants v
+      select coalesce(jsonb_agg(s.size_label order by s.grp, s.letter_pos, s.num, s.pos, s.size_label), '[]'::jsonb) from (
+        select v.size_label,
+               case when upper(v.size_label) = any (array['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL']) then 0
+                    when v.size_label ~ '[0-9]' then 1 else 2 end as grp,
+               array_position(array['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '3XL', '4XL'], upper(v.size_label)) as letter_pos,
+               substring(v.size_label from '[0-9]+(?:\.[0-9]+)?')::numeric as num,
+               avg(v.size_sort) as pos
+        from public.product_variants v
         join scope sc on sc.id = v.product_id
         where v.is_active and v.size_label <> 'Standard' group by v.size_label) s),
     'variant_labels', (

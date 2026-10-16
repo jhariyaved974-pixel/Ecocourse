@@ -1187,6 +1187,7 @@ export type Database = {
           product_slug: string
           sku: string
           color_name: string | null
+          variant_label: string
           size_label: string
           image_url: string | null
           unit_price: number
@@ -1207,6 +1208,7 @@ export type Database = {
           product_slug: string
           sku: string
           color_name?: string | null
+          variant_label?: string
           size_label: string
           image_url?: string | null
           unit_price: number
@@ -1227,6 +1229,7 @@ export type Database = {
           product_slug?: string
           sku?: string
           color_name?: string | null
+          variant_label?: string
           size_label?: string
           image_url?: string | null
           unit_price?: number
@@ -1966,6 +1969,7 @@ export type Database = {
           is_bestseller: boolean
           is_trending: boolean
           tags: string[]
+          variant_label: string
           model_asset_id: string | null
           size_guide_id: string | null
           seo_title: string | null
@@ -2001,6 +2005,7 @@ export type Database = {
           is_bestseller?: boolean
           is_trending?: boolean
           tags?: string[]
+          variant_label?: string
           model_asset_id?: string | null
           size_guide_id?: string | null
           seo_title?: string | null
@@ -2036,6 +2041,7 @@ export type Database = {
           is_bestseller?: boolean
           is_trending?: boolean
           tags?: string[]
+          variant_label?: string
           model_asset_id?: string | null
           size_guide_id?: string | null
           seo_title?: string | null
@@ -2349,28 +2355,19 @@ export type Database = {
         Row: {
           id: string
           size_guide_id: string
-          uk: string
-          us: string
-          eu: string
-          foot_length_cm: number | null
+          cells: string[]
           sort_order: number
         }
         Insert: {
           id?: string
           size_guide_id: string
-          uk: string
-          us?: string
-          eu?: string
-          foot_length_cm?: number | null
+          cells: string[]
           sort_order?: number
         }
         Update: {
           id?: string
           size_guide_id?: string
-          uk?: string
-          us?: string
-          eu?: string
-          foot_length_cm?: number | null
+          cells?: string[]
           sort_order?: number
         }
         Relationships: [
@@ -2389,6 +2386,7 @@ export type Database = {
           name: string
           intro: string
           notes: string
+          columns: string[]
           is_default: boolean
           created_at: string
           updated_at: string
@@ -2398,6 +2396,7 @@ export type Database = {
           name: string
           intro?: string
           notes?: string
+          columns: string[]
           is_default?: boolean
           created_at?: string
           updated_at?: string
@@ -2407,6 +2406,7 @@ export type Database = {
           name?: string
           intro?: string
           notes?: string
+          columns?: string[]
           is_default?: boolean
           created_at?: string
           updated_at?: string
@@ -2814,6 +2814,7 @@ export type Database = {
             product_slug: string
             product_status: Database["public"]["Enums"]["product_status"]
             color_name: string
+            variant_label: string
             size_label: string
             sku: string
             is_active: boolean
@@ -2854,6 +2855,7 @@ export type Database = {
             is_bestseller: boolean
             is_trending: boolean
             tags: string[]
+            variant_label: string
             created_at: string
             updated_at: string
             published_at: string
@@ -2938,8 +2940,17 @@ export type Database = {
         Returns: Json
       }
       catalog_facets: {
-        Args: Record<PropertyKey, never>
+        Args: {
+          p_category_slug?: string
+          p_collection_slug?: string
+        }
         Returns: Json
+      }
+      category_and_descendants: {
+        Args: {
+          p_slug: string
+        }
+        Returns: string[]
       }
       claim_email_batch: {
         Args: {
@@ -3283,6 +3294,8 @@ export type Database = {
           p_sort?: string
           p_limit?: number
           p_offset?: number
+          p_brands?: string[]
+          p_min_rating?: number
         }
         Returns: {
             id: string
@@ -3378,6 +3391,14 @@ export type Database = {
           p_lines: Json
         }
         Returns: number
+      }
+      text_array_items_valid: {
+        Args: {
+          p_values: string[]
+          p_min: number
+          p_max: number
+        }
+        Returns: boolean
       }
       text_array_to_string: {
         Args: {

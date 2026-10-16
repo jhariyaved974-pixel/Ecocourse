@@ -4,7 +4,9 @@
 -- 1. approve_payment: a proof whose UTR already confirmed another order used to
 --    fail with a raw unique-violation; it now raises a clear, actionable error.
 -- 2. search_products: inside a collection, the default "featured" sort follows
---    the product order curated in Admin → Collections.
+--    the product order curated in Admin → Collections. (Same signature and
+--    filters as in the admin operations migration: a department lists its
+--    sub-categories' products; optional brand and minimum-rating filters.)
 -- -----------------------------------------------------------------------------
 
 create or replace function public.approve_payment(
