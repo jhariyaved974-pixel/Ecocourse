@@ -181,8 +181,8 @@ async function main() {
     });
 
     // Department tiles (900×1125): two or three products from each department.
-    const tile = (slug, background, items, camera = CAM_34, fill = 0.88) =>
-      add(`category-${slug}`, 900, 1125, { background, items, camera, fill });
+    const tile = (slug, background, items, camera = CAM_34, fill = 0.88, extra = {}) =>
+      add(`category-${slug}`, 900, 1125, { background, items, camera, fill, ...extra });
     tile('electronics', '#dde3ea', [
       put('orbit-over-ear-headphones', { c: 0, at: [0.01, -0.09], ry: 0.2 }),
       put('stride-smartwatch-2', { c: 0, at: [0.075, 0.09], ry: -0.3, s: 1.7 }),
@@ -196,7 +196,7 @@ async function main() {
     tile('footwear', '#e7e2d8', [
       put('urban-street-pro', { c: 0, at: [-0.05, -0.2], ry: Math.PI + 0.45 }),
       put('velocity-runner-x', { c: 2, at: [0.05, 0.12], ry: -0.55 }),
-    ], CAM_HIGH);
+    ], CAM_HIGH, 0.82, { offsetX: -0.1 });
     tile('home-kitchen', '#e1e6dc', [
       put('ceramic-planter-set', { c: 0, at: [0.11, -0.12], ry: -0.3, s: 0.75 }),
       put('thermosteel-bottle-1l', { c: 0, at: [-0.13, -0.09], ry: 0.2, s: 0.85 }),
@@ -221,21 +221,21 @@ async function main() {
       put('smooth-gel-pen-set', { c: 0, at: [0.1, 0.18], ry: -0.45 }),
     ], CAM_HIGH, 0.84);
 
-    // Footwear sub-category tiles.
+    // Footwear sub-category tiles: one shoe each, unrotated and seen from the
+    // product photos' three-quarter angle (a tight fit and contact shadow).
     const shoeTiles = {
-      sneakers: shoe('urban-street-pro', 0, [0, 0, 0], [0, -0.7, 0]),
-      running: shoe('velocity-runner-x', 1, [0, 0, 0], [0, -0.7, 0]),
-      sports: shoe('courtvision-elite', 0, [0, 0, 0], [0, -0.7, 0]),
-      casual: shoe('cloudstep-everyday', 0, [0, 0, 0], [0, -0.7, 0]),
-      formal: shoe('midnight-leather-classic', 1, [0, 0, 0], [0, -0.7, 0]),
-      boots: shoe('trailforce-outdoor', 0, [0, 0, 0], [0, -0.7, 0]),
-      sandals: shoe('coastline-slide', 1, [0, 0, 0], [0, -0.7, 0]),
+      sneakers: ['urban-street-pro', 0, '#e7e2d8'],
+      running: ['velocity-runner-x', 1, '#dfe5ea'],
+      sports: ['courtvision-elite', 0, '#e4e1ec'],
+      casual: ['cloudstep-everyday', 0, '#e6e2d6'],
+      formal: ['midnight-leather-classic', 1, '#e2dbd3'],
+      boots: ['trailforce-outdoor', 0, '#e0ddd2'],
+      sandals: ['coastline-slide', 1, '#e0e6e6'],
     };
-    const shoeTileBg = { sneakers: '#e7e2d8', running: '#dfe5ea', sports: '#e4e1ec', casual: '#e6e2d6', formal: '#e2dbd3', boots: '#e0ddd2', sandals: '#e0e6e6' };
-    for (const [slug, s] of Object.entries(shoeTiles)) {
+    for (const [slug, [shoeSlug, ci, background]] of Object.entries(shoeTiles)) {
       add(`category-${slug}`, 900, 1125, {
-        background: shoeTileBg[slug], items: [s],
-        camera: { position: [0.9, 1.05, 1.9], target: [0, 0.1, 0], fov: 30 }, fill: 0.78,
+        background, items: [shoe(shoeSlug, ci, [0, 0, 0], [0, 0, 0])],
+        camera: { position: [1.55, 1.05, 1.85], target: [0, 0.12, 0], fov: 26 }, fill: 0.84,
       });
     }
 

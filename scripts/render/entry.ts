@@ -179,7 +179,8 @@ function glowBackdrop(background: string, glow: string, aspect: number, offsetX:
   g.fillStyle = background;
   g.fillRect(0, 0, c.width, c.height);
   const cx = c.width * (0.5 + offsetX / 2);
-  const grad = g.createRadialGradient(cx, c.height * 0.42, 0, cx, c.height * 0.42, c.height * 0.75);
+  const r = Math.min(c.width, c.height) * 0.75;
+  const grad = g.createRadialGradient(cx, c.height * 0.45, 0, cx, c.height * 0.45, r);
   const rgb = new THREE.Color(glow).getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
   const rgba = (a: number) => `rgba(${Math.round(rgb.r * 255)},${Math.round(rgb.g * 255)},${Math.round(rgb.b * 255)},${a})`;
   grad.addColorStop(0, rgba(0.22));
