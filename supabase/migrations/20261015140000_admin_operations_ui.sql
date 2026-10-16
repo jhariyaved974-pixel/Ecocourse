@@ -16,6 +16,7 @@ returns table (
   product_slug text,
   product_status public.product_status,
   color_name text,
+  variant_label text,
   size_label text,
   sku text,
   is_active boolean,
@@ -40,7 +41,7 @@ begin
   return query
   with rows as (
     select
-      v.id, p.id as pid, p.name, p.slug, p.status, c.name as color, v.size_label, v.sku, v.is_active,
+      v.id, p.id as pid, p.name, p.slug, p.status, c.name as color, p.variant_label, v.size_label, v.sku, v.is_active,
       v.stock_on_hand, v.stock_reserved, v.available,
       coalesce(p.low_stock_threshold, v_default) as threshold,
       v.size_sort, c.sort_order as color_sort
@@ -57,7 +58,7 @@ begin
        or (p_filter = 'reserved' and r.stock_reserved > 0)
        or (p_filter = 'inactive' and not r.is_active)
   )
-  select f.id, f.pid, f.name, f.slug, f.status, f.color, f.size_label, f.sku, f.is_active,
+  select f.id, f.pid, f.name, f.slug, f.status, f.color, f.variant_label, f.size_label, f.sku, f.is_active,
          f.stock_on_hand, f.stock_reserved, f.available, f.threshold,
          (f.is_active and f.available <= f.threshold), count(*) over ()
   from filtered f

@@ -232,6 +232,9 @@ create table public.order_items (
   product_slug text not null,
   sku text not null,
   color_name text,
+  -- Option name and value at the time of purchase (e.g. "Strap size" / "S/M").
+  -- A size_label of 'Standard' means the product had no options.
+  variant_label text not null default 'Size' check (char_length(variant_label) between 1 and 30),
   size_label text not null,
   image_url text,
   unit_price integer not null check (unit_price > 0),

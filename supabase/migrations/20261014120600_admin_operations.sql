@@ -27,7 +27,7 @@ begin
       using errcode = '23514', hint = 'publish_requires_image';
   end if;
   if not exists (select 1 from public.product_variants v where v.product_id = new.id and v.is_active) then
-    raise exception 'Add at least one active size to "%" before publishing.', v_product.name
+    raise exception 'Add at least one active variant (size or option) to "%" before publishing.', v_product.name
       using errcode = '23514', hint = 'publish_requires_variant';
   end if;
   return null;
@@ -193,6 +193,8 @@ as $$
 declare
   v_id uuid := nullif(p_product ->> 'id', '')::uuid;
   v_is_admin boolean := public.is_admin();
+  -- Name of the shopper-facing option ("Size", "Strap size", "Weight" ...).
+  v_variant_label text := coalesce(nullif(trim(p_product ->> 'variant_label'), ''), 'Size');
   v_color jsonb;
   v_variant jsonb;
   v_media jsonb;
@@ -215,7 +217,7 @@ begin
     insert into public.products (
       name, slug, sku, brand_id, category_id, gender, short_description, description, price, sale_price,
       sale_starts_at, sale_ends_at, status, is_featured, is_new_arrival, is_bestseller, is_trending, tags,
-      model_asset_id, size_guide_id, seo_title, seo_description, og_image_asset_id, low_stock_threshold
+      variant_label, model_asset_id, size_guide_id, seo_title, seo_description, og_image_asset_id, low_stock_threshold
     ) values (
       trim(p_product ->> 'name'), p_product ->> 'slug', upper(p_product ->> 'sku'),
       nullif(p_product ->> 'brand_id', '')::uuid, nullif(p_product ->> 'category_id', '')::uuid,
@@ -227,6 +229,7 @@ begin
       coalesce((p_product ->> 'is_featured')::boolean, false), coalesce((p_product ->> 'is_new_arrival')::boolean, false),
       coalesce((p_product ->> 'is_bestseller')::boolean, false), coalesce((p_product ->> 'is_trending')::boolean, false),
       coalesce(array(select lower(trim(t)) from jsonb_array_elements_text(coalesce(p_product -> 'tags', '[]'::jsonb)) t where trim(t) <> ''), '{}'),
+      v_variant_label,
       nullif(p_product ->> 'model_asset_id', '')::uuid, nullif(p_product ->> 'size_guide_id', '')::uuid,
       nullif(trim(p_product ->> 'seo_title'), ''), nullif(trim(p_product ->> 'seo_description'), ''),
       nullif(p_product ->> 'og_image_asset_id', '')::uuid, nullif(p_product ->> 'low_stock_threshold', '')::integer
@@ -251,6 +254,8 @@ begin
       is_bestseller = coalesce((p_product ->> 'is_bestseller')::boolean, false),
       is_trending = coalesce((p_product ->> 'is_trending')::boolean, false),
       tags = coalesce(array(select lower(trim(t)) from jsonb_array_elements_text(coalesce(p_product -> 'tags', '[]'::jsonb)) t where trim(t) <> ''), '{}'),
+      -- Absent key keeps the stored label (older callers); an empty value means 'Size'.
+      variant_label = case when p_product ? 'variant_label' then v_variant_label else variant_label end,
       model_asset_id = nullif(p_product ->> 'model_asset_id', '')::uuid,
       size_guide_id = nullif(p_product ->> 'size_guide_id', '')::uuid,
       seo_title = nullif(trim(p_product ->> 'seo_title'), ''),
@@ -326,7 +331,7 @@ begin
   -- Colours removed from the form (only if none of their variants carry history).
   for r in select c.id, c.name from public.product_colors c where c.product_id = v_id and not (c.id = any (v_keep_colors)) loop
     if exists (select 1 from public.product_variants v where v.color_id = r.id) then
-      raise exception 'Colour "%" has sizes with order history. Deactivate its sizes instead of removing the colour.', r.name
+      raise exception 'Colour "%" has variants with order history. Deactivate its variants instead of removing the colour.', r.name
         using errcode = 'P0001', hint = 'color_in_use';
     end if;
     delete from public.product_colors where id = r.id;
@@ -393,6 +398,7 @@ begin
     'id', v_id,
     'slug', (select slug from public.products where id = v_id),
     'status', (select status from public.products where id = v_id),
+    'variant_label', (select variant_label from public.products where id = v_id),
     'deactivated_variants', v_deactivated
   );
 end $$;
@@ -427,12 +433,12 @@ begin
 
   insert into public.products (
     name, slug, sku, brand_id, category_id, gender, short_description, description, price, sale_price,
-    sale_starts_at, sale_ends_at, status, tags, model_asset_id, size_guide_id, seo_title, seo_description,
+    sale_starts_at, sale_ends_at, status, tags, variant_label, model_asset_id, size_guide_id, seo_title, seo_description,
     og_image_asset_id, low_stock_threshold
   ) values (
     left(v_src.name || ' (Copy)', 140), v_slug, v_sku, v_src.brand_id, v_src.category_id, v_src.gender,
     v_src.short_description, v_src.description, v_src.price, v_src.sale_price, v_src.sale_starts_at, v_src.sale_ends_at,
-    'draft', v_src.tags, v_src.model_asset_id, v_src.size_guide_id, v_src.seo_title, v_src.seo_description,
+    'draft', v_src.tags, v_src.variant_label, v_src.model_asset_id, v_src.size_guide_id, v_src.seo_title, v_src.seo_description,
     v_src.og_image_asset_id, v_src.low_stock_threshold
   ) returning id into v_new;
 
@@ -802,7 +808,9 @@ create or replace function public.search_products(
   p_flag text default null,
   p_sort text default 'featured',
   p_limit integer default 24,
-  p_offset integer default 0
+  p_offset integer default 0,
+  p_brands text[] default null,
+  p_min_rating numeric default null
 )
 returns table (
   id uuid,
@@ -856,8 +864,8 @@ as $$
            or p.sku ilike params.q_like || '%'
            or exists (select 1 from unnest(p.tags) t where t ilike params.q_like)
            or c.name ilike '%' || params.q_like || '%')
-      and (p_category_slug is null or c.slug = p_category_slug
-           or c.parent_id = (select c2.id from public.categories c2 where c2.slug = p_category_slug))
+      -- A department lists its own products and those of all its sub-categories.
+      and (p_category_slug is null or p.category_id in (select public.category_and_descendants(p_category_slug)))
       and (p_collection_slug is null or exists (
             select 1 from public.collection_products cp join public.collections col on col.id = cp.collection_id
             where cp.product_id = p.id and col.slug = p_collection_slug))
@@ -867,6 +875,9 @@ as $$
             where v.product_id = p.id and v.is_active and v.available > 0 and v.size_label = any (p_sizes)))
       and (p_colors is null or cardinality(p_colors) = 0 or exists (
             select 1 from public.product_colors pc where pc.product_id = p.id and pc.family::text = any (p_colors)))
+      and (p_brands is null or cardinality(p_brands) = 0 or exists (
+            select 1 from public.brands br where br.id = p.brand_id and br.slug = any (p_brands)))
+      and (p_min_rating is null or (p.rating_count > 0 and p.rating_avg >= p_min_rating))
       and (p_flag is null
            or (p_flag = 'featured' and p.is_featured)
            or (p_flag = 'new' and p.is_new_arrival)
@@ -908,24 +919,52 @@ as $$
   limit (select lim from params) offset (select off from params);
 $$;
 
-create or replace function public.catalog_facets()
+-- Filter values for a listing. Optionally scoped to a category (a department
+-- includes its sub-categories) and/or a collection. 'sizes' holds option values
+-- other than 'Standard' (products without options have only 'Standard');
+-- 'variant_labels' are the option names of the products that have options.
+create or replace function public.catalog_facets(p_category_slug text default null, p_collection_slug text default null)
 returns jsonb
 language sql
 stable
 security invoker
 set search_path = ''
 as $$
+  with scope as (
+    select p.id, p.gender, p.brand_id, p.category_id, p.variant_label,
+           public.effective_price(p.price, p.sale_price, p.sale_starts_at, p.sale_ends_at) as eff_price
+    from public.products p
+    where p.status = 'published'
+      and (p_category_slug is null or p.category_id in (select public.category_and_descendants(p_category_slug)))
+      and (p_collection_slug is null or exists (
+            select 1 from public.collection_products cp join public.collections col on col.id = cp.collection_id
+            where cp.product_id = p.id and col.slug = p_collection_slug))
+  )
   select jsonb_build_object(
     'sizes', (
       select coalesce(jsonb_agg(s.size_label order by s.size_sort, s.size_label), '[]'::jsonb) from (
         select v.size_label, min(v.size_sort) as size_sort from public.product_variants v
-        join public.products p on p.id = v.product_id
-        where p.status = 'published' and v.is_active group by v.size_label) s),
+        join scope sc on sc.id = v.product_id
+        where v.is_active and v.size_label <> 'Standard' group by v.size_label) s),
+    'variant_labels', (
+      select coalesce(jsonb_agg(distinct sc.variant_label), '[]'::jsonb) from scope sc
+      where exists (select 1 from public.product_variants v where v.product_id = sc.id and v.is_active and v.size_label <> 'Standard')),
     'colors', (
       select coalesce(jsonb_agg(distinct pc.family::text), '[]'::jsonb) from public.product_colors pc
-      join public.products p on p.id = pc.product_id where p.status = 'published'),
-    'price_min', (select min(public.effective_price(price, sale_price, sale_starts_at, sale_ends_at)) from public.products where status = 'published'),
-    'price_max', (select max(public.effective_price(price, sale_price, sale_starts_at, sale_ends_at)) from public.products where status = 'published')
+      join scope sc on sc.id = pc.product_id),
+    'genders', (select coalesce(jsonb_agg(distinct sc.gender::text), '[]'::jsonb) from scope sc),
+    'brands', (
+      select coalesce(jsonb_agg(jsonb_build_object('slug', b.slug, 'name', b.name) order by b.sort_order, b.name), '[]'::jsonb)
+      from public.brands b where exists (select 1 from scope sc where sc.brand_id = b.id)),
+    'categories', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+               'slug', c.slug, 'name', c.name, 'parent_slug', par.slug, 'product_count', x.n)
+             order by coalesce(par.sort_order, c.sort_order), par.slug nulls first, c.sort_order, c.name), '[]'::jsonb)
+      from (select sc.category_id, count(*)::integer as n from scope sc group by sc.category_id) x
+      join public.categories c on c.id = x.category_id
+      left join public.categories par on par.id = c.parent_id),
+    'price_min', (select min(sc.eff_price) from scope sc),
+    'price_max', (select max(sc.eff_price) from scope sc)
   );
 $$;
 
@@ -1094,8 +1133,8 @@ begin
   end loop;
 end $$;
 
-grant execute on function public.search_products(text, text, text, text, text[], text[], integer, integer, boolean, boolean, text, text, integer, integer) to anon, authenticated, service_role;
-grant execute on function public.catalog_facets() to anon, authenticated, service_role;
+grant execute on function public.search_products(text, text, text, text, text[], text[], integer, integer, boolean, boolean, text, text, integer, integer, text[], numeric) to anon, authenticated, service_role;
+grant execute on function public.catalog_facets(text, text) to anon, authenticated, service_role;
 grant execute on function public.effective_price(integer, integer, timestamptz, timestamptz) to anon, authenticated, service_role;
 
 -- Lets the app tell "not staff" apart from "staff, but MFA step-up required".

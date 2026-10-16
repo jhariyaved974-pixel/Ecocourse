@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // Generates the original sample-catalogue assets:
-//   public/models/<product>.glb                    (meshopt-compressed glTF)
+//   public/models/<product>.glb                    (meshopt-compressed glTF; shoes and items)
 //   public/images/products/<product>/<colour>-<view>.webp
 //   public/images/site/*.webp                      (hero, categories, banners)
 //
-// Usage: node scripts/render/run.mjs [--only=<slug>] [--site] [--models] [--photos] [--preview]
+// Usage: node scripts/render/run.mjs [--only=<slug>[,<slug>...]] [--site] [--models] [--photos] [--preview] [--side]
+//   --preview renders only the first colourway's hero34 view (or side view with --side)
+//   Set RENDER_TMP to a private directory when running several renders at once.
 import { build } from 'esbuild';
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';
@@ -19,7 +21,7 @@ import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_TMP = process.env.RENDER_TMP ?? path.join(ROOT, '.render-cache');
 const args = new Set(process.argv.slice(2));
-const only = [...args].find((a) => a.startsWith('--only='))?.split('=')[1];
+const only = [...args].find((a) => a.startsWith('--only='))?.split('=')[1]?.split(',').filter(Boolean);
 const wantAll = !args.has('--site') && !args.has('--models') && !args.has('--photos');
 const SS = 1.6; // supersampling factor
 
@@ -78,11 +80,13 @@ async function main() {
     console.log('  wrote', path.relative(ROOT, file));
   };
 
-  const products = catalog.PRODUCTS.filter((p) => !only || p.slug === only);
+  const products = catalog.PRODUCTS.filter((p) => !only || only.includes(p.slug));
+  if (only && products.length !== only.length) throw new Error(`Unknown slug in --only: ${only.filter((s) => !products.some((p) => p.slug === s)).join(', ')}`);
+  const subjectOf = (p, c) => (p.kind === 'shoe' ? { type: 'shoe', silhouette: p.silhouette, colorway: c } : { type: 'item', model: p.model, colorway: c });
 
   if (wantAll || args.has('--models')) {
     for (const p of products) {
-      const b64 = await run({ kind: 'glb', silhouette: p.silhouette, colorway: p.colorways[0] });
+      const b64 = await run({ kind: 'glb', subject: subjectOf(p, p.colorways[0]) });
       const file = path.join(ROOT, 'public/models', `${p.slug}.glb`);
       await mkdir(path.dirname(file), { recursive: true });
       await compressGlb(Buffer.from(b64, 'base64'), file);
@@ -96,7 +100,7 @@ async function main() {
       for (const c of args.has('--preview') ? p.colorways.slice(0, 1) : p.colorways) {
         for (const view of views) {
           const file = path.join(ROOT, 'public/images/products', p.slug, `${slugify(c.name)}-${view}.webp`);
-          await savePhoto({ kind: 'photo', silhouette: p.silhouette, colorway: c, view, background: '#ebe8e2' }, file, 1200, 1200);
+          await savePhoto({ kind: 'photo', subject: subjectOf(p, c), view, background: '#ebe8e2' }, file, 1200, 1200);
         }
       }
     }
@@ -105,18 +109,18 @@ async function main() {
   if ((wantAll || args.has('--site')) && !only) {
     const byslug = Object.fromEntries(catalog.PRODUCTS.map((p) => [p.slug, p]));
     const shoe = (slug, ci, position, rotation, scale = 1) => ({
-      silhouette: byslug[slug].silhouette, colorway: byslug[slug].colorways[ci], position, rotation, scale,
+      subject: subjectOf(byslug[slug], byslug[slug].colorways[ci]), position, rotation, scale,
     });
     const site = path.join(ROOT, 'public/images/site');
     // Hero fallback (also used as the poster behind the WebGL hero).
     await savePhoto({
       kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
-      shoes: [shoe('velocity-runner-x', 0, [0.05, 0.2, 0], [0.18, -0.55, 0.2], 1)],
+      items: [shoe('velocity-runner-x', 0, [0.05, 0.2, 0], [0.18, -0.55, 0.2], 1)],
       camera: { position: [0.2, 0.5, 2.6], target: [0.05, 0.28, 0], fov: 26 }, fill: 0.62, offsetX: 0.32,
     }, path.join(site, 'hero.webp'), 2000, 1250);
     await savePhoto({
       kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
-      shoes: [shoe('velocity-runner-x', 0, [0.0, 0.2, 0], [0.18, -0.55, 0.2], 1)],
+      items: [shoe('velocity-runner-x', 0, [0.0, 0.2, 0], [0.18, -0.55, 0.2], 1)],
       camera: { position: [0.1, 0.55, 2.9], target: [0.0, 0.3, 0], fov: 30 }, fill: 0.78,
     }, path.join(site, 'hero-mobile.webp'), 900, 1200);
     // Category tiles.
@@ -132,14 +136,14 @@ async function main() {
     const tileBg = { sneakers: '#e7e2d8', running: '#dfe5ea', sports: '#e4e1ec', casual: '#e6e2d6', formal: '#e2dbd3', boots: '#e0ddd2', sandals: '#e0e6e6' };
     for (const [slug, s] of Object.entries(tiles)) {
       await savePhoto({
-        kind: 'scene', background: tileBg[slug], shoes: [s],
+        kind: 'scene', background: tileBg[slug], items: [s],
         camera: { position: [0.9, 1.05, 1.9], target: [0, 0.1, 0], fov: 30 }, fill: 0.78,
       }, path.join(site, `category-${slug}.webp`), 900, 1125);
     }
     // Editorial / promo banners.
     await savePhoto({
       kind: 'scene', background: '#1a1a1d', dark: true, accentLight: '#38bdf8',
-      shoes: [
+      items: [
         shoe('trailforce-outdoor', 0, [-0.55, 0, -0.1], [0, 0.5, 0]),
         shoe('courtvision-elite', 0, [0.6, 0, 0.05], [0, -0.6, 0]),
       ],
@@ -147,7 +151,7 @@ async function main() {
     }, path.join(site, 'banner-performance.webp'), 2000, 900);
     await savePhoto({
       kind: 'scene', background: '#e9e4da',
-      shoes: [
+      items: [
         shoe('cloudstep-everyday', 0, [-0.5, 0, 0.05], [0, 0.6, 0]),
         shoe('urban-street-pro', 0, [0.55, 0, -0.08], [0, -0.5, 0]),
       ],
@@ -155,12 +159,12 @@ async function main() {
     }, path.join(site, 'banner-essentials.webp'), 2000, 900);
     await savePhoto({
       kind: 'scene', background: '#d9d3c7',
-      shoes: [shoe('midnight-leather-classic', 1, [0, 0, 0], [0, -0.35, 0])],
+      items: [shoe('midnight-leather-classic', 1, [0, 0, 0], [0, -0.35, 0])],
       camera: { position: [0.9, 0.55, 1.5], target: [0.05, 0.08, 0], fov: 30 }, fill: 0.8,
     }, path.join(site, 'story-craft.webp'), 1200, 1500);
     await savePhoto({
       kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
-      shoes: [shoe('velocity-runner-x', 2, [0, 0.12, 0], [0.12, -0.6, 0.15])],
+      items: [shoe('velocity-runner-x', 2, [0, 0.12, 0], [0.12, -0.6, 0.15])],
       camera: { position: [0.2, 0.45, 2.6], target: [0, 0.22, 0], fov: 26 }, fill: 0.7, offsetX: 0.3,
     }, path.join(site, 'og-default.webp'), 1200, 630);
   }

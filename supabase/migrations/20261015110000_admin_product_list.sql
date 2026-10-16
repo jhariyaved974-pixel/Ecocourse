@@ -33,6 +33,7 @@ returns table (
   is_bestseller boolean,
   is_trending boolean,
   tags text[],
+  variant_label text,
   created_at timestamptz,
   updated_at timestamptz,
   published_at timestamptz,
@@ -80,7 +81,7 @@ begin
       c.name as category_name, c.slug as category_slug, b.name as brand_name,
       p.price, p.sale_price,
       public.effective_price(p.price, p.sale_price, p.sale_starts_at, p.sale_ends_at) as final_price,
-      p.is_featured, p.is_new_arrival, p.is_bestseller, p.is_trending, p.tags,
+      p.is_featured, p.is_new_arrival, p.is_bestseller, p.is_trending, p.tags, p.variant_label,
       p.created_at, p.updated_at, p.published_at,
       coalesce(p.low_stock_threshold, v_threshold) as stock_threshold,
       s.variant_count, s.active_variant_count, s.total_available, s.low_stock_variants, s.in_stock_variants
@@ -98,6 +99,7 @@ begin
       where v.product_id = p.id
     ) s on true
     where (p_status is null or p.status = p_status)
+      -- A department matches its sub-categories too (the tree has two levels).
       and (v_category is null or p.category_id = v_category or c.parent_id = v_category)
       and (not v_no_category or p.category_id is null)
       and (v_q is null
@@ -115,7 +117,7 @@ begin
   select
     f.id, f.name, f.slug, f.sku, f.status, f.category_id, f.category_name, f.category_slug, f.brand_name,
     f.price, f.sale_price, f.final_price, f.is_featured, f.is_new_arrival, f.is_bestseller, f.is_trending, f.tags,
-    f.created_at, f.updated_at, f.published_at,
+    f.variant_label, f.created_at, f.updated_at, f.published_at,
     (select coalesce(m.external_url, 'storage://' || m.bucket || '/' || m.storage_path)
        from public.product_media pm join public.media_assets m on m.id = pm.asset_id
        where pm.product_id = f.id and m.kind = 'image'

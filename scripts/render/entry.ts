@@ -6,15 +6,21 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { buildShoe, type Colorway } from './build-shoe';
 import type { Silhouette } from './shoe-designs';
+import type { ItemColorway, ItemModel } from './catalog';
+import { ITEM_BUILDERS } from './items';
 
 type View = 'hero34' | 'side' | 'top' | 'back34' | 'float' | 'detail';
 
+/** What to build: a procedural shoe or a procedural product (scripts/render/items). */
+export type Subject =
+  | { type: 'shoe'; silhouette: Silhouette; colorway: Colorway }
+  | { type: 'item'; model: ItemModel; colorway: ItemColorway };
+
 export type Job =
-  | { kind: 'glb'; silhouette: Silhouette; colorway: Colorway }
+  | { kind: 'glb'; subject: Subject }
   | {
       kind: 'photo';
-      silhouette: Silhouette;
-      colorway: Colorway;
+      subject: Subject;
       view: View;
       width: number;
       height: number;
@@ -28,12 +34,19 @@ export type Job =
       height: number;
       background: string;
       dark?: boolean;
-      shoes: { silhouette: Silhouette; colorway: Colorway; position: [number, number, number]; rotation: [number, number, number]; scale?: number }[];
+      items: { subject: Subject; position: [number, number, number]; rotation: [number, number, number]; scale?: number }[];
       camera: { position: [number, number, number]; target: [number, number, number]; fov: number };
       accentLight?: string;
       fill?: number;
       offsetX?: number;
     };
+
+function buildSubject(subject: Subject): THREE.Group {
+  if (subject.type === 'shoe') return buildShoe(subject.silhouette, subject.colorway).group;
+  const builder = ITEM_BUILDERS[subject.model];
+  if (!builder) throw new Error(`No builder for item model ${subject.model}`);
+  return builder(subject.colorway);
+}
 
 let renderer: THREE.WebGLRenderer | null = null;
 let envTexture: THREE.Texture | null = null;
@@ -183,8 +196,8 @@ function vignette(canvas: HTMLCanvasElement, dark: boolean) {
   return out.toDataURL('image/png');
 }
 
-async function exportGlb(silhouette: Silhouette, colorway: Colorway): Promise<string> {
-  const { group } = buildShoe(silhouette, colorway);
+async function exportGlb(subject: Subject): Promise<string> {
+  const group = buildSubject(subject);
   const exporter = new GLTFExporter();
   const result = await exporter.parseAsync(group, { binary: true, onlyVisible: true });
   const bytes = new Uint8Array(result as ArrayBuffer);
@@ -194,15 +207,15 @@ async function exportGlb(silhouette: Silhouette, colorway: Colorway): Promise<st
 }
 
 async function runJob(job: Job): Promise<string> {
-  if (job.kind === 'glb') return exportGlb(job.silhouette, job.colorway);
+  if (job.kind === 'glb') return exportGlb(job.subject);
 
   const r = getRenderer(job.width, job.height);
   const scene = studio(job.background, job.dark, job.kind === 'scene' ? job.accentLight : undefined);
   const camera = new THREE.PerspectiveCamera(24, job.width / job.height, 0.05, 50);
 
   if (job.kind === 'photo') {
-    const { group } = buildShoe(job.silhouette, job.colorway);
-    // Centre the shoe on the origin (x/z) so framing is consistent across silhouettes.
+    const group = buildSubject(job.subject);
+    // Centre the subject on the origin (x/z) so framing is consistent across silhouettes.
     const box = new THREE.Box3().setFromObject(group);
     const c = box.getCenter(new THREE.Vector3());
     group.position.x -= c.x;
@@ -223,8 +236,8 @@ async function runJob(job: Job): Promise<string> {
     fitCamera(camera, group, target, job.view === 'detail' ? 1.4 : job.view === 'side' ? 0.86 : 0.8);
   } else {
     const all = new THREE.Group();
-    for (const s of job.shoes) {
-      const { group } = buildShoe(s.silhouette, s.colorway);
+    for (const s of job.items) {
+      const group = buildSubject(s.subject);
       group.position.set(...s.position);
       group.rotation.set(...s.rotation);
       group.scale.setScalar(s.scale ?? 1);

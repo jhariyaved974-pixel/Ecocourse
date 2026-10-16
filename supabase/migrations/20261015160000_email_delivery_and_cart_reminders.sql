@@ -201,6 +201,7 @@ begin
         'name', pr.name,
         'slug', pr.slug,
         'color', pc.name,
+        'variant_label', pr.variant_label,
         'size', v.size_label,
         'quantity', ci.quantity
       ) order by ci.updated_at desc), '[]'::jsonb)

@@ -6,7 +6,8 @@
 --   the existing RLS policies still apply: only catalog staff may write, and
 --   only rows of the draft version. Publishing stays with publish_homepage().
 -- * Ordered lists (navigation, FAQs, announcements) reordered in one statement.
--- * Size guides saved together with their rows, keeping a single default.
+-- * Size guides (generic column/cell tables) saved together with their rows,
+--   keeping a single default.
 -- * Revision history with the author's name for editors, who cannot read
 --   customer profiles directly.
 -- -----------------------------------------------------------------------------
@@ -199,7 +200,12 @@ begin
   return v_count;
 end $$;
 
--- Saves a size guide and (when "rows" is present) replaces its rows.
+-- Saves a size guide (a generic table) and, when "rows" is present, replaces
+-- its rows. Payload:
+--   { id?, name, intro?, notes?, is_default?, columns: [text, ...],
+--     rows?: [{ cells: [text, ...] }, ...] }
+-- "columns" is required for a new guide; every row needs one cell per column
+-- and a non-empty first cell (the row label, e.g. "UK 8" or "M").
 create or replace function public.admin_save_size_guide(p_guide jsonb)
 returns uuid
 language plpgsql
@@ -209,6 +215,8 @@ as $$
 declare
   v_id uuid := nullif(p_guide ->> 'id', '')::uuid;
   v_default boolean := coalesce((p_guide ->> 'is_default')::boolean, false);
+  v_columns text[];
+  v_cells text[];
   v_row jsonb;
   v_index integer := 0;
 begin
@@ -216,33 +224,81 @@ begin
   if p_guide is null or jsonb_typeof(p_guide) <> 'object' then
     raise exception 'Invalid size guide.' using errcode = '22023';
   end if;
+
+  -- Columns: 1-8 header labels of 1-30 characters.
+  if p_guide ? 'columns' then
+    if jsonb_typeof(p_guide -> 'columns') <> 'array' then
+      raise exception 'Columns must be a list of labels.' using errcode = '22023', hint = 'size_guide_columns_invalid';
+    end if;
+    v_columns := array(select trim(x) from jsonb_array_elements_text(p_guide -> 'columns') with ordinality as c(x, n) order by n);
+    if cardinality(v_columns) not between 1 and 8 or not public.text_array_items_valid(v_columns, 1, 30) then
+      raise exception 'A size guide needs 1 to 8 columns, each with a label of up to 30 characters.'
+        using errcode = '22023', hint = 'size_guide_columns_invalid';
+    end if;
+  elsif v_id is null then
+    raise exception 'A size guide needs 1 to 8 columns, each with a label of up to 30 characters.'
+      using errcode = '22023', hint = 'size_guide_columns_invalid';
+  else
+    select g.columns into v_columns from public.size_guides g where g.id = v_id;
+  end if;
+
+  -- Validate every row before writing anything, with a message naming the row.
+  if p_guide ? 'rows' then
+    if jsonb_typeof(p_guide -> 'rows') <> 'array' or jsonb_array_length(p_guide -> 'rows') > 100 then
+      raise exception 'Rows must be a list of at most 100 rows.' using errcode = '22023', hint = 'size_guide_rows_invalid';
+    end if;
+    for v_row in select * from jsonb_array_elements(p_guide -> 'rows') loop
+      v_index := v_index + 1;
+      v_cells := array(
+        select trim(x) from jsonb_array_elements_text(case when jsonb_typeof(v_row) = 'array' then v_row else coalesce(v_row -> 'cells', '[]'::jsonb) end)
+          with ordinality as c(x, n) order by n);
+      if cardinality(v_cells) <> cardinality(v_columns) then
+        raise exception 'Row % has % cell(s); it needs % (one per column).', v_index, cardinality(v_cells), cardinality(v_columns)
+          using errcode = '23514', hint = 'size_guide_cells_mismatch';
+      end if;
+      if not public.text_array_items_valid(v_cells, 0, 30) then
+        raise exception 'Row %: each cell must be text of at most 30 characters.', v_index using errcode = '22023', hint = 'size_guide_rows_invalid';
+      end if;
+      if v_cells[1] = '' then
+        raise exception 'Row %: the first cell (the row label) is required.', v_index using errcode = '22023', hint = 'size_guide_rows_invalid';
+      end if;
+    end loop;
+  end if;
+
   -- Only one guide can be the default (partial unique index).
   if v_default then
     update public.size_guides set is_default = false where is_default and id is distinct from v_id;
   end if;
   if v_id is null then
-    insert into public.size_guides (name, intro, notes, is_default)
-    values (trim(p_guide ->> 'name'), coalesce(p_guide ->> 'intro', ''), coalesce(p_guide ->> 'notes', ''), v_default)
+    insert into public.size_guides (name, intro, notes, columns, is_default)
+    values (trim(p_guide ->> 'name'), coalesce(p_guide ->> 'intro', ''), coalesce(p_guide ->> 'notes', ''), v_columns, v_default)
     returning id into v_id;
   else
+    if not exists (select 1 from public.size_guides where id = v_id) then
+      raise exception 'This size guide no longer exists.' using errcode = 'P0002';
+    end if;
+    -- Old rows go first so the number of columns can change in the same save.
+    if p_guide ? 'rows' then
+      delete from public.size_guide_rows where size_guide_id = v_id;
+    end if;
     update public.size_guides set
       name = trim(p_guide ->> 'name'),
       intro = coalesce(p_guide ->> 'intro', ''),
       notes = coalesce(p_guide ->> 'notes', ''),
+      columns = v_columns,
       is_default = v_default
     where id = v_id;
-    if not found then
-      raise exception 'This size guide no longer exists.' using errcode = 'P0002';
-    end if;
   end if;
   if p_guide ? 'rows' then
-    delete from public.size_guide_rows where size_guide_id = v_id;
-    for v_row in select * from jsonb_array_elements(coalesce(p_guide -> 'rows', '[]'::jsonb)) loop
+    v_index := 0;
+    for v_row in select * from jsonb_array_elements(p_guide -> 'rows') loop
       v_index := v_index + 1;
-      insert into public.size_guide_rows (size_guide_id, uk, us, eu, foot_length_cm, sort_order)
+      insert into public.size_guide_rows (size_guide_id, cells, sort_order)
       values (
-        v_id, trim(v_row ->> 'uk'), coalesce(trim(v_row ->> 'us'), ''), coalesce(trim(v_row ->> 'eu'), ''),
-        nullif(v_row ->> 'foot_length_cm', '')::numeric, v_index
+        v_id,
+        array(select trim(x) from jsonb_array_elements_text(case when jsonb_typeof(v_row) = 'array' then v_row else coalesce(v_row -> 'cells', '[]'::jsonb) end)
+          with ordinality as c(x, n) order by n),
+        v_index
       );
     end loop;
   end if;

@@ -54,17 +54,40 @@ create trigger media_assets_set_updated_at before update on public.media_assets
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
--- Size guides
+-- Size guides: a generic table (header labels + rows of cells), so one model
+-- covers footwear conversions, clothing measurements or anything else.
 -- ---------------------------------------------------------------------------
+
+-- True when every element of a one-dimensional text array is non-null and its
+-- trimmed length is within [p_min, p_max]. Used by CHECK constraints.
+create or replace function public.text_array_items_valid(p_values text[], p_min integer, p_max integer)
+returns boolean
+language sql
+immutable
+parallel safe
+set search_path = ''
+as $$
+  select p_values is not null
+     and coalesce(array_ndims(p_values), 1) = 1
+     and not exists (
+       select 1 from unnest(p_values) as x
+       where x is null or char_length(trim(x)) not between p_min and p_max
+     );
+$$;
+
 create table public.size_guides (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(name) between 2 and 80),
   intro text not null default '' check (char_length(intro) <= 1000),
   notes text not null default '' check (char_length(notes) <= 2000),
+  columns text[] not null check (cardinality(columns) between 1 and 8 and public.text_array_items_valid(columns, 1, 30)),
+  -- Kept for the admin ("default" guide shown on /size-guide first); it does
+  -- NOT attach the guide to unrelated products. Categories link guides.
   is_default boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+comment on column public.size_guides.columns is 'Header labels of the guide table, e.g. {UK,US,EU,"Foot length (cm)"}.';
 create unique index size_guides_single_default on public.size_guides (is_default) where is_default;
 create trigger size_guides_set_updated_at before update on public.size_guides
   for each row execute function public.set_updated_at();
@@ -72,13 +95,51 @@ create trigger size_guides_set_updated_at before update on public.size_guides
 create table public.size_guide_rows (
   id uuid primary key default gen_random_uuid(),
   size_guide_id uuid not null references public.size_guides (id) on delete cascade,
-  uk text not null check (char_length(uk) between 1 and 10),
-  us text not null default '' check (char_length(us) <= 10),
-  eu text not null default '' check (char_length(eu) <= 10),
-  foot_length_cm numeric(4, 1) check (foot_length_cm is null or foot_length_cm between 5 and 40),
+  -- One cell per guide column (same length as size_guides.columns); cells may be empty.
+  cells text[] not null check (cardinality(cells) between 1 and 8 and public.text_array_items_valid(cells, 0, 30)),
   sort_order integer not null default 0
 );
 create index size_guide_rows_guide_idx on public.size_guide_rows (size_guide_id, sort_order);
+
+-- Every row has exactly one cell per column of its guide.
+create or replace function public.check_size_guide_row_cells()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_columns integer;
+begin
+  select cardinality(g.columns) into v_columns from public.size_guides g where g.id = new.size_guide_id;
+  if v_columns is not null and cardinality(new.cells) <> v_columns then
+    raise exception 'Each size guide row needs % cell(s), one per column (got %).', v_columns, cardinality(new.cells)
+      using errcode = '23514', hint = 'size_guide_cells_mismatch';
+  end if;
+  return new;
+end $$;
+create trigger size_guide_rows_check_cells before insert or update of cells, size_guide_id on public.size_guide_rows
+  for each row execute function public.check_size_guide_row_cells();
+
+-- Changing the number of columns requires replacing the rows (delete them first).
+create or replace function public.check_size_guide_columns()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if cardinality(new.columns) is distinct from cardinality(old.columns) and exists (
+    select 1 from public.size_guide_rows r
+    where r.size_guide_id = new.id and cardinality(r.cells) <> cardinality(new.columns)
+  ) then
+    raise exception 'The guide has rows with % cell(s); replace its rows when changing the number of columns.', cardinality(old.columns)
+      using errcode = '23514', hint = 'size_guide_cells_mismatch';
+  end if;
+  return null;
+end $$;
+create trigger size_guides_check_columns after update of columns on public.size_guides
+  for each row execute function public.check_size_guide_columns();
 
 -- ---------------------------------------------------------------------------
 -- Brands & categories
@@ -114,10 +175,39 @@ create table public.categories (
   updated_at timestamptz not null default now(),
   check (parent_id is distinct from id)
 );
+comment on column public.categories.parent_id is 'Two levels at most: departments (null parent) and their sub-categories.';
+comment on column public.categories.size_guide_id is 'Size guide for products in this category (and its sub-categories, unless they set their own).';
 create index categories_parent_idx on public.categories (parent_id);
 create index categories_image_idx on public.categories (image_asset_id);
+create index categories_size_guide_idx on public.categories (size_guide_id);
 create trigger categories_set_updated_at before update on public.categories
   for each row execute function public.set_updated_at();
+
+-- The category tree has two levels: a sub-category's parent must be a
+-- department, and a category with sub-categories cannot itself be moved under
+-- another category.
+create or replace function public.enforce_category_depth()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.parent_id is null then
+    return new;
+  end if;
+  if exists (select 1 from public.categories p where p.id = new.parent_id and p.parent_id is not null) then
+    raise exception 'Categories have two levels: choose a department (a top-level category) as the parent.'
+      using errcode = '23514', hint = 'category_too_deep';
+  end if;
+  if tg_op = 'UPDATE' and exists (select 1 from public.categories c where c.parent_id = new.id) then
+    raise exception 'This category has sub-categories, so it must stay a top-level department.'
+      using errcode = '23514', hint = 'category_too_deep';
+  end if;
+  return new;
+end $$;
+create trigger categories_enforce_depth before insert or update of parent_id on public.categories
+  for each row execute function public.enforce_category_depth();
 
 -- ---------------------------------------------------------------------------
 -- Products
@@ -144,7 +234,12 @@ create table public.products (
   is_bestseller boolean not null default false,
   is_trending boolean not null default false,
   tags text[] not null default '{}' check (cardinality(tags) <= 30),
+  -- Name of the option a shopper picks ("Size", "Strap size", "Weight", "Option").
+  -- product_variants.size_label holds the option VALUE; a product whose only
+  -- value per colour is 'Standard' has no options.
+  variant_label text not null default 'Size' check (char_length(trim(variant_label)) between 1 and 30),
   model_asset_id uuid references public.media_assets (id) on delete set null,
+  -- Overrides the category's size guide; null means "use the category's (or its parent's)".
   size_guide_id uuid references public.size_guides (id) on delete set null,
   seo_title text check (seo_title is null or char_length(seo_title) <= 70),
   seo_description text check (seo_description is null or char_length(seo_description) <= 170),
@@ -353,7 +448,7 @@ begin
     raise exception 'Add at least one product image before publishing.' using errcode = '23514', hint = 'publish_requires_image';
   end if;
   if not exists (select 1 from public.product_variants v where v.product_id = new.id and v.is_active) then
-    raise exception 'Add at least one active size before publishing.' using errcode = '23514', hint = 'publish_requires_variant';
+    raise exception 'Add at least one active variant (size or option) before publishing.' using errcode = '23514', hint = 'publish_requires_variant';
   end if;
   return null;
 end $$;
@@ -384,6 +479,23 @@ as $$
     then p_sale_price
     else p_price
   end;
+$$;
+
+-- A category and everything below it (a department and its sub-categories).
+-- SECURITY INVOKER: anonymous callers only see visible categories (RLS).
+create or replace function public.category_and_descendants(p_slug text)
+returns setof uuid
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  with recursive tree as (
+    select c.id, 1 as depth from public.categories c where c.slug = p_slug
+    union all
+    select ch.id, t.depth + 1 from public.categories ch join tree t on ch.parent_id = t.id where t.depth < 5
+  )
+  select id from tree;
 $$;
 
 -- Whether a media asset is referenced by something publicly visible. Unreleased
@@ -507,6 +619,11 @@ revoke execute on function public.track_product_slug_change() from public, anon,
 revoke execute on function public.product_slug_redirect_guard() from public, anon, authenticated;
 revoke execute on function public.assert_product_publishable() from public, anon, authenticated;
 revoke execute on function public.stamp_product_published_at() from public, anon, authenticated;
+revoke execute on function public.check_size_guide_row_cells() from public, anon, authenticated;
+revoke execute on function public.check_size_guide_columns() from public, anon, authenticated;
+revoke execute on function public.enforce_category_depth() from public, anon, authenticated;
+grant execute on function public.category_and_descendants(text) to anon, authenticated, service_role;
+grant execute on function public.text_array_items_valid(text[], integer, integer) to anon, authenticated, service_role;
 
 -- Audit catalogue configuration changes.
 create trigger products_audit after insert or update or delete on public.products

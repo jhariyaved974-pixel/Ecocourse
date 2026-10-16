@@ -118,7 +118,9 @@ create or replace function public.search_products(
   p_flag text default null,
   p_sort text default 'featured',
   p_limit integer default 24,
-  p_offset integer default 0
+  p_offset integer default 0,
+  p_brands text[] default null,
+  p_min_rating numeric default null
 )
 returns table (
   id uuid,
@@ -172,8 +174,8 @@ as $$
            or p.sku ilike params.q_like || '%'
            or exists (select 1 from unnest(p.tags) t where t ilike params.q_like)
            or c.name ilike '%' || params.q_like || '%')
-      and (p_category_slug is null or c.slug = p_category_slug
-           or c.parent_id = (select c2.id from public.categories c2 where c2.slug = p_category_slug))
+      -- A department lists its own products and those of all its sub-categories.
+      and (p_category_slug is null or p.category_id in (select public.category_and_descendants(p_category_slug)))
       and (p_collection_slug is null or exists (
             select 1 from public.collection_products cp join public.collections col on col.id = cp.collection_id
             where cp.product_id = p.id and col.slug = p_collection_slug))
@@ -183,6 +185,9 @@ as $$
             where v.product_id = p.id and v.is_active and v.available > 0 and v.size_label = any (p_sizes)))
       and (p_colors is null or cardinality(p_colors) = 0 or exists (
             select 1 from public.product_colors pc where pc.product_id = p.id and pc.family::text = any (p_colors)))
+      and (p_brands is null or cardinality(p_brands) = 0 or exists (
+            select 1 from public.brands br where br.id = p.brand_id and br.slug = any (p_brands)))
+      and (p_min_rating is null or (p.rating_count > 0 and p.rating_avg >= p_min_rating))
       and (p_flag is null
            or (p_flag = 'featured' and p.is_featured)
            or (p_flag = 'new' and p.is_new_arrival)

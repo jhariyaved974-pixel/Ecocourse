@@ -150,6 +150,7 @@ declare
   a_slug text[] := '{}';
   a_sku text[] := '{}';
   a_color text[] := '{}';
+  a_label text[] := '{}';
   a_size text[] := '{}';
   a_image text[] := '{}';
   a_available integer[] := '{}';
@@ -197,6 +198,7 @@ begin
       p.slug,
       p.status,
       p.category_id,
+      p.variant_label,
       p.price as regular_price,
       public.effective_price(p.price, p.sale_price, p.sale_starts_at, p.sale_ends_at) as unit_price,
       c.name as color_name,
@@ -232,6 +234,7 @@ begin
       'slug', r.slug,
       'sku', r.variant_sku,
       'color_name', r.color_name,
+      'variant_label', r.variant_label,
       'size_label', r.size_label,
       'image', r.image,
       'quantity', r.quantity,
@@ -258,6 +261,7 @@ begin
     a_slug := a_slug || r.slug;
     a_sku := a_sku || r.variant_sku;
     a_color := a_color || r.color_name;
+    a_label := a_label || r.variant_label;
     a_size := a_size || r.size_label;
     a_image := a_image || r.image;
     a_available := a_available || r.available;
@@ -314,7 +318,11 @@ begin
         a_eligible[i] := case v_coupon.scope
           when 'all' then true
           when 'products' then exists (select 1 from public.coupon_products cp where cp.coupon_id = v_coupon.id and cp.product_id = a_product[i])
-          when 'categories' then exists (select 1 from public.coupon_categories cc where cc.coupon_id = v_coupon.id and cc.category_id = a_category[i])
+          -- A department in the coupon also covers its sub-categories.
+          when 'categories' then exists (
+            select 1 from public.coupon_categories cc
+            join public.categories cat on cat.id = a_category[i]
+            where cc.coupon_id = v_coupon.id and cc.category_id in (cat.id, cat.parent_id))
         end;
         if a_eligible[i] then
           v_eligible_subtotal := v_eligible_subtotal + a_total[i];
@@ -408,7 +416,7 @@ begin
     'priced_lines', (
       select coalesce(jsonb_agg(jsonb_build_object(
         'variant_id', a_variant[k], 'product_id', a_product[k], 'product_name', a_name[k], 'slug', a_slug[k],
-        'sku', a_sku[k], 'color_name', a_color[k], 'size_label', a_size[k], 'image', a_image[k],
+        'sku', a_sku[k], 'color_name', a_color[k], 'variant_label', a_label[k], 'size_label', a_size[k], 'image', a_image[k],
         'quantity', a_qty[k], 'unit_price', a_unit[k], 'regular_price', a_regular[k], 'line_total', a_total[k],
         'discount_allocated', a_alloc[k], 'tax_rate_bps', a_rate[k], 'tax_amount', a_taxamt[k]
       ) order by k), '[]'::jsonb)
@@ -727,11 +735,12 @@ begin
   perform set_config('app.inventory_write', 'on', true);
   for v_line in select * from jsonb_array_elements(v_quote -> 'priced_lines') loop
     insert into public.order_items (
-      order_id, product_id, variant_id, product_name, product_slug, sku, color_name, size_label, image_url,
+      order_id, product_id, variant_id, product_name, product_slug, sku, color_name, variant_label, size_label, image_url,
       unit_price, unit_regular_price, quantity, line_total, discount_allocated, tax_rate_bps, tax_amount
     ) values (
       v_order_id, (v_line ->> 'product_id')::uuid, (v_line ->> 'variant_id')::uuid, v_line ->> 'product_name',
-      v_line ->> 'slug', v_line ->> 'sku', v_line ->> 'color_name', v_line ->> 'size_label', v_line ->> 'image',
+      v_line ->> 'slug', v_line ->> 'sku', v_line ->> 'color_name', coalesce(v_line ->> 'variant_label', 'Size'),
+      v_line ->> 'size_label', v_line ->> 'image',
       (v_line ->> 'unit_price')::integer, (v_line ->> 'regular_price')::integer, (v_line ->> 'quantity')::integer,
       (v_line ->> 'line_total')::integer, (v_line ->> 'discount_allocated')::integer,
       (v_line ->> 'tax_rate_bps')::integer, (v_line ->> 'tax_amount')::integer
@@ -818,7 +827,7 @@ begin
     'items', (
       select coalesce(jsonb_agg(jsonb_build_object(
         'product_name', oi.product_name, 'product_slug', oi.product_slug, 'sku', oi.sku, 'color_name', oi.color_name,
-        'size_label', oi.size_label, 'image', oi.image_url, 'unit_price', oi.unit_price,
+        'variant_label', oi.variant_label, 'size_label', oi.size_label, 'image', oi.image_url, 'unit_price', oi.unit_price,
         'unit_regular_price', oi.unit_regular_price, 'quantity', oi.quantity, 'line_total', oi.line_total
       ) order by oi.created_at, oi.product_name), '[]'::jsonb)
       from public.order_items oi where oi.order_id = v_order.id
