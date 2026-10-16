@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { grounded, mat, mesh, placeholder, type Builder } from './kit';
+import { grounded, lathe, mat, mesh, type Builder } from './kit';
 
 // ------------------------------------------------------------------ helpers
 
@@ -151,12 +151,12 @@ const at = (p: Profile, t: number) => (typeof p === 'function' ? p(t) : p);
 
 /**
  * Sweeps a rounded-rectangle section (superellipse, exponent `round`) along a smooth curve.
- * `side` fixes the direction of the section's width; `offset` shifts the section along its
+ * `side` fixes the direction of the section's width (or returns it per sample, in order); `offset` shifts the section along its
  * thickness direction (N = T × side).
  */
 function sweep(
   points: THREE.Vector3[],
-  o: { width: Profile; thickness: Profile; side: THREE.Vector3; closed?: boolean; segments?: number; radial?: number; round?: number; offset?: Profile },
+  o: { width: Profile; thickness: Profile; side: THREE.Vector3 | ((t: number, T: THREE.Vector3) => THREE.Vector3); closed?: boolean; segments?: number; radial?: number; round?: number; offset?: Profile },
 ) {
   const curve = new THREE.CatmullRomCurve3(points, o.closed ?? false, 'centripetal');
   const segs = o.segments ?? 96;
@@ -170,7 +170,8 @@ function sweep(
     const t = i / segs;
     const p = curve.getPointAt(t);
     const T = curve.getTangentAt(t);
-    const B = o.side.clone().addScaledVector(T, -o.side.dot(T)).normalize();
+    const sd = typeof o.side === 'function' ? o.side(t, T) : o.side;
+    const B = sd.clone().addScaledVector(T, -sd.dot(T)).normalize();
     const N = new THREE.Vector3().crossVectors(T, B).normalize();
     const w = at(o.width, t), h = at(o.thickness, t), off = o.offset ? at(o.offset, t) : 0;
     const ring: THREE.Vector3[] = [];
@@ -825,6 +826,16 @@ const buildWallet: Builder = (c) => {
       // bottom corner on the free edge follows the shell's rounding.
       const rr = s > 0 ? [0.0009, 0.001, 0.001, RC - 0.0012] : [RC - 0.0012, 0.001, 0.001, 0.0009];
       h.add(flat(U0, U1, V0, layerTop[k], yLayer(k), TL, rr, panel, 'wallet-slot'));
+      // Glued edge strips in the card gap along the free and bottom edges, so the stitched
+      // edge reads as one solid leather edge instead of loose plates.
+      const tf = TC + 2 * GAP + 0.00012;
+      const cardU1 = cu + cw / 2 + 0.0006;
+      const fr = s > 0 ? [0.0004, 0.0004, 0.0004, RC - 0.0016] : [RC - 0.0016, 0.0004, 0.0004, 0.0004];
+      h.add(flat(cardU1, U1 - 0.00025, V0 + 0.00025, layerTop[k] - 0.0004, yCard(k) - GAP - 0.00006, tf, fr, panel, 'wallet-edge', 0.0002));
+      const cardV0 = cardTop[k] - ch - 0.0006;
+      if (cardV0 > V0 + 0.002) {
+        h.add(flat(U0 + 0.00025, cardU1, V0 + 0.00025, cardV0, yCard(k) - GAP - 0.00006, tf, [0.0004, 0.0004, 0.0004, 0.0004], panel, 'wallet-edge', 0.0002));
+      }
     }
 
     // Stitching round the three open edges, 3 mm in: outside on the shell, inside through
@@ -890,18 +901,493 @@ const buildWallet: Builder = (c) => {
   return grounded(g);
 };
 
-// ------------------------------------------------------------------ export
+// ------------------------------------------------------------------ shared (yoga mat .. pens)
 
-void luminance;
-void rng;
+/** Flips a geometry's triangle winding when its normals mostly disagree with `out(p)`. */
+function facing(geo: THREE.BufferGeometry, out: (p: THREE.Vector3) => THREE.Vector3) {
+  geo.computeVertexNormals();
+  const p = geo.getAttribute('position'), n = geo.getAttribute('normal');
+  let s = 0;
+  const q = new THREE.Vector3(), m = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) s += m.fromBufferAttribute(n, i).dot(out(q.fromBufferAttribute(p, i)));
+  if (s < 0) {
+    const idx = geo.getIndex()!;
+    for (let i = 0; i < idx.count; i += 3) {
+      const b = idx.getX(i + 1);
+      idx.setX(i + 1, idx.getX(i + 2));
+      idx.setX(i + 2, b);
+    }
+    geo.computeVertexNormals();
+  }
+  return geo;
+}
+
+/** Indexed quad strip between two equally long point rows (flat caps, end faces). */
+function strip(a: THREE.Vector3[], b: THREE.Vector3[]) {
+  const pos: number[] = [];
+  for (const p of [...a, ...b]) pos.push(p.x, p.y, p.z);
+  const n = a.length, idx: number[] = [];
+  for (let i = 0; i < n - 1; i++) idx.push(i, n + i, i + 1, i + 1, n + i, n + i + 1);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  return geo;
+}
+
+/** Merges parts that each keep their own normals (hard edges between them). */
+function mergeParts(parts: THREE.BufferGeometry[]) {
+  return mergeGeometries(parts.map((p) => {
+    const g = p.index ? p.toNonIndexed() : p;
+    for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
+    return g;
+  }))!;
+}
+
+/** Text / badge texture drawn on a canvas. */
+function canvasMap(w: number, h: number, draw: (g: CanvasRenderingContext2D) => void) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  draw(c.getContext('2d')!);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+// ------------------------------------------------------------------ yoga mat
+
+/** TPE foam: soft, matte, with a faint sheen. */
+function foamMaterial(hex: string) {
+  return new THREE.MeshPhysicalMaterial({
+    color: hex, roughness: 0.82, metalness: 0, sheen: 0.3, sheenRoughness: 0.6,
+    sheenColor: new THREE.Color(hex).lerp(new THREE.Color('#ffffff'), 0.25),
+  });
+}
+
+/**
+ * 6 mm two-tone mat rolled up and lying on its side (axis along x): an Archimedean spiral of
+ * ~7 wraps, top colour outside, underside colour inside, so the open ends show the layered
+ * swirl. Two webbing loops hold it; the carry strap between them lies in a loose U on the floor.
+ */
+const buildYogaMat: Builder = (c) => {
+  const g = new THREE.Group();
+  const top = named(foamMaterial(albedo(c.primary, 0.6)), 'upper');
+  const under = foamMaterial(albedo(c.secondary, 0.7));
+  const webbing = bagFabric(albedo(c.accent, luminance(c.accent) > 0.3 ? 0.7 : 1));
+  const plastic = mat.plastic('#1d1d20', 0.45);
+
+  const W = 0.61, T = 0.006, GAP = 0.00035, R0 = 0.021;
+  const L = 1.83;
+  // Spiral length → number of turns: L = TAU * n * (R0 + n T / 2).
+  const turns = (-TAU * R0 + Math.sqrt((TAU * R0) ** 2 + 2 * TAU * T * L)) / (TAU * T);
+  const TH = turns * TAU;
+  const rAt = (th: number) => R0 + (T * th) / TAU;
+  const RO = rAt(TH) + T - GAP; // outer radius of the roll
+  const cy = RO;
+  // θ runs from the core outwards; the outer end of the mat finishes at the front-bottom.
+  const phase = TH + 2.45;
+  const pt = (x: number, r: number, th: number) => v3(x, cy + r * Math.cos(phase - th), r * Math.sin(phase - th));
+  const nTh = Math.ceil(turns * 90);
+  const ths = steps(nTh).map((k) => k * TH);
+
+  const band = (rin: (th: number) => number, rout: (th: number) => number, m: THREE.Material, name: string) => {
+    const xs = [-W / 2, W / 2];
+    const radial = (p: THREE.Vector3) => v3(0, p.y - cy, p.z);
+    const parts: THREE.BufferGeometry[] = [
+      facing(surface(ths, xs, (th, x) => pt(x, rout(th), th)), (p) => radial(p)),
+      facing(surface(ths, xs, (th, x) => pt(x, rin(th), th)), (p) => radial(p).negate()),
+    ];
+    for (const x of xs) {
+      parts.push(facing(strip(ths.map((th) => pt(x, rin(th), th)), ths.map((th) => pt(x, rout(th), th))), () => v3(Math.sign(x), 0, 0)));
+    }
+    for (const [th, sgn] of [[0, -1], [TH, 1]] as const) {
+      const a = pt(-W / 2, rin(th), th), b = pt(-W / 2, rout(th), th);
+      const tangent = pt(0, rin(th), th + 0.01).sub(pt(0, rin(th), th)).multiplyScalar(sgn);
+      parts.push(facing(strip([a, b], [a.clone().setX(W / 2), b.clone().setX(W / 2)]), () => tangent));
+    }
+    g.add(mesh(mergeParts(parts), m, name));
+  };
+  // Underside layer (inner half of each wrap) and top layer (outer half).
+  band((th) => rAt(th), (th) => rAt(th) + T * 0.42, under, 'mat-underside');
+  band((th) => rAt(th) + T * 0.42, (th) => rAt(th) + T - GAP, top, 'mat-top');
+
+  // Webbing loops round the roll, each with a slider buckle on top.
+  const LX = 0.205, SW = 0.025, ST = 0.0022;
+  for (const sx of [-1, 1]) {
+    const ring = steps(96, true).map((k) => pt(sx * LX, RO + ST / 2 + 0.0002, k * TAU));
+    g.add(mesh(sweep(ring, { width: SW, thickness: ST, side: v3(1, 0, 0), closed: true, segments: 96, radial: 10 }), webbing, 'mat-loop'));
+    const buckle = mesh(slab(SW + 0.006, 0.03, 0.005, 0.004, 0.0018), plastic, 'mat-buckle');
+    buckle.rotation.x = -Math.PI / 2;
+    buckle.position.set(sx * LX, cy + RO + ST + 0.0024, 0);
+    g.add(buckle);
+  }
+  // Carry strap: leaves each loop low on the front and lies in a loose U on the floor.
+  const a0 = 0.95; // angle from the top of the roll (towards +z) where the strap joins the loop
+  const rS = RO + ST * 1.5 + 0.0003;
+  const y = ST / 2 + 0.0002;
+  const on = (x: number, a: number) => v3(x, cy + rS * Math.cos(a), rS * Math.sin(a));
+  const strapPts = [
+    on(-LX, a0), on(-LX, 1.5),
+    v3(-LX, cy * 0.42, rS + 0.003),
+    v3(-LX + 0.002, 0.009, rS + 0.013),
+    v3(-LX + 0.008, y, rS + 0.04),
+    v3(-LX + 0.05, y, RO + 0.1),
+    v3(-0.03, y, RO + 0.122),
+    v3(0.06, y, RO + 0.116),
+    v3(LX - 0.04, y, RO + 0.088),
+    v3(LX - 0.006, y, rS + 0.038),
+    v3(LX, 0.009, rS + 0.013),
+    v3(LX, cy * 0.42, rS + 0.003),
+    on(LX, 1.5), on(LX, a0),
+  ];
+  // Width lies flat on whatever the strap rests on: horizontal and across the path on the
+  // floor, carried over unchanged (along x) where the strap hangs vertically.
+  let prev: THREE.Vector3 | null = null;
+  const across = (_t: number, T: THREE.Vector3) => {
+    let b = v3(0, 1, 0).cross(T);
+    if (b.length() < 0.35 && prev) b = prev.clone();
+    else {
+      b.normalize();
+      if (prev && b.dot(prev) < 0) b.negate();
+    }
+    prev = b.clone();
+    return b;
+  };
+  g.add(mesh(sweep(strapPts, { width: SW, thickness: ST, side: across, segments: 200, radial: 10, round: 6 }), webbing, 'mat-strap'));
+  return grounded(g);
+};
+
+// ------------------------------------------------------------------ dumbbells
+
+/** Regular n-gon outline with rounded corners: apothem `a`, corner radius `rc`, a flat at the bottom. */
+function roundedPolygon(n: number, a: number, rc: number, seg = 6) {
+  const pts: THREE.Vector2[] = [];
+  const cR = (a - rc) / Math.cos(Math.PI / n);
+  for (let k = 0; k < n; k++) {
+    const phi = (k / n) * TAU; // vertex directions 0°, 60°, ... → flats top and bottom for n = 6
+    for (let i = 0; i <= seg; i++) {
+      const t = phi - Math.PI / n + (i / seg) * ((2 * Math.PI) / n);
+      pts.push(new THREE.Vector2(cR * Math.cos(phi) + rc * Math.cos(t), cR * Math.sin(phi) + rc * Math.sin(t)));
+    }
+  }
+  return pts;
+}
+
+/** Neoprene coating: soft rubbery matte. */
+function neopreneMaterial(hex: string) {
+  return new THREE.MeshPhysicalMaterial({
+    color: hex, roughness: 0.68, metalness: 0, clearcoat: 0.12, clearcoatRoughness: 0.6,
+    sheen: 0.35, sheenRoughness: 0.5, sheenColor: new THREE.Color(hex).lerp(new THREE.Color('#ffffff'), 0.3),
+  });
+}
+
+/**
+ * A pair of neoprene-coated hex dumbbells lying side by side on their flats: rounded hex
+ * heads, a slightly waisted handle that flares into the heads, and a printed weight badge on
+ * each end.
+ */
+const buildDumbbells: Builder = (c) => {
+  const g = new THREE.Group();
+  const coat = named(neopreneMaterial(albedo(c.primary, 0.74)), 'upper');
+  const handleMat = neopreneMaterial(albedo(shade(c.primary, -0.03), 0.72));
+  const label = canvasMap(256, 256, (x) => {
+    x.fillStyle = c.secondary;
+    x.fillRect(0, 0, 256, 256);
+    x.strokeStyle = c.accent;
+    x.lineWidth = 7;
+    x.beginPath();
+    x.arc(128, 128, 112, 0, TAU);
+    x.stroke();
+    x.fillStyle = c.accent;
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.font = 'bold 104px Arial, Helvetica, sans-serif';
+    x.fillText('3', 128, 106);
+    x.font = 'bold 50px Arial, Helvetica, sans-serif';
+    x.fillText('KG', 128, 180);
+  });
+  label.center.set(0.5, 0.5);
+  label.rotation = Math.PI;
+  const badgeMat = new THREE.MeshPhysicalMaterial({ map: label, roughness: 0.5, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.4 });
+  const badgeRim = mat.plastic(c.secondary, 0.5);
+
+  const F = 0.074; // head across flats
+  const HL = 0.048; // head length
+  const GL = 0.1; // handle (grip) length between heads
+  const E = 0.0065; // edge rounding of the heads
+  const RG = 0.0158; // grip radius
+  const cyA = F / 2;
+
+  const headGeo = (() => {
+    const core = HL - 2 * E;
+    const geo = new THREE.ExtrudeGeometry(new THREE.Shape(roundedPolygon(6, F / 2 - E, 0.009 - E * 0.6, 6)), {
+      depth: core, bevelEnabled: true, bevelThickness: E, bevelSize: E, bevelSegments: 6, curveSegments: 1,
+    });
+    geo.translate(0, 0, -core / 2);
+    geo.rotateY(Math.PI / 2); // extrusion along x; the outline lies in the y/z plane
+    return smooth(geo);
+  })();
+  const gripGeo = (() => {
+    const prof: [number, number][] = [];
+    const half = GL / 2 + 0.004; // runs a few mm into the heads
+    for (const k of steps(48)) {
+      const x = lerp(-half, half, k);
+      const d = GL / 2 - Math.abs(x); // distance from the head face
+      const flare = 0.0075 * Math.exp(-Math.max(d, 0) / 0.0045);
+      const waist = -0.0009 * Math.cos((Math.PI * x) / GL);
+      prof.push([RG + flare + waist + (d < 0 ? 0.0075 : 0), x]);
+    }
+    return lathe(prof, 40).rotateZ(-Math.PI / 2);
+  })();
+  const badgeGeo = new THREE.CylinderGeometry(0.0185, 0.0185, 0.0012, 48, 1);
+  badgeGeo.rotateZ(-Math.PI / 2); // cap faces +x
+
+  const dumbbell = () => {
+    const d = new THREE.Group();
+    d.add(mesh(gripGeo, handleMat, 'dumbbell-grip'));
+    for (const sx of [-1, 1]) {
+      const head = mesh(headGeo, coat, 'dumbbell-head');
+      head.position.x = sx * (GL / 2 + HL / 2);
+      d.add(head);
+      const badge = mesh(badgeGeo, [badgeRim, badgeMat, badgeRim] as unknown as THREE.Material, 'dumbbell-label');
+      badge.position.x = sx * (GL / 2 + HL + 0.0006 - 0.00025);
+      // Keep the print upright on both ends.
+      if (sx < 0) badge.rotation.y = Math.PI;
+      d.add(badge);
+    }
+    d.position.y = cyA;
+    return d;
+  };
+  const a = dumbbell();
+  a.position.set(0.012, cyA, 0.046);
+  g.add(a);
+  const b = dumbbell();
+  b.position.set(-0.016, cyA, -0.05);
+  b.rotation.y = 0.1;
+  g.add(b);
+  return grounded(g);
+};
+
+// ------------------------------------------------------------------ notebooks
+
+/** Book-cloth / kraft board: dry and matte. */
+function coverMaterial(hex: string) {
+  return new THREE.MeshPhysicalMaterial({
+    color: hex, roughness: 0.74, metalness: 0, sheen: 0.25, sheenRoughness: 0.6,
+    sheenColor: new THREE.Color(hex).lerp(new THREE.Color('#ffffff'), 0.25),
+  });
+}
+
+/**
+ * Two A5 hardcover dot-grid notebooks, one fanned on top of the other: boards with rounded
+ * fore-edge corners and a rounded spine, a cream page block with faint page lines, a vertical
+ * elastic closure band and a ribbon marker trailing from the tail.
+ */
+const buildNotebooks: Builder = (c) => {
+  const g = new THREE.Group();
+  const cover = named(coverMaterial(albedo(c.primary, luminance(c.primary) > 0.2 ? 0.62 : 1)), 'upper');
+  const edgeMap = canvasMap(64, 256, (x) => {
+    x.fillStyle = '#ffffff';
+    x.fillRect(0, 0, 64, 256);
+    const r = rng(7);
+    for (let i = 0; i < 256; i += 2) {
+      x.fillStyle = `rgba(90,70,40,${0.05 + r() * 0.08})`;
+      x.fillRect(0, i, 64, 1);
+    }
+  });
+  edgeMap.wrapS = edgeMap.wrapT = THREE.RepeatWrapping;
+  const pages = new THREE.MeshStandardMaterial({ color: albedo(c.secondary, 0.86), roughness: 0.9, metalness: 0, map: edgeMap });
+  const elastic = bagFabric(albedo(c.accent, luminance(c.accent) > 0.3 ? 0.8 : 1));
+  const ribbon = bagFabric(albedo(c.accent, luminance(c.accent) > 0.3 ? 0.8 : 1.1));
+
+  const W = 0.148, D = 0.21; // A5 cover
+  const TB = 0.0024; // board thickness
+  const P = 0.0112; // page block (80 sheets of 100 GSM)
+  const SQ = 0.0025; // cover overhang ("squares")
+  const HT = 2 * TB + P; // total thickness
+  const RC = 0.007;
+  const EB = 0.0013; // band thickness
+
+  /** One notebook lying on its back cover, spine along -x, fore edge +x, head -z. */
+  const notebook = (withBand: boolean, ribbonOnFloor: boolean) => {
+    const nb = new THREE.Group();
+    // Page block: UVs from flatSlab are not useful, so map the page lines by height instead.
+    const block = flatSlab(W - SQ - 0.004, D - 2 * SQ, P, [0.0004, RC - SQ, RC - SQ, 0.0004].map((r) => Math.max(r, 0.0005)), 0.0006, 8, 2);
+    const bp = block.getAttribute('position');
+    const uv: number[] = [];
+    for (let i = 0; i < bp.count; i++) uv.push(0.5, ((bp.getY(i) + P / 2) / P) * 0.6);
+    block.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    const pb = mesh(block, pages, 'notebook-pages');
+    pb.position.set((0.004 - SQ) / 2, TB + P / 2, 0);
+    nb.add(pb);
+    for (const yb of [TB / 2, TB + P + TB / 2]) {
+      const board = mesh(flatSlab(W - TB, D, TB, [0.0004, RC, RC, 0.0004], 0.0007, 8, 3), cover, 'notebook-cover');
+      board.position.set(TB / 2, yb, 0);
+      nb.add(board);
+    }
+    // Rounded spine: a C-section wrapping the page block's back.
+    const ro = HT / 2, ri = HT / 2 - TB;
+    const prof: THREE.Vector2[] = [];
+    for (let i = 0; i <= 20; i++) {
+      const a = -Math.PI / 2 - (i / 20) * Math.PI;
+      prof.push(new THREE.Vector2(0.0015 + Math.cos(a) * ro * 0.55, Math.sin(a) * ro));
+    }
+    for (let i = 20; i >= 0; i--) {
+      const a = -Math.PI / 2 - (i / 20) * Math.PI;
+      prof.push(new THREE.Vector2(0.0015 + Math.cos(a) * ri * 0.5, Math.sin(a) * ri));
+    }
+    const sb = 0.0005;
+    const spine = new THREE.ExtrudeGeometry(new THREE.Shape(prof), {
+      depth: D - 2 * sb, bevelEnabled: true, bevelThickness: sb, bevelSize: sb * 0.5, bevelSegments: 2, curveSegments: 1,
+    });
+    spine.translate(0, 0, -(D - 2 * sb) / 2);
+    const sp = mesh(smooth(spine), cover, 'notebook-spine');
+    sp.position.set(-W / 2 + TB / 2 + 0.0002, HT / 2, 0);
+    nb.add(sp);
+
+    if (withBand) {
+      // Elastic closure band round the head and tail, parallel to the spine near the fore edge.
+      const bx = W / 2 - 0.016;
+      const y0 = EB / 2 + 0.00002, y1 = HT + EB / 2, z0 = D / 2 + EB / 2, rr = 0.0022;
+      const loop: THREE.Vector3[] = [];
+      const corner = (cy: number, cz: number, a0: number) => {
+        for (let i = 0; i <= 5; i++) {
+          const a = a0 + (i / 5) * (Math.PI / 2);
+          loop.push(v3(bx, cy + Math.sin(a) * rr, cz + Math.cos(a) * rr));
+        }
+      };
+      corner(y1 - rr, z0 - rr, 0); // top-front (+z) corner
+      corner(y1 - rr, -z0 + rr, Math.PI / 2);
+      corner(y0 + rr, -z0 + rr, Math.PI);
+      corner(y0 + rr, z0 - rr, (3 * Math.PI) / 2);
+      nb.add(mesh(sweep(loop, { width: 0.0065, thickness: EB, side: v3(1, 0, 0), closed: true, segments: 120, radial: 10 }), elastic, 'notebook-band'));
+    }
+    // Ribbon marker: leaves the page block at the tail, then either curls onto the floor or
+    // hangs down the tail edge onto the notebook below (whose cover is EB lower).
+    const rx = -0.02;
+    const zt = D / 2 - SQ;
+    const rib = ribbonOnFloor
+      ? [
+        v3(rx, TB + P * 0.62, zt - 0.004),
+        v3(rx, TB + P * 0.62, zt + 0.002),
+        v3(rx + 0.002, TB + P * 0.3, zt + 0.007),
+        v3(rx + 0.004, 0.0014, zt + 0.013),
+        v3(rx + 0.008, 0.0005, zt + 0.03),
+        v3(rx + 0.016, 0.0005, zt + 0.05),
+      ]
+      : [
+        v3(rx, TB + P * 0.62, zt - 0.004),
+        v3(rx, TB + P * 0.62, zt + 0.0015),
+        v3(rx, TB + P * 0.35, D / 2 + 0.0011),
+        v3(rx, TB * 0.3, D / 2 + 0.0011),
+        v3(rx + 0.0005, -EB + 0.0008, D / 2 + 0.0035),
+        v3(rx + 0.0015, -EB + 0.00028, D / 2 + 0.011),
+      ];
+    nb.add(mesh(sweep(rib, { width: 0.0045, thickness: 0.0005, side: v3(1, 0, 0), segments: 60, radial: 8, round: 6 }), ribbon, 'notebook-ribbon'));
+    return nb;
+  };
+
+  const lower = notebook(true, true);
+  g.add(lower);
+  // The upper notebook rests on the lower one's band.
+  const upper = notebook(true, false);
+  upper.position.set(0.026, HT + EB + 0.0001, -0.014);
+  upper.rotation.y = 0.2;
+  g.add(upper);
+  return grounded(g);
+};
+
+// ------------------------------------------------------------------ pens
+
+const PEN_INKS = ['#1d4ed8', '#dc2626', '#16a34a', '#1f2328', '#7c3aed', '#ec4899', '#f97316', '#0891b2', '#8b5a2b', '#eab308'];
+
+/**
+ * Ten retractable 0.5 mm gel pens in a loose staggered row: glossy barrels in the ink colour,
+ * ribbed rubber grips, chrome tip cones and wire clips, and a plunger button.
+ */
+const buildPens: Builder = (c) => {
+  const g = new THREE.Group();
+  const inks = [c.primary, c.secondary, c.accent, ...PEN_INKS.slice(3)];
+  const chrome = mat.metal('#d7d9dc', 0.18);
+  const LEN = 0.142;
+  const FAN = THREE.MathUtils.degToRad(6.2); // angle between neighbouring pens
+  const TIP_R = 0.113; // distance from the fan pivot to the tips
+  const RB = 0.0054; // barrel radius (pens rest on the barrel and grip crests)
+
+  // Profiles along the pen axis (x from the plunger end at 0 to the tip at LEN).
+  const bodyProf: [number, number][] = [];
+  const add = (r: number, x: number) => bodyProf.push([r, x]);
+  add(0.0001, 0.006);
+  for (const k of steps(6)) add(0.0046 * Math.sin((k * Math.PI) / 2) + 0.0001, 0.006 + 0.0035 * k ** 0.6);
+  for (const k of steps(30)) add(lerp(0.0047, RB, smoothstep(0, 0.12, k)) - 0.00025 * k, lerp(0.0096, 0.094, k));
+  add(RB - 0.0004, 0.095);
+  add(0.0001, 0.095);
+  // Rubber grip with circumferential ribs, tapering into the cone.
+  const gripProf: [number, number][] = [];
+  for (const k of steps(90)) {
+    const x = lerp(0.0935, 0.13, k);
+    const rib = 0.00022 * Math.cos(((x - 0.0935) / 0.0019) * TAU);
+    const taper = lerp(RB - 0.0002, 0.0036, smoothstep(0.76, 1, k));
+    gripProf.push([taper + rib * (1 - smoothstep(0.7, 0.9, k)) * smoothstep(0, 0.04, k), x]);
+  }
+  gripProf.unshift([0.0001, 0.0935]);
+  gripProf.push([0.0001, 0.13]);
+  const tipProf: [number, number][] = [[0.0001, 0.128], [0.0033, 0.1285], [0.0033, 0.1305], [0.0012, 0.1395], [0.0007, 0.1405], [0.0005, 0.1415], [0.0001, 0.1418]];
+  const plungerProf: [number, number][] = [[0.0001, -0.004], [0.0018, -0.0038], [0.0026, -0.0028], [0.0029, -0.001], [0.0029, 0.0095], [0.0001, 0.0095]];
+  const alongX = (prof: [number, number][]) => {
+    // Lathe axis y → x: rotating +90° about z sends y = -x to x, so negate (and reverse, to
+    // keep the faces pointing outwards) the profile.
+    const geo = lathe(prof.map(([r, x]) => [r, -x] as [number, number]).reverse(), 40);
+    return geo.rotateZ(Math.PI / 2);
+  };
+  const bodyG = alongX(bodyProf), gripG = alongX(gripProf), tipG = alongX(tipProf), plungerG = alongX(plungerProf);
+  // Clip: a wire strip from the collar along the top of the barrel, ending in a rounded bead.
+  const clipPts = [v3(0.0085, RB - 0.0006, 0), v3(0.0105, RB + 0.0016, 0), v3(0.016, RB + 0.0019, 0), v3(0.035, RB + 0.0012, 0), v3(0.05, RB + 0.0004, 0)];
+  const clipG = mergeParts([
+    sweep(clipPts, { width: 0.0028, thickness: 0.0009, side: v3(0, 0, 1), segments: 40, radial: 10 }),
+    new THREE.SphereGeometry(0.0012, 12, 8).scale(1.4, 0.8, 1.2).translate(0.0498, RB + 0.0005, 0),
+  ]);
+  // Collar ring where the clip is fixed.
+  const collarG = new THREE.CylinderGeometry(RB + 0.00025, RB + 0.00025, 0.0035, 40).rotateZ(Math.PI / 2).translate(0.0095, 0, 0);
+
+  const r = rng(11);
+  inks.forEach((ink, i) => {
+    const pen = new THREE.Group();
+    const barrel = mat.glossy(albedo(ink, 0.85));
+    const grip = mat.rubber(albedo(shade(ink, -0.08), 0.75));
+    const button = mat.plastic(albedo(shade(ink, 0.04), 0.9), 0.3);
+    pen.add(mesh(bodyG, barrel, 'pen-barrel'));
+    pen.add(mesh(gripG, grip, 'pen-grip'));
+    pen.add(mesh(tipG, chrome, 'pen-tip'));
+    pen.add(mesh(plungerG, button, 'pen-button'));
+    pen.add(mesh(collarG, barrel, 'pen-collar'));
+    const clip = mesh(clipG, chrome, 'pen-clip');
+    pen.add(clip);
+    // Roll each pen a little about its axis so the clips do not all point straight up.
+    pen.rotation.x = (r() - 0.5) * 0.5;
+    // Fan: tips gather towards a pivot at the front, plungers spread out behind.
+    const phi = (i - 4.5) * FAN;
+    const u = v3(Math.sin(phi), 0, -Math.cos(phi));
+    const d0 = TIP_R + (r() - 0.5) * 0.005;
+    const holder = new THREE.Group();
+    holder.add(pen);
+    holder.position.copy(u.clone().multiplyScalar(d0 + LEN)).setY(RB + 0.00025);
+    holder.rotation.y = -Math.PI / 2 - phi;
+    g.add(holder);
+  });
+  return grounded(g);
+};
+
+// ------------------------------------------------------------------ export
 
 export const BUILDERS = {
   tshirt: buildTshirt,
   backpack: buildBackpack,
   sunglasses: buildSunglasses,
   wallet: buildWallet,
-  yogamat: ((c) => placeholder(c)) as Builder,
-  dumbbells: ((c) => placeholder(c)) as Builder,
-  notebooks: ((c) => placeholder(c)) as Builder,
-  pens: ((c) => placeholder(c)) as Builder,
+  yogamat: buildYogaMat,
+  dumbbells: buildDumbbells,
+  notebooks: buildNotebooks,
+  pens: buildPens,
 };
