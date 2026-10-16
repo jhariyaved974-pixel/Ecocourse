@@ -9,8 +9,8 @@ import { StageErrorBoundary, useCanRender3D } from "@/components/three/capabilit
 import type { ProductMediaData } from "@/lib/catalog/types";
 import { cn } from "@/lib/utils";
 
-const ShoeStage = dynamic(
-  () => import("@/components/three/shoe-stage").then((m) => m.ShoeStage),
+const ProductStage = dynamic(
+  () => import("@/components/three/product-stage").then((m) => m.ProductStage),
   {
     ssr: false,
     loading: () => (
@@ -234,13 +234,12 @@ export function ProductGallery({
         <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius)] bg-surface-2">
           {current.type === "3d" ? (
             <StageErrorBoundary onError={() => setFailed3D(true)}>
-              <ShoeStage
+              <ProductStage
                 url={modelUrl!}
                 tint={tint}
                 dark={false}
                 autoRotate={false}
                 className="h-full w-full cursor-grab active:cursor-grabbing"
-                cameraZ={3.4}
               />
               <p className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/85 px-3 py-1.5 text-[11px] text-ink-2 backdrop-blur">
                 Drag to rotate · Interactive 3D model

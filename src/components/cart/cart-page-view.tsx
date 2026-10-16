@@ -23,10 +23,10 @@ export function CartPageView() {
       <EmptyState
         icon={<ShoppingBag className="size-6" />}
         title="Your cart is empty"
-        description="Pairs you add will appear here. Prices and stock are confirmed at checkout."
+        description="Items you add will appear here. Prices and stock are confirmed at checkout."
         action={
           <Button asChild>
-            <Link href="/shop">Shop all shoes</Link>
+            <Link href="/shop">Shop all products</Link>
           </Button>
         }
       />

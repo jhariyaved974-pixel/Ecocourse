@@ -36,7 +36,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     title: 'Catalog',
     items: [
-      { href: '/admin/products', label: 'Products', icon: 'Footprints', roles: CATALOG },
+      { href: '/admin/products', label: 'Products', icon: 'Package', roles: CATALOG },
       { href: '/admin/inventory', label: 'Inventory', icon: 'Boxes', roles: CATALOG },
       { href: '/admin/categories', label: 'Categories & brands', icon: 'FolderTree', roles: CATALOG },
       { href: '/admin/collections', label: 'Collections', icon: 'LayoutGrid', roles: CATALOG },

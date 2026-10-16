@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     supabase.from('addresses').select('label, full_name, phone, line1, line2, landmark, city, state, postal_code, country, is_default, created_at').eq('user_id', uid),
     supabase
       .from('orders')
-      .select('order_number, created_at, email, phone, customer_name, ship_line1, ship_line2, ship_landmark, ship_city, ship_state, ship_postal_code, subtotal, discount_total, shipping_total, tax_total, total, coupon_code, payment_method, payment_status, order_status, paid_at, tracking_carrier, tracking_number, order_items(product_name, color_name, size_label, quantity, unit_price, line_total)')
+      .select('order_number, created_at, email, phone, customer_name, ship_line1, ship_line2, ship_landmark, ship_city, ship_state, ship_postal_code, subtotal, discount_total, shipping_total, tax_total, total, coupon_code, payment_method, payment_status, order_status, paid_at, tracking_carrier, tracking_number, order_items(product_name, color_name, variant_label, size_label, quantity, unit_price, line_total)')
       .eq('user_id', uid),
     supabase.from('reviews').select('rating, title, body, status, created_at, product:products(name)').eq('user_id', uid),
     supabase.from('customer_requests').select('request_type, message, status, resolution_note, created_at').eq('user_id', uid),

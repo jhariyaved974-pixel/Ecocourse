@@ -32,7 +32,7 @@ export default async function CategoriesPage() {
       .select(`id, name, slug, description, is_visible, sort_order, logo:media_assets!brands_logo_asset_id_fkey(${ASSET}), products(count)`)
       .order('sort_order')
       .order('name'),
-    supabase.from('size_guides').select('id, name, is_default').order('name'),
+    supabase.from('size_guides').select('id, name').order('name'),
   ]);
 
   const catRows = categories.data ?? [];
@@ -66,7 +66,7 @@ export default async function CategoriesPage() {
 
   return (
     <>
-      <PageHeader title="Categories & brands" description="Organise the catalogue. Changes are reflected in the shop immediately." />
+      <PageHeader title="Categories & brands" description="Organise the catalogue into departments and sub-categories. Changes are reflected in the shop immediately." />
       {categories.error || brands.error ? (
         <Notice tone="danger" className="mb-6">
           Some data could not be loaded. Please refresh the page.
@@ -75,7 +75,7 @@ export default async function CategoriesPage() {
       <div className="space-y-8">
         <CategoryManager
           categories={categoryRows}
-          sizeGuides={(guides.data ?? []).map((g) => ({ id: g.id, name: g.name, isDefault: g.is_default }))}
+          sizeGuides={guides.data ?? []}
         />
         <BrandManager brands={brandRows} />
       </div>

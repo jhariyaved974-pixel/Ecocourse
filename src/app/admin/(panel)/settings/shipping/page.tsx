@@ -44,7 +44,7 @@ export default async function ShippingTaxPage() {
           </TableWrap>
         </Panel>
         <Panel title="Tax">
-          <Notice tone="info" className="mb-5">GST rates for footwear depend on the price per pair and change from time to time. Confirm the current slabs with your tax adviser before going live.</Notice>
+          <Notice tone="info" className="mb-5">GST rates depend on the type of product (and for some products on the price per unit) and change from time to time. The rate bands below apply to every product, so the starting 18% band is a placeholder: confirm the rates for what you sell with your tax adviser before going live.</Notice>
           {tax.data ? (
             <TaxSettingsForm initial={{ enabled: tax.data.enabled, pricesIncludeTax: tax.data.prices_include_tax, taxLabel: tax.data.tax_label, businessTaxId: tax.data.business_tax_id ?? '' }} />
           ) : null}

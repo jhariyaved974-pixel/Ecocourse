@@ -16,7 +16,8 @@ const csp = [
   `img-src 'self' data: blob: ${supabaseOrigins[0] ?? ''} https://www.googletagmanager.com`,
   "font-src 'self' data:",
   `media-src 'self' blob: ${supabaseOrigins[0] ?? ''}`,
-  `connect-src 'self' ${supabaseOrigins.join(' ')} https://api.razorpay.com https://lumberjack.razorpay.com https://plausible.io https://www.google-analytics.com https://region1.google-analytics.com`,
+  // blob: lets the 3D viewer decode textures embedded in product GLB models (three.js fetches them as blob URLs).
+  `connect-src 'self' blob: ${supabaseOrigins.join(' ')} https://api.razorpay.com https://lumberjack.razorpay.com https://plausible.io https://www.google-analytics.com https://region1.google-analytics.com`,
   'frame-src https://api.razorpay.com https://checkout.razorpay.com',
   "worker-src 'self' blob:",
   "object-src 'none'",

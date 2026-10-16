@@ -9,6 +9,7 @@ import type { Json } from '@/lib/database.types';
 import { TAGS } from '@/lib/catalog/queries';
 import {
   BULK_ACTION_VALUES,
+  DEFAULT_VARIANT_LABEL,
   PRODUCT_CSV_COLUMNS,
   PRODUCT_IMPORT_MAX_ROWS,
   PRODUCT_IMPORT_OPTIONAL_COLUMNS,
@@ -34,9 +35,9 @@ type DbError = { code?: string; message?: string; hint?: string | null };
 const UNIQUE_MESSAGES: [string, string, string?][] = [
   ['products_slug_key', 'This slug is already used by another product.', 'slug'],
   ['products_sku_key', 'This SKU is already used by another product.', 'sku'],
-  ['product_variants_sku_key', 'One of the size SKUs is already used by another product.'],
+  ['product_variants_sku_key', 'One of the variant SKUs is already used by another product.'],
   ['product_colors_product_id_name_key', 'Two colours have the same name.'],
-  ['product_variants_product_id_color_id_size_label_key', 'A size is listed twice for the same colour.'],
+  ['product_variants_product_id_color_id_size_label_key', 'An option value is listed twice for the same colour.'],
 ];
 
 /** Maps unique-constraint violations to specific messages; everything else goes through dbFail. */
@@ -105,7 +106,7 @@ export async function saveProduct(input: unknown): Promise<ActionResult<SaveProd
       if (error) return dbFail(error);
       for (const c of clashes ?? []) {
         const index = p.variants.findIndex((v) => v.sku === c.sku);
-        if (index >= 0) fieldErrors[`variants.${index}.sku`] = `Size SKU ${c.sku} is already used by “${c.product?.name ?? 'another product'}”.`;
+        if (index >= 0) fieldErrors[`variants.${index}.sku`] = `Variant SKU ${c.sku} is already used by “${c.product?.name ?? 'another product'}”.`;
       }
     }
     if (Object.keys(fieldErrors).length) return fail('Some values are already in use.', 'unique', fieldErrors);
@@ -118,7 +119,7 @@ export async function saveProduct(input: unknown): Promise<ActionResult<SaveProd
     invalidateProductPages([oldSlug, result.slug]);
     const deactivated = result.deactivated_variants ?? [];
     const message = deactivated.length
-      ? `Saved. ${deactivated.length} size(s) with order history were deactivated instead of removed.`
+      ? `Saved. ${deactivated.length} variant(s) with order history were deactivated instead of removed.`
       : p.id
         ? 'Product saved'
         : 'Product created';
@@ -254,6 +255,7 @@ export async function exportProductsCsv(filters: unknown): Promise<ActionResult<
       r.sku,
       r.status,
       r.category_slug ?? '',
+      r.variant_label,
       paiseToRupeeInput(r.price),
       paiseToRupeeInput(r.sale_price),
       r.total_available,
@@ -290,6 +292,7 @@ interface ExistingProduct {
   tags: string[];
   short_description: string;
   gender: string;
+  variant_label: string;
   hasImage: boolean;
   hasActiveVariant: boolean;
 }
@@ -314,7 +317,7 @@ async function loadExisting(supabase: ServerClient, field: 'id' | 'sku' | 'slug'
   for (const part of chunk([...new Set(values)].filter(Boolean), 100)) {
     const { data, error } = await supabase
       .from('products')
-      .select('id, name, slug, sku, status, price, sale_price, category_id, tags, short_description, gender, product_media(asset:media_assets(kind)), product_variants(is_active)')
+      .select('id, name, slug, sku, status, price, sale_price, category_id, tags, short_description, gender, variant_label, product_media(asset:media_assets(kind)), product_variants(is_active)')
       .in(field, part);
     if (error) throw new Error(`Could not load products (${error.code})`);
     for (const p of data ?? []) {
@@ -330,6 +333,7 @@ async function loadExisting(supabase: ServerClient, field: 'id' | 'sku' | 'slug'
         tags: p.tags,
         short_description: p.short_description,
         gender: p.gender,
+        variant_label: p.variant_label,
         hasImage: p.product_media.some((m) => m.asset?.kind === 'image'),
         hasActiveVariant: p.product_variants.some((v) => v.is_active),
       });
@@ -430,12 +434,12 @@ async function analyseImport(supabase: ServerClient, input: unknown): Promise<Ac
     let status: ProductStatus;
     if (!existing) {
       status = (r.status || 'draft') as ProductStatus;
-      if (status === 'published') errors.push('New products need images and sizes before publishing; import them as draft and finish them in the editor.');
+      if (status === 'published') errors.push('New products need images and variants before publishing; import them as draft and finish them in the editor.');
     } else {
       status = (r.status || existing.status) as ProductStatus;
       if (status === 'published' && existing.status !== 'published') {
         if (!existing.hasImage) errors.push(`“${existing.name}” has no image yet, so it cannot be published.`);
-        if (!existing.hasActiveVariant) errors.push(`“${existing.name}” has no active size yet, so it cannot be published.`);
+        if (!existing.hasActiveVariant) errors.push(`“${existing.name}” has no active variant yet, so it cannot be published.`);
       }
     }
 
@@ -456,6 +460,8 @@ async function analyseImport(supabase: ServerClient, input: unknown): Promise<Ac
     if (present.has('tags')) overrides.tags = r.tags;
     if (present.has('short_description')) overrides.short_description = r.short_description;
     if (present.has('gender') && r.gender) overrides.gender = r.gender;
+    // Old files without the column: new products get "Size", existing products keep their option name.
+    if (present.has('variant_label') && r.variant_label) overrides.variant_label = r.variant_label;
 
     if (!existing) {
       rows.push({ row, action: 'create', sku: r.sku, name: r.name, changes: [`New draft product “${r.name}”`], errors: [] });
@@ -476,6 +482,7 @@ async function analyseImport(supabase: ServerClient, input: unknown): Promise<Ac
     if (present.has('tags') && r.tags.join(',') !== existing.tags.join(',')) changes.push('tags updated');
     if (present.has('short_description') && r.short_description !== existing.short_description) changes.push('short description updated');
     if (present.has('gender') && r.gender && r.gender !== existing.gender) changes.push(`gender → ${r.gender}`);
+    if (present.has('variant_label') && r.variant_label && r.variant_label !== existing.variant_label) changes.push(`option name → ${r.variant_label}`);
 
     if (!changes.length) {
       rows.push({ row, action: 'unchanged', sku: r.sku, name: r.name, changes: [], errors: [] });
@@ -516,6 +523,7 @@ export async function applyProductImport(input: unknown): Promise<ActionResult<I
             payload = {
               id: '',
               gender: 'unisex',
+              variant_label: DEFAULT_VARIANT_LABEL,
               short_description: '',
               description: '',
               tags: [],

@@ -29,7 +29,7 @@ export function ProductReviews({ productId, productName, reviews, ratingAvg, rat
               </ul>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-muted">No reviews yet. Bought this pair? Share how it fits.</p>
+            <p className="mt-4 text-sm text-muted">No reviews yet. Bought this? Share what you think.</p>
           )}
           <div className="mt-8">
             <ReviewForm productId={productId} productName={productName} />

@@ -16,6 +16,7 @@ import { EmptyState, Notice } from '@/components/ui/misc';
 import { cartStore, useCart } from '@/lib/cart/store';
 import { setCouponCode, useCouponCode } from '@/lib/cart/coupon';
 import { lineStatusMessage } from '@/lib/orders/quote';
+import { lineDetails } from '@/lib/catalog/variants';
 import { INDIAN_STATES } from '@/lib/india';
 import { cn, formatDuration, formatMoney } from '@/lib/utils';
 
@@ -114,10 +115,10 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
     return (
       <EmptyState
         title="Your cart is empty"
-        description="Add a pair to your cart to check out."
+        description="Add something to your cart to check out."
         action={
           <Button asChild>
-            <Link href="/shop">Shop all shoes</Link>
+            <Link href="/shop">Shop all products</Link>
           </Button>
         }
       />
@@ -304,7 +305,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
                     <span className="font-medium">UPI (any UPI app)</span>
                     <span className="mt-1 block text-muted">
                       After you place the order you&apos;ll see our UPI ID and a QR code for the exact amount. Pay from GPay, PhonePe, Paytm or your bank app,
-                      then {upi.requireProof ? 'upload the payment screenshot and' : ''} enter the UTR reference. We reserve your pairs for {formatDuration(upi.reservationMinutes)} and confirm the order once
+                      then {upi.requireProof ? 'upload the payment screenshot and' : ''} enter the UTR reference. We reserve your items for {formatDuration(upi.reservationMinutes)} and confirm the order once
                       the payment is verified in our bank records (usually within {upi.reviewDeadlineHours} hours).
                     </span>
                   </span>
@@ -342,7 +343,9 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
                 </div>
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="truncate font-medium">{q?.productName ?? l.name}</p>
-                  <p className="text-xs text-muted">{[q?.colorName ?? l.colorName, `UK ${(q?.sizeLabel ?? l.sizeLabel).replace(/^UK\s*/i, '')}`].filter(Boolean).join(' · ')}</p>
+                  <p className="text-xs text-muted">
+                    {lineDetails({ colorName: q?.colorName ?? l.colorName, variantLabel: q?.variantLabel ?? l.variantLabel, sizeLabel: q?.sizeLabel ?? l.sizeLabel })}
+                  </p>
                   {msg ? <p className="mt-0.5 text-xs font-medium text-danger">{msg}</p> : null}
                 </div>
                 <p className="text-sm tabular-nums">{q ? formatMoney(q.lineTotal) : '—'}</p>

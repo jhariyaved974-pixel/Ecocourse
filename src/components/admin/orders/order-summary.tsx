@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Eye, EyeOff, Mail, Phone, UserRound } from 'lucide-react';
 import type { AdminAuditEntry, AdminOrder, AdminOrderEvent, AdminOrderItem } from '@/lib/admin/orders';
 import { Badge } from '@/components/ui/misc';
+import { formatOption } from '@/lib/admin/products';
 import { cn, formatDateTime, formatMoney } from '@/lib/utils';
 import { eventLabel } from './constants';
 
@@ -44,7 +45,7 @@ export function OrderItemsTable({ items }: { items: AdminOrderItem[] }) {
                         {item.product_name}
                       </Link>
                       <p className="mt-0.5 text-xs text-muted">
-                        {[item.color_name, item.size_label].filter(Boolean).join(' · ')}
+                        {[item.color_name, formatOption(item.variant_label, item.size_label)].filter(Boolean).join(' · ')}
                       </p>
                       <p className="mt-0.5 font-mono text-[11px] text-muted">{item.sku}</p>
                     </div>

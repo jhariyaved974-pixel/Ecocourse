@@ -4,6 +4,7 @@
 // the configured site URL, never taken from the payload.
 
 import { formatMoney } from '@/lib/utils';
+import { optionText } from '@/lib/catalog/variants';
 
 export interface EmailContext {
   storeName: string;
@@ -186,7 +187,7 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
     case 'order_delivered':
       return [
         p(greeting(payload)),
-        p(`Order ${order} has been delivered. We hope you love your new pair.`),
+        p(`Order ${order} has been delivered. We hope you enjoy your purchase.`),
         ...orderBlocks(payload, ctx),
       ];
     case 'admin_proof_submitted': {
@@ -210,12 +211,13 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
       if (items.length === 0) return null;
       return [
         p(greeting(payload)),
-        p('You left these in your cart. Sizes sell out, so here is a quick reminder:'),
+        p('You left these in your cart. Here is a quick reminder in case you still want them:'),
         {
           kind: 'list',
           items: items.map((i) => {
             const qty = num(i, 'quantity') ?? 1;
-            const detail = [str(i, 'color'), str(i, 'size') ? `Size ${str(i, 'size')}` : ''].filter(Boolean).join(' · ');
+            // "Weight: 2 × 3 kg"; products without options ('Standard') show no option.
+            const detail = [str(i, 'color'), optionText(str(i, 'variant_label'), str(i, 'size'))].filter(Boolean).join(' · ');
             return `${str(i, 'name')}${detail ? ` (${detail})` : ''}${qty > 1 ? ` × ${qty}` : ''}`;
           }),
         },
@@ -226,7 +228,7 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
     case 'newsletter_welcome':
       return [
         p('Thanks for subscribing.'),
-        p(`You will hear from ${ctx.storeName} about new releases, restocks and offers. We send a few emails a month at most.`),
+        p(`You will hear from ${ctx.storeName} about new products, restocks and offers. We send a few emails a month at most.`),
         button('Shop new arrivals', `${ctx.siteUrl}/shop?sort=newest`),
       ];
     default:
@@ -300,7 +302,7 @@ export function renderEmail(template: string, subject: string, payload: Payload,
 <body style="margin:0;padding:0;background:#f4f2ee;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
 <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background:#f4f2ee"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;background:#ffffff;border-radius:16px">
-<tr><td style="padding:28px 28px 8px"><a href="${escapeHtml(site)}" style="font-size:18px;font-weight:700;letter-spacing:0.18em;color:#111;text-decoration:none">${store}</a></td></tr>
+<tr><td style="padding:28px 28px 8px"><a href="${escapeHtml(site)}" style="font-size:20px;font-weight:700;letter-spacing:-0.01em;color:#111;text-decoration:none">${store}</a></td></tr>
 <tr><td style="padding:16px 28px 8px">${blocks.map(blockHtml).join('\n')}</td></tr>
 <tr><td style="padding:16px 28px 28px;border-top:1px solid #eee;font-size:12px;line-height:1.6;color:#6b6b6b">
 ${note ? `<p style="margin:0 0 8px">${escapeHtml(note.text)}${note.link ? ` <a href="${escapeHtml(note.link)}" style="color:#6b6b6b">${escapeHtml(note.linkLabel)}</a>.` : ''}</p>` : ''}

@@ -33,26 +33,32 @@ export interface CategoryRow {
   childCount: number;
 }
 
-type SizeGuideOption = { id: string; name: string; isDefault: boolean };
+type SizeGuideOption = { id: string; name: string };
 
 export function CategoryManager({ categories, sizeGuides }: { categories: CategoryRow[]; sizeGuides: SizeGuideOption[] }) {
-  const [editing, setEditing] = React.useState<CategoryRow | 'new' | null>(null);
+  const [editing, setEditing] = React.useState<CategoryRow | { parentId: string | null } | null>(null);
   const [blocked, setBlocked] = React.useState<CategoryRow | null>(null);
   const guideName = (id: string | null) => sizeGuides.find((g) => g.id === id)?.name;
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  const departments = categories.filter((c) => !c.parentId).length;
 
   return (
     <Panel
       title="Categories"
-      description="Shown in the shop filters and at /category/slug. Subcategories appear under their parent."
+      description={`Two levels: ${departments} department${departments === 1 ? '' : 's'} (top level) and their sub-categories. A department page at /category/slug lists the products of all its sub-categories; assign products to a sub-category.`}
       actions={
-        <Button size="sm" onClick={() => setEditing('new')}>
+        <Button size="sm" onClick={() => setEditing({ parentId: null })}>
           <Plus /> New category
         </Button>
       }
       className="overflow-hidden"
     >
       {categories.length === 0 ? (
-        <EmptyState icon={<FolderTree className="size-5" />} title="No categories yet" description="Create categories such as Running or Sneakers to organise the shop." />
+        <EmptyState
+          icon={<FolderTree className="size-5" />}
+          title="No categories yet"
+          description="Create departments such as Electronics or Home & Kitchen, then sub-categories such as Audio or Kitchen & Dining."
+        />
       ) : (
         <TableWrap className="-m-5 rounded-none border-0">
           <Table>
@@ -69,30 +75,47 @@ export function CategoryManager({ categories, sizeGuides }: { categories: Catego
               </tr>
             </thead>
             <tbody>
-              {categories.map((c) => (
-                <tr key={c.id} className="hover:bg-surface-2/40">
+              {categories.map((c) => {
+                const parent = c.parentId ? byId.get(c.parentId) : undefined;
+                const ownGuide = guideName(c.sizeGuideId);
+                const inherited = !ownGuide && parent ? guideName(parent.sizeGuideId) : undefined;
+                const isDepartment = !c.parentId;
+                // The product list filter for a department includes its sub-categories, so show the same total.
+                const total = c.productCount + (isDepartment ? categories.filter((x) => x.parentId === c.id).reduce((n, x) => n + x.productCount, 0) : 0);
+                return (
+                <tr key={c.id} className={cn('hover:bg-surface-2/40', isDepartment && 'bg-surface-2/30')}>
                   <Td>
-                    <div className="flex items-center gap-3" style={{ paddingLeft: c.depth * 20 }}>
+                    <div className="flex items-center gap-3" style={{ paddingLeft: c.depth * 24 }}>
                       {c.depth ? <span className="text-muted" aria-hidden>↳</span> : null}
                       <Thumb url={c.image?.url ?? null} size={36} />
                       <div className="min-w-0">
-                        <button type="button" className="font-medium hover:underline" onClick={() => setEditing(c)}>
+                        <button type="button" className={cn('text-left hover:underline', isDepartment ? 'font-semibold' : 'font-medium')} onClick={() => setEditing(c)}>
                           {c.name}
                         </button>
-                        <p className="text-xs text-muted">/category/{c.slug}</p>
+                        <p className="text-xs text-muted">
+                          {isDepartment ? (c.childCount ? `Department · ${c.childCount} sub-categor${c.childCount === 1 ? 'y' : 'ies'}` : 'Department') : `in ${parent?.name ?? '—'}`} · /category/
+                          {c.slug}
+                        </p>
                       </div>
                     </div>
                   </Td>
                   <Td className="text-right tabular-nums">
-                    <Link href={`/admin/products?category=${c.id}`} className="hover:underline">
-                      {c.productCount}
+                    <Link href={`/admin/products?category=${c.id}`} className="hover:underline" title={isDepartment && c.childCount ? 'Including its sub-categories' : undefined}>
+                      {total}
                     </Link>
                   </Td>
-                  <Td className="text-xs text-ink-2">{guideName(c.sizeGuideId) ?? <span className="text-muted">Store default</span>}</Td>
+                  <Td className="text-xs text-ink-2">
+                    {ownGuide ?? (inherited ? <span className="text-muted">{inherited} (from {parent?.name})</span> : <span className="text-muted">None</span>)}
+                  </Td>
                   <Td>{c.isVisible ? <Badge tone="success">Visible</Badge> : <Badge tone="neutral">Hidden</Badge>}</Td>
                   <Td className="text-right tabular-nums text-muted">{c.sortOrder}</Td>
                   <Td>
                     <div className="flex justify-end gap-1">
+                      {isDepartment ? (
+                        <Button size="icon-sm" variant="ghost" aria-label={`Add a sub-category to ${c.name}`} title="Add a sub-category" onClick={() => setEditing({ parentId: c.id })}>
+                          <Plus />
+                        </Button>
+                      ) : null}
                       <Button size="icon-sm" variant="ghost" aria-label={`Edit ${c.name}`} onClick={() => setEditing(c)}>
                         <Pencil />
                       </Button>
@@ -117,7 +140,8 @@ export function CategoryManager({ categories, sizeGuides }: { categories: Catego
                     </div>
                   </Td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </Table>
         </TableWrap>
@@ -127,8 +151,9 @@ export function CategoryManager({ categories, sizeGuides }: { categories: Catego
         <DialogContent className="max-w-2xl">
           {editing !== null ? (
             <CategoryForm
-              key={editing === 'new' ? 'new' : editing.id}
-              category={editing === 'new' ? null : editing}
+              key={'id' in editing ? editing.id : `new-${editing.parentId ?? 'top'}`}
+              category={'id' in editing ? editing : null}
+              defaultParentId={'id' in editing ? null : editing.parentId}
               categories={categories}
               sizeGuides={sizeGuides}
               onDone={() => setEditing(null)}
@@ -141,7 +166,7 @@ export function CategoryManager({ categories, sizeGuides }: { categories: Catego
         <DialogContent>
           <DialogHeader>
             <DialogTitle>“{blocked?.name}” cannot be deleted yet</DialogTitle>
-            <DialogDescription>Categories that still contain products or subcategories are kept so nothing ends up uncategorised by accident.</DialogDescription>
+            <DialogDescription>Categories that still contain products or sub-categories are kept so nothing ends up uncategorised by accident.</DialogDescription>
           </DialogHeader>
           <Notice tone="warning">
             {blocked && blocked.productCount > 0 ? (
@@ -150,7 +175,7 @@ export function CategoryManager({ categories, sizeGuides }: { categories: Catego
                 the bulk action “Set category”), or hide the category instead.
               </p>
             ) : null}
-            {blocked && blocked.childCount > 0 ? <p>It has {blocked.childCount} subcategor{blocked.childCount === 1 ? 'y' : 'ies'}. Move or delete them first.</p> : null}
+            {blocked && blocked.childCount > 0 ? <p>It has {blocked.childCount} sub-categor{blocked.childCount === 1 ? 'y' : 'ies'}. Move them to another department or delete them first.</p> : null}
           </Notice>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setBlocked(null)}>
@@ -168,28 +193,15 @@ export function CategoryManager({ categories, sizeGuides }: { categories: Catego
   );
 }
 
-function descendantsOf(id: string, categories: CategoryRow[]): Set<string> {
-  const out = new Set<string>([id]);
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const c of categories) {
-      if (c.parentId && out.has(c.parentId) && !out.has(c.id)) {
-        out.add(c.id);
-        grew = true;
-      }
-    }
-  }
-  return out;
-}
-
 function CategoryForm({
   category,
+  defaultParentId,
   categories,
   sizeGuides,
   onDone,
 }: {
   category: CategoryRow | null;
+  defaultParentId: string | null;
   categories: CategoryRow[];
   sizeGuides: SizeGuideOption[];
   onDone: () => void;
@@ -199,15 +211,23 @@ function CategoryForm({
   const [slug, setSlug] = React.useState(category?.slug ?? '');
   const [slugTouched, setSlugTouched] = React.useState(Boolean(category));
   const [description, setDescription] = React.useState(category?.description ?? '');
-  const [parentId, setParentId] = React.useState(category?.parentId ?? '');
+  const [parentId, setParentId] = React.useState(category?.parentId ?? defaultParentId ?? '');
   const [image, setImage] = React.useState<MediaAssetSummary | null>(category?.image ?? null);
   const [sizeGuideId, setSizeGuideId] = React.useState(category?.sizeGuideId ?? '');
   const [isVisible, setIsVisible] = React.useState(category?.isVisible ?? true);
-  const [sortOrder, setSortOrder] = React.useState(String(category?.sortOrder ?? (Math.max(0, ...categories.map((c) => c.sortOrder)) + 1)));
+  // New categories go last among their siblings.
+  const [sortOrder, setSortOrder] = React.useState(() =>
+    String(category?.sortOrder ?? Math.max(0, ...categories.filter((c) => (c.parentId ?? '') === (defaultParentId ?? '')).map((c) => c.sortOrder)) + 1),
+  );
   const [seoTitle, setSeoTitle] = React.useState(category?.seoTitle ?? '');
   const [seoDescription, setSeoDescription] = React.useState(category?.seoDescription ?? '');
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const excluded = category ? descendantsOf(category.id, categories) : new Set<string>();
+  // Two levels: only departments can be parents, never the category itself;
+  // a department with sub-categories cannot move under another department.
+  const hasChildren = (category?.childCount ?? 0) > 0;
+  const departments = categories.filter((c) => !c.parentId && c.id !== category?.id);
+  const parent = categories.find((c) => c.id === parentId);
+  const parentGuide = parent ? sizeGuides.find((g) => g.id === parent.sizeGuideId) : undefined;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,7 +254,7 @@ function CategoryForm({
   return (
     <form onSubmit={submit} noValidate>
       <DialogHeader>
-        <DialogTitle>{category ? `Edit “${category.name}”` : 'New category'}</DialogTitle>
+        <DialogTitle>{category ? `Edit “${category.name}”` : parent ? `New sub-category in ${parent.name}` : 'New category'}</DialogTitle>
         <DialogDescription>Changes appear in the shop straight after saving.</DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -270,34 +290,50 @@ function CategoryForm({
         <Field label="Description" htmlFor="cat-desc" error={errors.description} hint={`${description.length}/2000`} className="sm:col-span-2">
           <Textarea id="cat-desc" rows={3} maxLength={2000} value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
-        <Field label="Parent category" htmlFor="cat-parent" error={errors.parentId}>
-          <NativeSelect id="cat-parent" value={parentId} onChange={(e) => setParentId(e.target.value)}>
-            <option value="">None (top level)</option>
-            {categories
-              .filter((c) => !excluded.has(c.id))
-              .map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.depth ? '— '.repeat(c.depth) : ''}
-                  {c.name}
-                </option>
-              ))}
+        <Field
+          label="Department"
+          htmlFor="cat-parent"
+          error={errors.parentId}
+          hint={
+            hasChildren
+              ? `It has ${category?.childCount} sub-categor${category?.childCount === 1 ? 'y' : 'ies'}, so it stays a department.`
+              : parentId
+                ? 'This is a sub-category; it is listed on the department page too.'
+                : 'Top level: shown in the main menu and on the homepage category grid.'
+          }
+        >
+          <NativeSelect id="cat-parent" value={parentId} disabled={hasChildren} onChange={(e) => setParentId(e.target.value)}>
+            <option value="">None — this is a department</option>
+            {departments.map((c) => (
+              <option key={c.id} value={c.id}>
+                Sub-category of {c.name}
+              </option>
+            ))}
           </NativeSelect>
         </Field>
-        <Field label="Default size guide" htmlFor="cat-guide" error={errors.sizeGuideId} hint="Used by products in this category without their own guide.">
+        <Field
+          label="Size guide"
+          htmlFor="cat-guide"
+          error={errors.sizeGuideId}
+          hint={
+            parent
+              ? `Optional. Products here use it unless they choose their own${parentGuide ? `; empty uses ${parent.name}'s guide.` : '.'}`
+              : 'Optional. Used by products in this department and its sub-categories (unless they set their own). Leave empty for products without sizes.'
+          }
+        >
           <NativeSelect id="cat-guide" value={sizeGuideId} onChange={(e) => setSizeGuideId(e.target.value)}>
-            <option value="">Store default</option>
+            <option value="">{parentGuide ? `Use ${parent?.name}'s guide (${parentGuide.name})` : 'No size guide'}</option>
             {sizeGuides.map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name}
-                {g.isDefault ? ' (default)' : ''}
               </option>
             ))}
           </NativeSelect>
         </Field>
         <div className="sm:col-span-2">
-          <AssetField label="Image" value={image} onChange={setImage} kinds={['image']} uploadFolder="content" hint="Used on category tiles and banners." error={errors.imageAssetId} />
+          <AssetField label="Image" value={image} onChange={setImage} kinds={['image']} uploadFolder="content" hint="Used on category tiles and banners. Portrait (4:5) images work best for department tiles." error={errors.imageAssetId} />
         </div>
-        <Field label="Sort order" htmlFor="cat-sort" error={errors.sortOrder} hint="Lower numbers come first.">
+        <Field label="Sort order" htmlFor="cat-sort" error={errors.sortOrder} hint="Lower numbers come first within the same level.">
           <Input id="cat-sort" inputMode="numeric" value={sortOrder} onChange={(e) => setSortOrder(e.target.value.replace(/[^\d-]/g, ''))} />
         </Field>
         <div className="flex items-center justify-between gap-3 self-end rounded-lg border border-line px-3.5 py-2.5">

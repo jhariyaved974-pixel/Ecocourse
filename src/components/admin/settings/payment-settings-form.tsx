@@ -16,7 +16,6 @@ type Values = Omit<PaymentSettingsInput, 'reviewDeadlineHours' | 'reservationMin
   resubmissionHours: string;
 };
 
-const SAMPLE_ORDER = 'AU-000000-SAMPL';
 const SAMPLE_AMOUNT = 149_900;
 
 function Toggle({ checked, onChange, label, hint, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string; disabled?: boolean }) {
@@ -31,7 +30,19 @@ function Toggle({ checked, onChange, label, hint, disabled }: { checked: boolean
   );
 }
 
-export function PaymentSettingsForm({ initial, storeName, razorpayConfigured }: { initial: Values; storeName: string; razorpayConfigured: boolean }) {
+export function PaymentSettingsForm({
+  initial,
+  storeName,
+  orderPrefix,
+  razorpayConfigured,
+}: {
+  initial: Values;
+  storeName: string;
+  /** Store order number prefix (default STM), so the preview reference looks like a real order. */
+  orderPrefix: string;
+  razorpayConfigured: boolean;
+}) {
+  const sampleOrder = `${/^[A-Z]{2,4}$/.test(orderPrefix) ? orderPrefix : 'STM'}-000000-SAMPL`;
   const [v, setV] = React.useState<Values>(initial);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [qr, setQr] = React.useState<{ key: string; url: string } | null>(null);
@@ -43,11 +54,11 @@ export function PaymentSettingsForm({ initial, storeName, razorpayConfigured }: 
   const preview = React.useMemo(() => {
     if (!isValidUpiId(v.upiId)) return null;
     try {
-      return buildUpiUri({ payeeVpa: v.upiId.trim(), payeeName: v.payeeName || storeName, amountPaise: SAMPLE_AMOUNT, orderNumber: SAMPLE_ORDER, includeTransactionRef: v.includeTransactionRef });
+      return buildUpiUri({ payeeVpa: v.upiId.trim(), payeeName: v.payeeName || storeName, amountPaise: SAMPLE_AMOUNT, orderNumber: sampleOrder, includeTransactionRef: v.includeTransactionRef });
     } catch {
       return null;
     }
-  }, [v.upiId, v.payeeName, v.includeTransactionRef, storeName]);
+  }, [v.upiId, v.payeeName, v.includeTransactionRef, storeName, sampleOrder]);
 
   React.useEffect(() => {
     if (!preview) return;
@@ -113,7 +124,7 @@ export function PaymentSettingsForm({ initial, storeName, razorpayConfigured }: 
 
       <Panel title="Timing">
         <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="Reserve stock for (minutes)" htmlFor="p-res" error={err('reservationMinutes')} hint="Unpaid orders expire after this and release their pairs.">
+          <Field label="Reserve stock for (minutes)" htmlFor="p-res" error={err('reservationMinutes')} hint="Unpaid orders expire after this and release their reserved stock.">
             <Input id="p-res" inputMode="numeric" value={v.reservationMinutes} onChange={text('reservationMinutes')} />
           </Field>
           <Field label="Review deadline (hours)" htmlFor="p-rev" error={err('reviewDeadlineHours')} hint="Orders under review longer than this are flagged.">

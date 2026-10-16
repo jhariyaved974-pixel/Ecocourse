@@ -20,6 +20,7 @@ export default async function PaymentSettingsPage() {
       <PageHeader title="Payment settings" description={`Last changed ${formatDateTime(p.updated_at)}. Every change is recorded in the audit log.`} />
       <PaymentSettingsForm
         storeName={store.store_name}
+        orderPrefix={store.order_number_prefix}
         razorpayConfigured={integrations.razorpay}
         initial={{
           upiEnabled: p.upi_enabled,

@@ -4,16 +4,16 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Footprints, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
-  LogOut, Megaphone, Menu, MessageSquareText, Ruler, ScrollText, ShieldCheck, ShoppingBag, Store, TicketPercent, Truck, Users, Wallet, X,
+  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
+  LogOut, Megaphone, Menu, MessageSquareText, Package, Ruler, ScrollText, ShieldCheck, ShoppingBag, Store, TicketPercent, Truck, Users, Wallet, X,
 } from 'lucide-react';
 import { ADMIN_NAV } from '@/lib/admin/nav';
 import type { StaffRole } from '@/lib/auth';
 import { cn, titleCase } from '@/lib/utils';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Footprints, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
-  Megaphone, Menu, MessageSquareText, Ruler, ScrollText, ShieldCheck, ShoppingBag, Store, TicketPercent, Truck, Users, Wallet,
+  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
+  Megaphone, Menu, MessageSquareText, Package, Ruler, ScrollText, ShieldCheck, ShoppingBag, Store, TicketPercent, Truck, Users, Wallet,
 };
 
 function NavLinks({ role, onNavigate }: { role: StaffRole; onNavigate?: () => void }) {

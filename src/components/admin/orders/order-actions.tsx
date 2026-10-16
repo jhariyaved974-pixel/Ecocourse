@@ -163,7 +163,7 @@ export function CancelOrderButton({ orderId, orderNumber, paid, refundAmount }: 
           <p className="text-warning">The customer sees the reason in their order history and cancellation email.</p>
         </div>
       }
-      reason={{ label: 'Cancellation reason (visible to the customer)', required: true, minLength: 5, placeholder: 'e.g. Size out of stock at the warehouse.' }}
+      reason={{ label: 'Cancellation reason (visible to the customer)', required: true, minLength: 5, placeholder: 'e.g. Item out of stock at the warehouse.' }}
       confirmLabel="Cancel order"
       action={(reason) => cancelOrder({ orderId, reason })}
     >

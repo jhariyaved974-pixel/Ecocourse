@@ -142,7 +142,7 @@ function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (op
       'products-import-template.csv',
       toCsv(
         [...PRODUCT_CSV_COLUMNS, ...PRODUCT_IMPORT_OPTIONAL_COLUMNS],
-        [['', 'Example Runner', 'example-runner', 'AU-EXR', 'draft', 'running', '4999', '', '', 'running, mesh', 'Lightweight daily trainer.', 'unisex']],
+        [['', 'Steel Water Bottle 1 L', 'steel-water-bottle-1l', 'STM-SWB', 'draft', 'kitchen-dining', 'Capacity', '899', '', '', 'bottle, steel, kitchen', 'Double-wall steel bottle with a leak-proof lid.', 'unisex']],
       ),
     );
 
@@ -160,8 +160,8 @@ function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (op
         <DialogHeader>
           <DialogTitle>Import products from CSV</DialogTitle>
           <DialogDescription>
-            Creates new draft products or updates basic fields of existing ones (matched by <code>id</code>, then <code>sku</code>). Colours, sizes,
-            media and stock are never changed here — use the editor and Inventory for those.
+            Creates new draft products or updates basic fields of existing ones (matched by <code>id</code>, then <code>sku</code>). Colours, option
+            values, media and stock are never changed here — use the editor and Inventory for those.
           </DialogDescription>
         </DialogHeader>
 
@@ -169,10 +169,12 @@ function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (op
           <div className="rounded-lg border border-line bg-surface-2/50 p-3 text-xs leading-relaxed text-ink-2">
             <p>
               <strong>Required columns:</strong> name, sku, price_rupees. <strong>Optional:</strong> id, slug, status, category (slug or name),
-              sale_price_rupees, tags (comma separated), short_description, gender. The <code>stock</code> column of an export is ignored.
+              variant_label (the option name shoppers pick, e.g. Size or Weight), sale_price_rupees, tags (comma separated), short_description, gender
+              (men, women, kids or unisex for everyone). The <code>stock</code> column of an export is ignored.
             </p>
             <p className="mt-1">
-              Optional columns that are present but empty clear the value (category, sale price, tags). Up to {PRODUCT_IMPORT_MAX_ROWS} rows per file.{' '}
+              Optional columns that are present but empty clear the value (category, sale price, tags). An empty or missing variant_label keeps the
+              current option name (new products use “Size”). Up to {PRODUCT_IMPORT_MAX_ROWS} rows per file.{' '}
               <button type="button" onClick={template} className="font-medium underline underline-offset-2 hover:text-ink">
                 Download a template
               </button>

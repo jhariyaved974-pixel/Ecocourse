@@ -140,7 +140,7 @@ export type SectionLayout = (typeof SECTION_LAYOUTS)[number];
 export const SECTION_TYPES: Record<SectionType, SectionTypeMeta> = {
   hero: {
     label: 'Hero',
-    description: 'Full-width opening banner with headline, buttons, poster image and the interactive 3D shoe.',
+    description: 'Full-width opening banner with headline, buttons, poster image and the interactive 3D product scene.',
     fields: ['eyebrow', 'heading', 'subheading', 'cta', 'secondaryCta', 'image', 'mobileImage', 'model', 'show3d'],
     required: ['heading'],
     note: 'Put the hero first: only the first section sits under the transparent site header.',
@@ -153,9 +153,9 @@ export const SECTION_TYPES: Record<SectionType, SectionTypeMeta> = {
     defaults: {
       items: [
         { title: 'Free delivery', body: 'On orders over {free_shipping_over}', icon: 'truck', href: null, image_asset_id: null, product_id: null },
-        { title: '{return_days}-day exchanges', body: 'Unworn pairs, original box', icon: 'refresh', href: null, image_asset_id: null, product_id: null },
+        { title: '{return_days}-day exchanges', body: 'On unused items in original packaging', icon: 'refresh', href: null, image_asset_id: null, product_id: null },
         { title: 'Verified UPI payments', body: 'Checked by our team before dispatch', icon: 'shield', href: null, image_asset_id: null, product_id: null },
-        { title: 'Fit guidance', body: 'Size help on every product page', icon: 'ruler', href: null, image_asset_id: null, product_id: null },
+        { title: 'Honest prices', body: 'No hidden charges at checkout', icon: 'badge-check', href: null, image_asset_id: null, product_id: null },
       ],
     },
   },
@@ -173,10 +173,10 @@ export const SECTION_TYPES: Record<SectionType, SectionTypeMeta> = {
   },
   category_grid: {
     label: 'Category grid',
-    description: 'Tiles for every visible top-level category, using the category images.',
+    description: 'Tiles for every visible department (top-level category), using the category images.',
     fields: ['eyebrow', 'heading', 'subheading', 'cta'],
-    note: 'Tiles come from visible top-level categories (managed under Categories & brands).',
-    defaults: { eyebrow: 'Find your fit', heading: 'Shop by category', layout: 'grid' },
+    note: 'Tiles come from visible departments (managed under Categories & brands).',
+    defaults: { eyebrow: 'Departments', heading: 'Shop by department', layout: 'grid' },
   },
   promo_banner: {
     label: 'Promo banner',
@@ -206,14 +206,14 @@ export const SECTION_TYPES: Record<SectionType, SectionTypeMeta> = {
     fields: ['eyebrow', 'heading', 'subheading', 'couponCode', 'cta'],
     required: ['heading'],
     note: 'Make sure the coupon exists and is active under Coupons before publishing.',
-    defaults: { theme: 'accent', eyebrow: 'Limited offer', heading: 'Save on your next pair', cta_label: 'Start shopping', cta_href: '/shop' },
+    defaults: { theme: 'accent', eyebrow: 'Limited offer', heading: 'Save on your next order', cta_label: 'Start shopping', cta_href: '/shop' },
   },
   collection_spotlight: {
     label: 'Collection spotlight',
     description: 'Feature image for one collection next to four of its products.',
     fields: ['eyebrow', 'heading', 'cta', 'image', 'collection'],
     required: ['heading', 'collection'],
-    defaults: { layout: 'split', eyebrow: 'The edit', heading: 'Pairs that go with everything.', cta_label: 'Shop the edit' },
+    defaults: { layout: 'split', eyebrow: 'The edit', heading: 'Useful things, chosen for value.', cta_label: 'Shop the edit' },
   },
   testimonials: {
     label: 'Customer reviews',
@@ -227,7 +227,7 @@ export const SECTION_TYPES: Record<SectionType, SectionTypeMeta> = {
     description: 'Dark panel with the email sign-up form.',
     fields: ['eyebrow', 'heading', 'subheading'],
     required: ['heading'],
-    defaults: { theme: 'dark', eyebrow: 'Stay in the loop', heading: 'Early access to new drops.' },
+    defaults: { theme: 'dark', eyebrow: 'Stay in the loop', heading: 'New arrivals and deals, first.' },
   },
 };
 
@@ -491,7 +491,16 @@ export const PAGE_LIMITS = { title: 120, body: 60000, seoTitle: 70, seoDescripti
 export const NAV_LIMITS = { label: 40, group: 40 } as const;
 export const ANNOUNCEMENT_LIMITS = { message: 160 } as const;
 export const FAQ_LIMITS = { question: 200, answer: 2000, group: 40 } as const;
-export const SIZE_GUIDE_LIMITS = { name: 80, intro: 1000, notes: 2000, size: 10, rows: 60 } as const;
+/** Mirrors the size_guides / size_guide_rows checks: 1–8 columns, cells of up to 30 characters, at most 100 rows. */
+export const SIZE_GUIDE_LIMITS = { name: 80, intro: 1000, notes: 2000, cell: 30, columns: 8, rows: 100 } as const;
+
+/** Starting layouts offered when creating a size guide. */
+export const SIZE_GUIDE_TEMPLATES = [
+  { label: 'Footwear', columns: ['UK', 'US', 'EU', 'Foot length (cm)'] },
+  { label: 'Clothing', columns: ['Size', 'Chest (in)', 'Length (in)'] },
+  { label: 'Watch straps', columns: ['Strap size', 'Fits wrists (mm)'] },
+  { label: 'Blank', columns: ['Size', 'Measurement'] },
+] as const;
 
 export type NavMenu = 'header' | 'footer';
 

@@ -290,10 +290,10 @@ function LinkForm({ initial, onDone, columns, suggestions }: { initial: LinkDraf
           <div className="hidden sm:block" />
         )}
         <Field label="Label" htmlFor="nav-label" required error={errors.label} hint={`${form.label.length}/${NAV_LIMITS.label}`}>
-          <Input id="nav-label" value={form.label} maxLength={NAV_LIMITS.label} placeholder="Sneakers" onChange={(e) => set('label', e.target.value)} aria-invalid={errors.label ? true : undefined} />
+          <Input id="nav-label" value={form.label} maxLength={NAV_LIMITS.label} placeholder="Electronics" onChange={(e) => set('label', e.target.value)} aria-invalid={errors.label ? true : undefined} />
         </Field>
         <Field label="Link" htmlFor="nav-href" required error={errors.href ?? (hrefInvalid ? 'Use an on-site path starting with / or a full https:// address.' : undefined)} hint={HREF_HINT}>
-          <Input id="nav-href" list="nav-href-options" value={form.href} maxLength={500} placeholder="/category/sneakers" onChange={(e) => set('href', e.target.value)} aria-invalid={errors.href || hrefInvalid ? true : undefined} />
+          <Input id="nav-href" list="nav-href-options" value={form.href} maxLength={500} placeholder="/category/electronics" onChange={(e) => set('href', e.target.value)} aria-invalid={errors.href || hrefInvalid ? true : undefined} />
           <datalist id="nav-href-options">
             {suggestions.map((s) => (
               <option key={s.href} value={s.href}>

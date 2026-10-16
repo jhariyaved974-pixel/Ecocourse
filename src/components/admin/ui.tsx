@@ -94,6 +94,7 @@ const PAYMENT_TONE: Record<Enums<'payment_status'>, 'warning' | 'info' | 'succes
   unpaid: 'warning',
   proof_submitted: 'info',
   verification_pending: 'info',
+  partially_paid: 'info', // half-prepaid order: advance verified, balance still due
   verified_paid: 'success',
   rejected: 'danger',
   refund_pending: 'warning',
@@ -112,6 +113,7 @@ export const PAYMENT_STATUS_TEXT: Record<Enums<'payment_status'>, string> = {
   unpaid: 'Unpaid',
   proof_submitted: 'Proof submitted',
   verification_pending: 'Verification pending',
+  partially_paid: 'Advance paid',
   verified_paid: 'Verified & paid',
   rejected: 'Rejected',
   refund_pending: 'Refund pending',

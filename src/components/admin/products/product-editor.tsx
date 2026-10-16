@@ -12,14 +12,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { PageHeader, Panel } from '@/components/admin/ui';
 import { AssetField } from '@/components/admin/catalog/asset-field';
 import { MarkdownField } from '@/components/admin/catalog/markdown-field';
+import { CategoryOptions } from '@/components/admin/catalog/category-options';
 import { moveItem, newKey } from '@/components/admin/catalog/list-utils';
 import { MediaSection } from './media-section';
 import { VariantsSection } from './variants-section';
 import { DeleteProductDialog } from './delete-product-dialog';
 import { checkProductIdentifiers, duplicateProduct, saveProduct } from '@/app/admin/(panel)/products/actions';
 import {
-  GENDERS,
-  GENDER_TEXT,
+  AUDIENCES,
+  AUDIENCE_TEXT,
   PRODUCT_FLAGS,
   PRODUCT_STATUSES,
   PRODUCT_STATUS_TEXT,
@@ -35,10 +36,10 @@ import { zodFieldErrors } from '@/lib/errors';
 import { cn, formatDateTime, formatMoney, rupeesToPaise } from '@/lib/utils';
 
 export interface EditorLookups {
-  categories: { id: string; name: string; depth: number; isVisible: boolean }[];
+  categories: { id: string; name: string; parentId: string | null; path: string; childCount: number; isVisible: boolean; sizeGuideId: string | null }[];
   brands: { id: string; name: string }[];
   collections: { id: string; name: string; isVisible: boolean }[];
-  sizeGuides: { id: string; name: string; isDefault: boolean }[];
+  sizeGuides: { id: string; name: string }[];
 }
 
 export interface EditorMeta {
@@ -51,7 +52,7 @@ export interface EditorMeta {
 
 const PUBLISH_HINTS: Record<string, string> = {
   publish_requires_image: 'Add at least one image in the Media section, then publish again.',
-  publish_requires_variant: 'Add at least one active size in Colours & sizes, then publish again.',
+  publish_requires_variant: 'Add at least one active variant in Colours & options, then publish again.',
 };
 
 export function ProductEditor({
@@ -182,7 +183,12 @@ export function ProductEditor({
   });
 
   const hasImage = form.media.some((m) => m.kind === 'image');
-  const hasActiveSize = form.variants.some((v) => v.isActive);
+  const hasActiveVariant = form.variants.some((v) => v.isActive);
+  // Size guide used when the product has none of its own: the category's, else its department's.
+  const category = lookups.categories.find((c) => c.id === form.categoryId) ?? null;
+  const parentCategory = category?.parentId ? lookups.categories.find((c) => c.id === category.parentId) ?? null : null;
+  const inheritedGuideId = category?.sizeGuideId ?? parentCategory?.sizeGuideId ?? null;
+  const inheritedGuide = lookups.sizeGuides.find((g) => g.id === inheritedGuideId) ?? null;
   const pricePaise = rupeesToPaise(form.price);
   const salePaise = rupeesToPaise(form.salePrice);
   const costPaise = rupeesToPaise(form.costPrice);
@@ -207,7 +213,7 @@ export function ProductEditor({
             {dirty ? <Badge tone="warning">Unsaved changes</Badge> : null}
           </span>
         }
-        description={meta ? `Last saved ${formatDateTime(meta.updatedAt)}${meta.publishedAt ? ` · first published ${formatDateTime(meta.publishedAt)}` : ''}` : 'Fill in the basics, then add media, colours and sizes.'}
+        description={meta ? `Last saved ${formatDateTime(meta.updatedAt)}${meta.publishedAt ? ` · first published ${formatDateTime(meta.publishedAt)}` : ''}` : 'Fill in the basics, then add media, colours and options.'}
         actions={
           <>
             {meta ? (
@@ -289,7 +295,7 @@ export function ProductEditor({
                   maxLength={140}
                   onChange={(e) => onNameChange(e.target.value)}
                   aria-invalid={errors.name ? true : undefined}
-                  placeholder="e.g. Velocity Runner X"
+                  placeholder="e.g. Insulated Steel Bottle 1 L"
                 />
               </Field>
               <Field
@@ -328,7 +334,7 @@ export function ProductEditor({
                   </Button>
                 </div>
               </Field>
-              <Field label="Product SKU" htmlFor="p-sku" required error={errors.sku} hint="Base SKU; size SKUs are suggested from it.">
+              <Field label="Product SKU" htmlFor="p-sku" required error={errors.sku} hint="Base SKU; variant SKUs are suggested from it.">
                 <Input
                   id="p-sku"
                   value={form.sku}
@@ -337,7 +343,7 @@ export function ProductEditor({
                   onChange={(e) => set('sku', e.target.value.toUpperCase().replace(/\s+/g, '-'))}
                   onBlur={checkIdentifiers}
                   aria-invalid={errors.sku ? true : undefined}
-                  placeholder="AU-VRX"
+                  placeholder="STM-ISB"
                 />
               </Field>
               <Field
@@ -357,11 +363,11 @@ export function ProductEditor({
                   onChange={(v) => set('description', v)}
                   maxLength={8000}
                   error={errors.description}
-                  placeholder={'Engineered knit upper…\n\n- Breathable mesh\n- Cushioned midsole'}
+                  placeholder={'What it is and who it is for…\n\n- Key feature\n- Materials and care\n- What is in the box'}
                 />
               </div>
               <Field label="Tags" htmlFor="p-tags" error={errors.tags} hint="Comma separated; used by search." className="md:col-span-2">
-                <Input id="p-tags" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="running, knit, cushioned" />
+                <Input id="p-tags" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="bottle, steel, kitchen" />
               </Field>
               {tags.length ? (
                 <div className="-mt-2 flex flex-wrap gap-1 md:col-span-2" aria-label="Tags preview">
@@ -425,7 +431,7 @@ export function ProductEditor({
               </Field>
               <ul className="space-y-1.5 text-sm" aria-label="Publishing checklist">
                 <ChecklistItem ok={hasImage}>At least one image</ChecklistItem>
-                <ChecklistItem ok={hasActiveSize}>At least one active size</ChecklistItem>
+                <ChecklistItem ok={hasActiveVariant}>At least one active variant</ChecklistItem>
                 <ChecklistItem ok={pricePaise !== null && pricePaise > 0}>Price set</ChecklistItem>
               </ul>
               <div className="flex flex-col gap-2">
@@ -433,7 +439,7 @@ export function ProductEditor({
                   {isNew ? 'Create product' : 'Save changes'}
                 </Button>
                 {form.status !== 'published' && meta?.status !== 'published' ? (
-                  <Button type="button" variant="outline" className="w-full" disabled={saving || !hasImage || !hasActiveSize} onClick={() => save('published')}>
+                  <Button type="button" variant="outline" className="w-full" disabled={saving || !hasImage || !hasActiveVariant} onClick={() => save('published')}>
                     Save &amp; publish
                   </Button>
                 ) : null}
@@ -478,16 +484,19 @@ export function ProductEditor({
 
           <Panel title="Organisation">
             <div className="grid gap-4">
-              <Field label="Category" htmlFor="p-category" error={errors.categoryId}>
+              <Field
+                label="Category"
+                htmlFor="p-category"
+                error={errors.categoryId}
+                hint={
+                  category && category.childCount > 0
+                    ? 'This is a department. Choose one of its sub-categories so the product is listed on both pages.'
+                    : 'Choose a sub-category; department pages include their sub-categories.'
+                }
+              >
                 <NativeSelect id="p-category" value={form.categoryId} onChange={(e) => set('categoryId', e.target.value)}>
                   <option value="">No category</option>
-                  {lookups.categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.depth ? '— '.repeat(c.depth) : ''}
-                      {c.name}
-                      {c.isVisible ? '' : ' (hidden)'}
-                    </option>
-                  ))}
+                  <CategoryOptions categories={lookups.categories} current={form.categoryId} />
                 </NativeSelect>
               </Field>
               <div className="grid grid-cols-2 gap-3">
@@ -501,23 +510,30 @@ export function ProductEditor({
                     ))}
                   </NativeSelect>
                 </Field>
-                <Field label="Gender" htmlFor="p-gender">
+                <Field label="Audience" htmlFor="p-gender">
                   <NativeSelect id="p-gender" value={form.gender} onChange={(e) => set('gender', e.target.value as ProductFormState['gender'])}>
-                    {GENDERS.map((g) => (
+                    {AUDIENCES.map((g) => (
                       <option key={g} value={g}>
-                        {GENDER_TEXT[g]}
+                        {AUDIENCE_TEXT[g]}
                       </option>
                     ))}
                   </NativeSelect>
                 </Field>
               </div>
-              <Field label="Size guide" htmlFor="p-size-guide" hint="Empty uses the category's guide, then the store default.">
+              <Field
+                label="Size guide (optional)"
+                htmlFor="p-size-guide"
+                hint={
+                  inheritedGuide
+                    ? `By default this product shows the category's guide, “${inheritedGuide.name}”. Choose another only if it needs a different chart.`
+                    : "By default the category's guide is used; this category has none, so no guide is shown. Most products without sizes don't need one."
+                }
+              >
                 <NativeSelect id="p-size-guide" value={form.sizeGuideId} onChange={(e) => set('sizeGuideId', e.target.value)}>
-                  <option value="">Category / store default</option>
+                  <option value="">{inheritedGuide ? `Category's guide (${inheritedGuide.name})` : "Category's guide (none)"}</option>
                   {lookups.sizeGuides.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name}
-                      {g.isDefault ? ' (default)' : ''}
                     </option>
                   ))}
                 </NativeSelect>
@@ -559,7 +575,7 @@ export function ProductEditor({
                   <Switch checked={form[flag.field]} onCheckedChange={(v) => set(flag.field, v)} />
                 </label>
               ))}
-              <Field label="Low stock alert at" htmlFor="p-low-stock" error={errors.lowStockThreshold} hint={`Units per size. Empty uses the store default (${defaultLowStock}).`}>
+              <Field label="Low stock alert at" htmlFor="p-low-stock" error={errors.lowStockThreshold} hint={`Units per variant. Empty uses the store default (${defaultLowStock}).`}>
                 <Input
                   id="p-low-stock"
                   inputMode="numeric"
@@ -620,7 +636,7 @@ function AttributesPanel({
   return (
     <Panel
       title="Specifications"
-      description="Label and value pairs shown in the product details, e.g. Upper: Engineered knit."
+      description="Label and value pairs shown in the product details, e.g. Material: Stainless steel."
       actions={
         <Button type="button" size="sm" variant="outline" onClick={() => update((a) => [...a, { key: newKey('attr'), label: '', value: '' }])}>
           <Plus /> Add specification

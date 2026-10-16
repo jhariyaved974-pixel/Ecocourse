@@ -63,13 +63,18 @@ export async function saveCategory(input: unknown): Promise<ActionResult<{ id: s
     if (c.id && !(all ?? []).some((x) => x.id === c.id)) return fail('This category no longer exists.', 'not_found');
 
     if (c.parentId) {
-      // The parent must exist and must not be this category or one of its descendants.
-      const parents = new Map((all ?? []).map((x) => [x.id, x.parent_id]));
-      if (!parents.has(c.parentId)) return fail('The parent category no longer exists.', 'validation', { parentId: 'Choose another parent.' });
-      let cursor: string | null = c.parentId;
-      for (let depth = 0; cursor && depth < 50; depth += 1) {
-        if (cursor === c.id) return fail('A category cannot be placed inside itself.', 'validation', { parentId: 'Choose a parent outside this category.' });
-        cursor = parents.get(cursor) ?? null;
+      // Two levels: the parent must be a department (top level), never this
+      // category itself, and a category with sub-categories stays a department.
+      const parent = (all ?? []).find((x) => x.id === c.parentId);
+      if (!parent) return fail('The parent department no longer exists.', 'validation', { parentId: 'Choose another department.' });
+      if (parent.id === c.id) return fail('A category cannot be placed inside itself.', 'validation', { parentId: 'Choose another department.' });
+      if (parent.parent_id) {
+        return fail('Categories have two levels.', 'category_too_deep', { parentId: `“${parent.name}” is a sub-category; choose a department as the parent.` });
+      }
+      if (c.id && (all ?? []).some((x) => x.parent_id === c.id)) {
+        return fail('This category has sub-categories, so it must stay a department.', 'category_too_deep', {
+          parentId: 'Move its sub-categories to another department first.',
+        });
       }
     }
 
@@ -88,7 +93,14 @@ export async function saveCategory(input: unknown): Promise<ActionResult<{ id: s
     const result = c.id
       ? await supabase.from('categories').update(row).eq('id', c.id).select('id').single()
       : await supabase.from('categories').insert(row).select('id').single();
-    if (result.error) return uniqueFail(result.error, 'category');
+    if (result.error) {
+      // The database enforces the two-level tree too (e.g. a concurrent change).
+      if (result.error.hint === 'category_too_deep') {
+        const message = result.error.message || 'Categories have two levels.';
+        return fail(message, 'category_too_deep', { parentId: message });
+      }
+      return uniqueFail(result.error, 'category');
+    }
     invalidateCatalogue();
     return ok({ id: result.data.id }, c.id ? 'Category saved' : 'Category created');
   });
@@ -111,7 +123,7 @@ export async function deleteCategory(categoryId: string): Promise<ActionResult<n
       );
     }
     if ((children.count ?? 0) > 0) {
-      return fail(`This category has ${children.count} subcategor${children.count === 1 ? 'y' : 'ies'}. Move or delete them first.`, 'has_children');
+      return fail(`This department has ${children.count} sub-categor${children.count === 1 ? 'y' : 'ies'}. Move or delete them first.`, 'has_children');
     }
     const { error, count } = await supabase.from('categories').delete({ count: 'exact' }).eq('id', id.data);
     if (error) return dbFail(error, 'The category could not be deleted.');

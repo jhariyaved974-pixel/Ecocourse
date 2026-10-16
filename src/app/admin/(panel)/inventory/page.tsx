@@ -6,6 +6,7 @@ import { requireStaffPage, ROLE_GROUPS } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { ADMIN_PAGE_SIZE, sanitizeSearch } from '@/lib/admin/orders';
 import { INVENTORY_FILTERS } from '@/lib/admin/operations';
+import { formatOption } from '@/lib/admin/products';
 import { firstParam, PageHeader, Pagination, parsePage, Table, TableWrap, Td, Th } from '@/components/admin/ui';
 import { SearchParamInput, SearchParamSelect } from '@/components/admin/client-ui';
 import { MovementHistory, StockDialog } from '@/components/admin/inventory/stock-dialog';
@@ -36,7 +37,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader
         title="Inventory"
-        description="Stock per size and colour. Reserved units belong to unpaid orders and return to stock automatically if those orders expire."
+        description="Stock per variant (colour and option, such as a size). Reserved units belong to unpaid orders and return to stock automatically if those orders expire."
         actions={
           <>
             <InventoryImport />
@@ -74,7 +75,9 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
             </thead>
             <tbody>
               {rows.map((r) => {
-                const label = `${r.product_name} — ${[r.color_name, r.size_label].filter(Boolean).join(' / ')}`;
+                // "Black · Size: UK 8"; products without options show just the colour (or "Single variant").
+                const variant = [r.color_name, formatOption(r.variant_label, r.size_label)].filter(Boolean).join(' · ') || 'Single variant';
+                const label = `${r.product_name} — ${variant}`;
                 return (
                   <tr key={r.variant_id}>
                     <Td>
@@ -82,7 +85,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                       {r.product_status !== 'published' ? <Badge tone="neutral" className="ml-2">{r.product_status}</Badge> : null}
                     </Td>
                     <Td className="text-muted">
-                      {[r.color_name, r.size_label].filter(Boolean).join(' / ')}
+                      {variant}
                       {!r.is_active ? <Badge tone="neutral" className="ml-2">inactive</Badge> : null}
                     </Td>
                     <Td className="font-mono text-xs">{r.sku}</Td>

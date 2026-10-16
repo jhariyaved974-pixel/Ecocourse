@@ -86,7 +86,7 @@ export function NewsletterForm({ source = 'footer', dark = false }: { source?: s
       </div>
       <label className={cn('mt-3 flex items-start gap-2.5 text-xs', dark ? 'text-white/65' : 'text-muted')}>
         <input type="checkbox" name="consent" required className="mt-0.5 size-3.5 accent-current" />
-        <span>I agree to receive emails about new releases and offers. Unsubscribe anytime.</span>
+        <span>I agree to receive emails about new products and offers. Unsubscribe anytime.</span>
       </label>
       {state ? (
         <p className={cn('mt-2 text-sm', state.ok ? (dark ? 'text-emerald-300' : 'text-success') : 'text-danger')} role="status">

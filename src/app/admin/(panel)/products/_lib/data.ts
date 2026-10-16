@@ -36,6 +36,7 @@ export interface ProductListRow {
   isBestseller: boolean;
   isTrending: boolean;
   tags: string[];
+  variantLabel: string;
   updatedAt: string;
   cover: string | null;
   variantCount: number;
@@ -83,6 +84,7 @@ export async function listProducts(
       isBestseller: r.is_bestseller,
       isTrending: r.is_trending,
       tags: r.tags ?? [],
+      variantLabel: r.variant_label,
       updatedAt: r.updated_at,
       cover: resolveMediaUrl(r.cover_image),
       variantCount: r.variant_count,
@@ -98,31 +100,54 @@ export async function listProducts(
 // ---------------------------------------------------------------------------
 // Lookups for selects
 // ---------------------------------------------------------------------------
+export interface CategoryLookup {
+  id: string;
+  name: string;
+  parentId: string | null;
+  isVisible: boolean;
+  depth: number;
+  /** "Electronics › Audio" for sub-categories, the name for departments. */
+  path: string;
+  /** Number of sub-categories (departments only). */
+  childCount: number;
+  sizeGuideId: string | null;
+}
+
 export interface CatalogLookups {
-  categories: { id: string; name: string; parentId: string | null; isVisible: boolean; depth: number }[];
+  categories: CategoryLookup[];
   brands: { id: string; name: string }[];
   collections: { id: string; name: string; isVisible: boolean }[];
-  sizeGuides: { id: string; name: string; isDefault: boolean }[];
+  sizeGuides: { id: string; name: string }[];
 }
 
 export async function getCatalogLookups(supabase: ServerClient): Promise<CatalogLookups> {
   const [categories, brands, collections, sizeGuides] = await Promise.all([
-    supabase.from('categories').select('id, name, parent_id, is_visible, sort_order').order('sort_order').order('name'),
+    supabase.from('categories').select('id, name, parent_id, is_visible, size_guide_id, sort_order').order('sort_order').order('name'),
     supabase.from('brands').select('id, name').order('sort_order').order('name'),
     supabase.from('collections').select('id, name, is_visible').order('sort_order').order('name'),
-    supabase.from('size_guides').select('id, name, is_default').order('name'),
+    supabase.from('size_guides').select('id, name').order('name'),
   ]);
+  const rows = (categories.data ?? []).map((c) => ({ id: c.id, name: c.name, parentId: c.parent_id, isVisible: c.is_visible, sizeGuideId: c.size_guide_id }));
+  const byId = new Map(rows.map((c) => [c.id, c]));
   return {
-    categories: orderCategoryTree(
-      (categories.data ?? []).map((c) => ({ id: c.id, name: c.name, parentId: c.parent_id, isVisible: c.is_visible })),
-    ),
+    categories: orderCategoryTree(rows).map((c) => ({
+      ...c,
+      path: categoryPath(c, byId),
+      childCount: rows.filter((x) => x.parentId === c.id).length,
+    })),
     brands: brands.data ?? [],
     collections: (collections.data ?? []).map((c) => ({ id: c.id, name: c.name, isVisible: c.is_visible })),
-    sizeGuides: (sizeGuides.data ?? []).map((g) => ({ id: g.id, name: g.name, isDefault: g.is_default })),
+    sizeGuides: sizeGuides.data ?? [],
   };
 }
 
-/** Parents first, each followed by its children (one level of nesting is what the storefront uses). */
+/** "Department › Sub-category" label (the tree has two levels). */
+export function categoryPath(c: { name: string; parentId: string | null }, byId: Map<string, { name: string }>): string {
+  const parent = c.parentId ? byId.get(c.parentId) : undefined;
+  return parent ? `${parent.name} › ${c.name}` : c.name;
+}
+
+/** Departments first, each followed by its sub-categories (the store uses two levels). */
 export function orderCategoryTree<T extends { id: string; parentId: string | null }>(rows: T[]): (T & { depth: number })[] {
   const ids = new Set(rows.map((r) => r.id));
   const roots = rows.filter((r) => !r.parentId || !ids.has(r.parentId));
@@ -162,7 +187,7 @@ export function toAssetSummary(a: AssetRow): MediaAssetSummary {
 }
 
 const PRODUCT_EDITOR_SELECT = `
-  id, name, slug, sku, brand_id, category_id, gender, short_description, description, price, sale_price,
+  id, name, slug, sku, brand_id, category_id, gender, variant_label, short_description, description, price, sale_price,
   sale_starts_at, sale_ends_at, status, published_at, is_featured, is_new_arrival, is_bestseller, is_trending, tags,
   model_asset_id, size_guide_id, seo_title, seo_description, og_image_asset_id, low_stock_threshold, created_at, updated_at,
   model:media_assets!products_model_asset_id_fkey(${ASSET_FIELDS}),
@@ -224,6 +249,7 @@ export async function getProductForEditor(
     categoryId: p.category_id ?? '',
     brandId: p.brand_id ?? '',
     gender: p.gender,
+    variantLabel: p.variant_label,
     shortDescription: p.short_description,
     description: p.description,
     tags: p.tags.join(', '),
@@ -284,7 +310,7 @@ export async function getProductForEditor(
 /**
  * The full admin_save_product document for an existing product, exactly as it
  * is stored now. Used by the CSV import so that updating a few basic fields
- * never drops colours, sizes, media or attributes. collection_ids and
+ * never drops colours, variants, media or attributes. collection_ids and
  * cost_price are omitted so the database keeps them unchanged.
  */
 export async function getCurrentSavePayload(supabase: ServerClient, id: string): Promise<Record<string, Json> | null> {
@@ -298,6 +324,7 @@ export async function getCurrentSavePayload(supabase: ServerClient, id: string):
     brand_id: p.brand_id ?? '',
     category_id: p.category_id ?? '',
     gender: p.gender,
+    variant_label: p.variant_label,
     short_description: p.short_description,
     description: p.description,
     price: p.price,
@@ -343,8 +370,8 @@ export async function getProductPreview(supabase: ServerClient, id: string) {
     .select(`
       id, name, slug, sku, gender, short_description, description, price, sale_price, sale_starts_at, sale_ends_at,
       tags, is_new_arrival, is_bestseller, rating_avg, rating_count, size_guide_id, seo_title, seo_description,
-      updated_at, published_at, status,
-      category:categories(id, name, slug, size_guide_id),
+      updated_at, published_at, status, variant_label,
+      category:categories(id, name, slug, size_guide_id, parent:parent_id(name, slug, size_guide_id)),
       brand:brands(name, slug),
       model:media_assets!products_model_asset_id_fkey(bucket, storage_path, external_url),
       og:media_assets!products_og_image_asset_id_fkey(bucket, storage_path, external_url),

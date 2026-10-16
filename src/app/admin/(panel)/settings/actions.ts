@@ -27,7 +27,7 @@ const storeSchema = z
     whatsappNumber: z.string().trim().refine((v) => v === '' || /^\+?[0-9]{8,15}$/.test(v), 'Digits only, with country code (e.g. +919876543210).').transform((v) => (v === '' ? null : v)),
     address: optional(500),
     themePreset: z.enum(['noir', 'bone', 'ember', 'forest']),
-    accentColor: z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/, 'Use a 6-digit hex colour like #C2410C.'),
+    accentColor: z.string().trim().regex(/^#[0-9A-Fa-f]{6}$/, 'Use a 6-digit hex colour like #15803D.'),
     fontPreset: z.enum(['editorial', 'modern', 'classic']),
     seoTitle: z.string().trim().min(1).max(70),
     seoTitleTemplate: z.string().trim().max(70).refine((v) => v.includes('%s'), 'Include %s where the page title goes.'),
@@ -54,7 +54,7 @@ const storeSchema = z
   })
   .superRefine((v, ctx) => {
     if (v.analyticsProvider === 'plausible' && !(v.analyticsId && /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v.analyticsId))) {
-      ctx.addIssue({ code: 'custom', path: ['analyticsId'], message: 'Enter the Plausible site domain, e.g. auren.in' });
+      ctx.addIssue({ code: 'custom', path: ['analyticsId'], message: 'Enter the Plausible site domain, e.g. shop.example.com' });
     }
     if (v.analyticsProvider === 'ga4' && !(v.analyticsId && /^G-[A-Z0-9]{4,20}$/.test(v.analyticsId))) {
       ctx.addIssue({ code: 'custom', path: ['analyticsId'], message: 'Enter the GA4 measurement ID, e.g. G-ABC123XYZ' });

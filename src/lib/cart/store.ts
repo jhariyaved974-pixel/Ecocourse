@@ -13,7 +13,10 @@ export interface CartLine {
   name: string;
   image: string | null;
   colorName: string | null;
+  /** Option value ("UK 8", "S/M", "Standard" when the product has no options). */
   sizeLabel: string;
+  /** Option name ("Size", "Weight" ...); display hint, missing in carts saved before it existed (reads as "Size"). */
+  variantLabel?: string;
   unitPrice: number; // display hint only
   quantity: number;
 }

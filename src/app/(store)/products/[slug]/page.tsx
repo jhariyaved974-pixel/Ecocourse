@@ -47,6 +47,7 @@ async function ProductContent({ params }: { params: PageProps<'/products/[slug]'
   ]);
   const inStock = product.variants.some((v) => v.available > 0);
   const images = product.media.filter((m) => m.kind === 'image').map((m) => absoluteUrl(m.url));
+  const department = product.category?.parent ?? null;
 
   return (
     <>
@@ -58,8 +59,10 @@ async function ProductContent({ params }: { params: PageProps<'/products/[slug]'
           description: product.shortDescription || product.description.slice(0, 300),
           sku: product.sku,
           image: images,
+          url: absoluteUrl(`/products/${product.slug}`),
           brand: { '@type': 'Brand', name: product.brand?.name ?? settings.store_name },
-          category: product.category?.name,
+          category: [department?.name, product.category?.name].filter(Boolean).join(' > ') || undefined,
+          ...(product.colors.length === 1 ? { color: product.colors[0].name } : {}),
           offers: {
             '@type': 'Offer',
             url: absoluteUrl(`/products/${product.slug}`),
@@ -78,13 +81,14 @@ async function ProductContent({ params }: { params: PageProps<'/products/[slug]'
         className="mb-6"
         items={[
           { label: 'Shop', href: '/shop' },
+          ...(department ? [{ label: department.name, href: `/category/${department.slug}` }] : []),
           ...(product.category ? [{ label: product.category.name, href: `/category/${product.category.slug}` }] : []),
           { label: product.name },
         ]}
       />
       <ProductExperience
         product={product}
-        sizeGuide={sizeGuide ? { name: sizeGuide.name, intro: sizeGuide.intro, notes: sizeGuide.notes, rows: sizeGuide.rows } : null}
+        sizeGuide={sizeGuide}
         shipping={shipping}
         returnDays={settings.free_returns_days}
         description={<Markdown>{product.description}</Markdown>}

@@ -8,11 +8,12 @@ export async function GET() {
   const staff = await getStaff();
   if (!staff || !roleAllowed(staff.role, ROLE_GROUPS.catalog)) return new NextResponse('Forbidden', { status: 403 });
   const supabase = await createSupabaseServerClient();
-  const rows: unknown[][] = [['sku', 'product', 'colour', 'size', 'on_hand', 'reserved', 'available', 'active']];
+  // "size" holds the option value (e.g. "UK 8", "M", "2 × 3 kg"; "Standard" = no options); variant_label names the option.
+  const rows: unknown[][] = [['sku', 'product', 'colour', 'variant_label', 'size', 'on_hand', 'reserved', 'available', 'active']];
   for (let offset = 0; offset < 20000; offset += 200) {
     const { data, error } = await supabase.rpc('admin_list_inventory', { p_limit: 200, p_offset: offset });
     if (error) return new NextResponse('Export failed', { status: 500 });
-    for (const r of data ?? []) rows.push([r.sku, r.product_name, r.color_name ?? '', r.size_label, r.stock_on_hand, r.stock_reserved, r.available, r.is_active ? 'yes' : 'no']);
+    for (const r of data ?? []) rows.push([r.sku, r.product_name, r.color_name ?? '', r.variant_label, r.size_label, r.stock_on_hand, r.stock_reserved, r.available, r.is_active ? 'yes' : 'no']);
     if (!data || data.length < 200) break;
   }
   const date = new Date().toISOString().slice(0, 10);

@@ -6,31 +6,47 @@ import { ArrowDown, ArrowUp, Copy, Plus, Trash2, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge, Notice } from '@/components/ui/misc';
-import { Input, NativeSelect, Switch } from '@/components/ui/form-controls';
+import { Field, Input, NativeSelect, Switch } from '@/components/ui/form-controls';
 import { Panel } from '@/components/admin/ui';
 import { moveItem, newKey } from '@/components/admin/catalog/list-utils';
 import {
   COLOR_FAMILIES,
+  DEFAULT_VARIANT_LABEL,
   HEX_RE,
+  OPTION_VALUE_MAX,
+  STANDARD_OPTION,
+  VARIANT_LABEL_MAX,
+  VARIANT_PRESETS,
+  detectVariantPreset,
+  isStandardOption,
   suggestVariantSku,
   type ProductFormColor,
   type ProductFormState,
   type ProductFormVariant,
+  type VariantPreset,
 } from '@/lib/admin/products';
 import { titleCase } from '@/lib/utils';
 
 type SetForm = React.Dispatch<React.SetStateAction<ProductFormState>>;
 
-/** "6, 7, 8" → ["UK 6", "UK 7", "UK 8"]; other labels are kept as typed. */
-function parseSizeList(input: string): string[] {
+/** "S, M, L" → ["S", "M", "L"]. With shoe sizes, bare numbers become UK sizes ("7" → "UK 7"). */
+function parseOptionList(input: string, ukNumbers: boolean): string[] {
   const out: string[] = [];
   for (const raw of input.split(/[,;\n]/)) {
     const token = raw.trim().replace(/\s+/g, ' ');
     if (!token) continue;
-    const label = /^\d+(\.\d+)?$/.test(token) ? `UK ${token}` : token;
-    if (!out.some((l) => l.toLowerCase() === label.toLowerCase())) out.push(label.slice(0, 20));
+    const label = ukNumbers && /^\d+(\.\d+)?$/.test(token) ? `UK ${token}` : token;
+    if (!out.some((l) => l.toLowerCase() === label.toLowerCase())) out.push(label.slice(0, OPTION_VALUE_MAX));
   }
   return out;
+}
+
+/** Inserts variants right after the last variant of the same colour (keeps each colour's options together). */
+function insertForColor(variants: ProductFormVariant[], colorKey: string | null, fresh: ProductFormVariant[]): ProductFormVariant[] {
+  const lastIndex = variants.map((v) => v.colorKey).lastIndexOf(colorKey);
+  const next = [...variants];
+  next.splice(lastIndex >= 0 ? lastIndex + 1 : next.length, 0, ...fresh);
+  return next;
 }
 
 function makeVariant(productSku: string, color: ProductFormColor | null, sizeLabel: string): ProductFormVariant {
@@ -48,8 +64,54 @@ function makeVariant(productSku: string, color: ProductFormColor | null, sizeLab
 }
 
 export function VariantsSection({ form, setForm, errors }: { form: ProductFormState; setForm: SetForm; errors: Record<string, string> }) {
+  const [preset, setPreset] = React.useState<VariantPreset | ''>(() => detectVariantPreset(form.variantLabel, form.variants));
+  const noOptions = preset === 'none';
+  const optionName = form.variantLabel.trim() || DEFAULT_VARIANT_LABEL;
+  const presetDef = VARIANT_PRESETS.find((p) => p.value === preset);
   const colorKeys = new Set(form.colors.map((c) => c.key));
   const unassigned = form.colors.length ? form.variants.filter((v) => v.colorKey === null || !colorKeys.has(v.colorKey)) : [];
+
+  /**
+   * Switches the option type. Presets with values (shoe/clothing sizes) add the
+   * missing values to every colour; "No options" leaves one Standard variant per
+   * colour. Removing saved variants asks first (those with order history are
+   * deactivated by the save instead of deleted).
+   */
+  const applyPreset = (value: VariantPreset) => {
+    const def = VARIANT_PRESETS.find((p) => p.value === value);
+    if (!def) return;
+    const groups: (ProductFormColor | null)[] = form.colors.length ? form.colors : [null];
+    if (value === 'none') {
+      const removed = form.variants.filter((v) => !isStandardOption(v.sizeLabel));
+      if (removed.some((v) => v.id) && !window.confirm(`Switch to a single variant per colour? ${removed.length} option value(s) will be removed when you save; saved ones with order history are deactivated instead.`)) return;
+      setForm((f) => {
+        let variants = f.variants.filter((v) => isStandardOption(v.sizeLabel));
+        for (const color of groups) {
+          const key = color?.key ?? null;
+          if (!variants.some((v) => v.colorKey === key)) variants = insertForColor(variants, key, [makeVariant(f.sku, color, STANDARD_OPTION)]);
+        }
+        return { ...f, variantLabel: def.variantLabel, variants };
+      });
+    } else {
+      const standard = form.variants.filter((v) => isStandardOption(v.sizeLabel));
+      if (standard.some((v) => v.id) && !window.confirm('Remove the single variant so this product can have options? It is removed when you save; if it has order history it is deactivated instead.')) return;
+      setForm((f) => {
+        let variants = f.variants.filter((v) => !isStandardOption(v.sizeLabel));
+        for (const color of groups) {
+          const key = color?.key ?? null;
+          const have = new Set(variants.filter((v) => v.colorKey === key).map((v) => v.sizeLabel.toLowerCase()));
+          const fresh = def.values.filter((l) => !have.has(l.toLowerCase())).map((l) => makeVariant(f.sku, color, l));
+          if (fresh.length) variants = insertForColor(variants, key, fresh);
+        }
+        // Custom keeps a typed name, but not the "Option" placeholder of "No options".
+        const keepName = f.variantLabel.trim() && f.variantLabel.trim() !== 'Option';
+        const variantLabel = def.variantLabel || (keepName ? f.variantLabel : '');
+        return { ...f, variantLabel, variants };
+      });
+    }
+    setPreset(value);
+    if (value === 'custom') window.setTimeout(() => document.getElementById('p-variant-label')?.focus(), 0);
+  };
 
   const updateColors = (fn: (c: ProductFormColor[]) => ProductFormColor[]) => setForm((f) => ({ ...f, colors: fn(f.colors) }));
   const patchColor = (key: string, value: Partial<ProductFormColor>) =>
@@ -58,15 +120,17 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
   const addColor = () =>
     setForm((f) => {
       const color: ProductFormColor = { key: newKey('color'), id: null, name: '', hex: '#111111', family: 'black' };
-      // The first colour adopts sizes that were added without a colour.
-      const variants = f.colors.length === 0 ? f.variants.map((v) => ({ ...v, colorKey: color.key })) : f.variants;
+      // The first colour adopts variants that were added without a colour.
+      let variants = f.colors.length === 0 ? f.variants.map((v) => ({ ...v, colorKey: color.key })) : f.variants;
+      // Without options every colour is one variant.
+      if (noOptions && !variants.some((v) => v.colorKey === color.key)) variants = [...variants, makeVariant(f.sku, color, STANDARD_OPTION)];
       return { ...f, colors: [...f.colors, color], variants };
     });
 
   const removeColor = (key: string) => {
     const color = form.colors.find((c) => c.key === key);
-    const sizes = form.variants.filter((v) => v.colorKey === key);
-    if (sizes.some((v) => v.id) && !window.confirm(`Remove “${color?.name || 'this colour'}” and its ${sizes.length} size(s)? Sizes with order history cannot be removed; deactivate them instead.`)) return;
+    const own = form.variants.filter((v) => v.colorKey === key);
+    if (own.some((v) => v.id) && !window.confirm(`Remove “${color?.name || 'this colour'}” and its ${own.length} variant(s)? Variants with order history cannot be removed; they are deactivated instead.`)) return;
     setForm((f) => ({
         ...f,
         colors: f.colors.filter((c) => c.key !== key),
@@ -93,19 +157,15 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
       return { ...f, variants: moveItem(f.variants, f.variants.indexOf(v), f.variants.indexOf(target)) };
     });
 
-  const addSizes = (color: ProductFormColor | null, labels: string[]) => {
+  const addOptions = (color: ProductFormColor | null, labels: string[]) => {
     setForm((f) => {
       const existing = new Set(f.variants.filter((v) => v.colorKey === (color?.key ?? null)).map((v) => v.sizeLabel.toLowerCase()));
       const fresh = labels.filter((l) => !existing.has(l.toLowerCase())).map((l) => makeVariant(f.sku, color, l));
-      // Keep each colour's sizes together.
-      const lastIndex = f.variants.map((v) => v.colorKey).lastIndexOf(color?.key ?? null);
-      const variants = [...f.variants];
-      variants.splice(lastIndex >= 0 ? lastIndex + 1 : variants.length, 0, ...fresh);
-      return { ...f, variants };
+      return { ...f, variants: insertForColor(f.variants, color?.key ?? null, fresh) };
     });
   };
 
-  const copySizesToAll = (from: ProductFormColor) =>
+  const copyOptionsToAll = (from: ProductFormColor) =>
     setForm((f) => {
       const labels = f.variants.filter((v) => v.colorKey === from.key).map((v) => v.sizeLabel);
       let variants = [...f.variants];
@@ -113,9 +173,7 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
         if (color.key === from.key) continue;
         const have = new Set(variants.filter((v) => v.colorKey === color.key).map((v) => v.sizeLabel.toLowerCase()));
         const fresh = labels.filter((l) => l && !have.has(l.toLowerCase())).map((l) => makeVariant(f.sku, color, l));
-        const lastIndex = variants.map((v) => v.colorKey).lastIndexOf(color.key);
-        variants = [...variants];
-        variants.splice(lastIndex >= 0 ? lastIndex + 1 : variants.length, 0, ...fresh);
+        variants = insertForColor(variants, color.key, fresh);
       }
       return { ...f, variants };
     });
@@ -131,13 +189,33 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
       };
     });
 
-  const totalSizes = form.variants.length;
-  const activeSizes = form.variants.filter((v) => v.isActive).length;
+  // New products start without an option type: ask for one before offering values.
+  const choosing = preset === '' && form.variants.length === 0;
+  const chooseFirst = <p className="text-sm text-muted">Choose a variant option above, then add its values here.</p>;
+
+  const groupProps = (color: ProductFormColor | null) => ({
+    color,
+    variants: form.variants.filter((v) => v.colorKey === (color?.key ?? null)),
+    allVariants: form.variants,
+    errors,
+    optionName,
+    noOptions,
+    ukNumbers: preset === 'shoe',
+    placeholder: presetDef?.placeholder || 'Type values separated by commas',
+    onPatch: patchVariant,
+    onRemove: removeVariant,
+    onMove: moveVariant,
+    onAdd: (labels: string[]) => addOptions(color, labels),
+    onFillSkus: () => fillSkus(color?.key ?? null),
+  });
+
+  const totalVariants = form.variants.length;
+  const activeVariants = form.variants.filter((v) => v.isActive).length;
 
   return (
     <Panel
-      title="Colours & sizes"
-      description={`${form.colors.length} colour(s), ${totalSizes} size(s), ${activeSizes} active. Stock of saved sizes is managed in Inventory; new sizes can start with an initial stock.`}
+      title="Colours & options"
+      description={`${form.colors.length} colour(s), ${totalVariants} variant(s), ${activeVariants} active. Stock of saved variants is managed in Inventory; new variants can start with an initial stock.`}
       actions={
         <Button type="button" size="sm" variant="outline" onClick={addColor}>
           <Plus /> Add colour
@@ -145,22 +223,63 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
       }
     >
       <div className="space-y-5">
+        <div className="grid gap-4 rounded-xl border border-line bg-surface-2/40 p-4 sm:grid-cols-2">
+          <Field
+            label="Variant option"
+            htmlFor="p-variant-preset"
+            hint="What shoppers choose besides the colour. Presets fill in common values."
+          >
+            <NativeSelect id="p-variant-preset" value={preset} onChange={(e) => e.target.value && applyPreset(e.target.value as VariantPreset)}>
+              {preset === '' ? <option value="">Choose…</option> : null}
+              {VARIANT_PRESETS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+          {preset === 'custom' ? (
+            <Field label="Option name" htmlFor="p-variant-label" error={errors.variantLabel} hint="Shown to shoppers, e.g. Strap size, Pack size or Length. Empty uses “Size”.">
+              <Input
+                id="p-variant-label"
+                value={form.variantLabel}
+                maxLength={VARIANT_LABEL_MAX}
+                placeholder="e.g. Strap size"
+                aria-invalid={errors.variantLabel ? true : undefined}
+                onChange={(e) => setForm((f) => ({ ...f, variantLabel: e.target.value }))}
+              />
+            </Field>
+          ) : (
+            <p className="self-center text-sm text-ink-2">
+              {noOptions ? (
+                <>
+                  <strong className="font-medium text-ink">No options (single variant).</strong> Shoppers only pick a colour, if there are several; each
+                  colour is one variant with its own SKU and stock.
+                </>
+              ) : preset ? (
+                <>
+                  Shoppers choose a <strong className="font-medium text-ink">{optionName.toLowerCase()}</strong>. It appears on the product page, in the
+                  cart and on orders as “{optionName}: value”.
+                </>
+              ) : (
+                'Choose how this product varies. Use “No options” for items sold in one version.'
+              )}
+            </p>
+          )}
+          {errors.variantLabel && preset !== 'custom' ? (
+            <p className="text-xs font-medium text-danger sm:col-span-2" role="alert">
+              {errors.variantLabel}
+            </p>
+          ) : null}
+        </div>
+
         {form.colors.length === 0 ? (
           <>
             <Notice tone="neutral">
-              No colours yet. Add colours if this product comes in several colourways; otherwise the sizes below apply to the product as a whole.
+              No colours yet. Add colours if this product comes in several colourways; otherwise the {noOptions ? 'variant' : 'options'} below apply to
+              the product as a whole.
             </Notice>
-            <SizeGroup
-              color={null}
-              variants={form.variants.filter((v) => v.colorKey === null)}
-              allVariants={form.variants}
-              errors={errors}
-              onPatch={patchVariant}
-              onRemove={removeVariant}
-              onMove={moveVariant}
-              onAdd={(labels) => addSizes(null, labels)}
-              onFillSkus={() => fillSkus(null)}
-            />
+            {choosing ? chooseFirst : <OptionGroup {...groupProps(null)} />}
           </>
         ) : null}
 
@@ -239,14 +358,14 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
                   >
                     <ArrowDown />
                   </Button>
-                  {form.colors.length > 1 ? (
+                  {form.colors.length > 1 && !noOptions ? (
                     <Button
                       type="button"
                       size="icon-sm"
                       variant="ghost"
-                      aria-label={`Copy sizes of ${color.name || 'this colour'} to the other colours`}
-                      title="Copy these sizes to the other colours"
-                      onClick={() => copySizesToAll(color)}
+                      aria-label={`Copy the ${optionName.toLowerCase()} values of ${color.name || 'this colour'} to the other colours`}
+                      title={`Copy these ${optionName.toLowerCase()} values to the other colours`}
+                      onClick={() => copyOptionsToAll(color)}
                     >
                       <Copy />
                     </Button>
@@ -261,31 +380,19 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
                   {colorErrors.join(' ')}
                 </p>
               ) : null}
-              <div className="p-4">
-                <SizeGroup
-                  color={color}
-                  variants={form.variants.filter((v) => v.colorKey === color.key)}
-                  allVariants={form.variants}
-                  errors={errors}
-                  onPatch={patchVariant}
-                  onRemove={removeVariant}
-                  onMove={moveVariant}
-                  onAdd={(labels) => addSizes(color, labels)}
-                  onFillSkus={() => fillSkus(color.key)}
-                />
-              </div>
+              <div className="p-4">{choosing ? chooseFirst : <OptionGroup {...groupProps(color)} />}</div>
             </section>
           );
         })}
 
         {unassigned.length ? (
-          <section className="rounded-xl border border-warning/40 bg-warning/5 p-4" aria-label="Sizes without a colour">
-            <p className="mb-3 text-sm font-medium">Sizes without a colour</p>
-            <p className="mb-3 text-xs text-ink-2">Customers only see sizes of the selected colour. Assign each of these sizes to a colour.</p>
+          <section className="rounded-xl border border-warning/40 bg-warning/5 p-4" aria-label="Variants without a colour">
+            <p className="mb-3 text-sm font-medium">Variants without a colour</p>
+            <p className="mb-3 text-xs text-ink-2">Customers only see the variants of the selected colour. Assign each of these variants to a colour.</p>
             <ul className="space-y-2">
               {unassigned.map((v) => (
                 <li key={v.key} className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="w-24 font-medium">{v.sizeLabel}</span>
+                  <span className="w-24 font-medium">{isStandardOption(v.sizeLabel) ? 'Single variant' : v.sizeLabel}</span>
                   <span className="font-mono text-xs text-muted">{v.sku}</span>
                   <label className="sr-only" htmlFor={`assign-${v.key}`}>
                     Colour for {v.sizeLabel}
@@ -313,11 +420,15 @@ export function VariantsSection({ form, setForm, errors }: { form: ProductFormSt
   );
 }
 
-function SizeGroup({
+function OptionGroup({
   color,
   variants,
   allVariants,
   errors,
+  optionName,
+  noOptions,
+  ukNumbers,
+  placeholder,
   onPatch,
   onRemove,
   onMove,
@@ -328,19 +439,24 @@ function SizeGroup({
   variants: ProductFormVariant[];
   allVariants: ProductFormVariant[];
   errors: Record<string, string>;
+  optionName: string;
+  noOptions: boolean;
+  ukNumbers: boolean;
+  placeholder: string;
   onPatch: (key: string, value: Partial<ProductFormVariant>) => void;
   onRemove: (key: string) => void;
   onMove: (key: string, direction: -1 | 1) => void;
   onAdd: (labels: string[]) => void;
   onFillSkus: () => void;
 }) {
-  const [sizeInput, setSizeInput] = React.useState('');
+  const [optionInput, setOptionInput] = React.useState('');
   const groupId = color?.key ?? 'none';
+  const lower = optionName.toLowerCase();
   const add = () => {
-    const labels = parseSizeList(sizeInput);
-    if (!labels.length) return toast.error('Type one or more sizes, e.g. 6, 7, 8 or S, M, L.');
+    const labels = parseOptionList(optionInput, ukNumbers);
+    if (!labels.length) return toast.error(`Type one or more ${lower} values separated by commas.`);
     onAdd(labels);
-    setSizeInput('');
+    setOptionInput('');
   };
 
   return (
@@ -350,8 +466,8 @@ function SizeGroup({
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="text-xs text-muted">
-                <th scope="col" className="pr-2 pb-2 font-medium">Size</th>
-                <th scope="col" className="pr-2 pb-2 font-medium">Size SKU</th>
+                <th scope="col" className="pr-2 pb-2 font-medium">{noOptions ? 'Variant' : optionName}</th>
+                <th scope="col" className="pr-2 pb-2 font-medium">SKU</th>
                 <th scope="col" className="pr-2 pb-2 font-medium">Stock</th>
                 <th scope="col" className="pr-2 pb-2 font-medium">Active</th>
                 <th scope="col" className="pb-2">
@@ -364,26 +480,33 @@ function SizeGroup({
                 const index = allVariants.indexOf(v);
                 const err = (field: string) => errors[`variants.${index}.${field}`];
                 const rowError = err('sizeLabel') ?? err('sku') ?? err('initialStock') ?? err('colorKey');
-                const label = v.sizeLabel || `row ${i + 1}`;
+                const single = noOptions && isStandardOption(v.sizeLabel);
+                const label = single ? 'single variant' : `${lower} ${v.sizeLabel || `row ${i + 1}`}`;
                 return (
                   <React.Fragment key={v.key}>
                     <tr className="align-middle">
                       <td className="py-1 pr-2">
-                        <label className="sr-only" htmlFor={`size-${v.key}`}>
-                          Size label
-                        </label>
-                        <Input
-                          id={`size-${v.key}`}
-                          className="h-9 w-28"
-                          value={v.sizeLabel}
-                          maxLength={20}
-                          aria-invalid={err('sizeLabel') ? true : undefined}
-                          onChange={(e) => onPatch(v.key, { sizeLabel: e.target.value })}
-                        />
+                        {single ? (
+                          <span className="inline-flex h-9 items-center text-sm text-ink-2">Single variant</span>
+                        ) : (
+                          <>
+                            <label className="sr-only" htmlFor={`size-${v.key}`}>
+                              {optionName} value
+                            </label>
+                            <Input
+                              id={`size-${v.key}`}
+                              className="h-9 w-28"
+                              value={v.sizeLabel}
+                              maxLength={OPTION_VALUE_MAX}
+                              aria-invalid={err('sizeLabel') ? true : undefined}
+                              onChange={(e) => onPatch(v.key, { sizeLabel: e.target.value })}
+                            />
+                          </>
+                        )}
                       </td>
                       <td className="py-1 pr-2">
                         <label className="sr-only" htmlFor={`sku-${v.key}`}>
-                          SKU for size {label}
+                          SKU for {label}
                         </label>
                         <Input
                           id={`sku-${v.key}`}
@@ -406,7 +529,7 @@ function SizeGroup({
                         ) : (
                           <div className="flex items-center gap-1.5">
                             <label className="sr-only" htmlFor={`stock-${v.key}`}>
-                              Initial stock for size {label}
+                              Initial stock for {label}
                             </label>
                             <Input
                               id={`stock-${v.key}`}
@@ -422,29 +545,33 @@ function SizeGroup({
                         )}
                       </td>
                       <td className="py-1 pr-2">
-                        <Switch checked={v.isActive} onCheckedChange={(on) => onPatch(v.key, { isActive: on })} aria-label={`Size ${label} is active`} />
+                        <Switch checked={v.isActive} onCheckedChange={(on) => onPatch(v.key, { isActive: on })} aria-label={`${single ? 'Single variant' : `${optionName} ${v.sizeLabel || i + 1}`} is active`} />
                       </td>
                       <td className="py-1">
                         <div className="flex justify-end gap-0.5">
-                          <Button type="button" size="icon-sm" variant="ghost" aria-label={`Move size ${label} up`} disabled={i === 0} onClick={() => onMove(v.key, -1)}>
-                            <ArrowUp />
-                          </Button>
+                          {noOptions ? null : (
+                            <>
+                              <Button type="button" size="icon-sm" variant="ghost" aria-label={`Move ${label} up`} disabled={i === 0} onClick={() => onMove(v.key, -1)}>
+                                <ArrowUp />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon-sm"
+                                variant="ghost"
+                                aria-label={`Move ${label} down`}
+                                disabled={i === variants.length - 1}
+                                onClick={() => onMove(v.key, 1)}
+                              >
+                                <ArrowDown />
+                              </Button>
+                            </>
+                          )}
                           <Button
                             type="button"
                             size="icon-sm"
                             variant="ghost"
-                            aria-label={`Move size ${label} down`}
-                            disabled={i === variants.length - 1}
-                            onClick={() => onMove(v.key, 1)}
-                          >
-                            <ArrowDown />
-                          </Button>
-                          <Button
-                            type="button"
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={`Remove size ${label}`}
-                            title={v.id ? 'Sizes with order history are deactivated instead of deleted' : 'Remove size'}
+                            aria-label={`Remove ${label}`}
+                            title={v.id ? 'Variants with order history are deactivated instead of deleted' : 'Remove variant'}
                             onClick={() => onRemove(v.key)}
                           >
                             <Trash2 />
@@ -466,32 +593,45 @@ function SizeGroup({
           </table>
         </div>
       ) : (
-        <p className="text-sm text-muted">No sizes yet{color ? ` for ${color.name || 'this colour'}` : ''}.</p>
+        <p className="text-sm text-muted">
+          {noOptions ? 'No variant yet' : `No ${lower} values yet`}
+          {color ? ` for ${color.name || 'this colour'}` : ''}.
+        </p>
       )}
       <div className="flex flex-wrap items-end gap-2">
-        <div className="min-w-56 flex-1">
-          <label className="mb-1 block text-xs font-medium text-ink-2" htmlFor={`add-sizes-${groupId}`}>
-            Add sizes{color?.name ? ` to ${color.name}` : ''}
-          </label>
-          <Input
-            id={`add-sizes-${groupId}`}
-            className="h-9"
-            value={sizeInput}
-            placeholder="6, 7, 8, 9, 10  (numbers become UK sizes)"
-            onChange={(e) => setSizeInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                add();
-              }
-            }}
-          />
-        </div>
-        <Button type="button" size="sm" variant="secondary" onClick={add} aria-label={`Add sizes${color?.name ? ` to ${color.name}` : ''}`}>
-          <Plus /> Add
-        </Button>
+        {noOptions ? (
+          variants.length === 0 ? (
+            <Button type="button" size="sm" variant="secondary" onClick={() => onAdd([STANDARD_OPTION])}>
+              <Plus /> Add the single variant
+            </Button>
+          ) : null
+        ) : (
+          <>
+            <div className="min-w-56 flex-1">
+              <label className="mb-1 block text-xs font-medium text-ink-2" htmlFor={`add-sizes-${groupId}`}>
+                Add {lower} values{color?.name ? ` to ${color.name}` : ''}
+              </label>
+              <Input
+                id={`add-sizes-${groupId}`}
+                className="h-9"
+                value={optionInput}
+                placeholder={placeholder}
+                onChange={(e) => setOptionInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    add();
+                  }
+                }}
+              />
+            </div>
+            <Button type="button" size="sm" variant="secondary" onClick={add} aria-label={`Add ${lower} values${color?.name ? ` to ${color.name}` : ''}`}>
+              <Plus /> Add
+            </Button>
+          </>
+        )}
         {variants.some((v) => !v.id) ? (
-          <Button type="button" size="sm" variant="ghost" onClick={onFillSkus} title="Regenerate SKUs of new sizes from the product SKU, colour and size">
+          <Button type="button" size="sm" variant="ghost" onClick={onFillSkus} title="Regenerate SKUs of new variants from the product SKU, colour and option value">
             <Wand2 /> Regenerate new SKUs
           </Button>
         ) : null}

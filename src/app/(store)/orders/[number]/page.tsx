@@ -15,6 +15,7 @@ import { OrderProgress } from '@/components/orders/order-progress';
 import { Badge, Notice, Skeleton } from '@/components/ui/misc';
 import { Button } from '@/components/ui/button';
 import { cn, formatDateTime, formatMoney } from '@/lib/utils';
+import { lineDetails } from '@/lib/catalog/variants';
 
 export const metadata: Metadata = { title: 'Your order', robots: { index: false, follow: false } };
 
@@ -219,7 +220,9 @@ async function OrderContent({ params }: { params: PageProps<'/orders/[number]'>[
                 ) : (
                   <p className="font-medium">{item.productName}</p>
                 )}
-                <p className="text-xs text-muted">{[item.colorName, `UK ${item.sizeLabel.replace(/^UK\s*/i, '')}`, `Qty ${item.quantity}`].filter(Boolean).join(' · ')}</p>
+                <p className="text-xs text-muted">
+                  {[lineDetails({ colorName: item.colorName, variantLabel: item.variantLabel, sizeLabel: item.sizeLabel }), `Qty ${item.quantity}`].filter(Boolean).join(' · ')}
+                </p>
               </div>
               <p className="text-sm tabular-nums">{formatMoney(item.lineTotal)}</p>
             </li>

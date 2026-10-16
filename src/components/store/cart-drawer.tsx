@@ -10,6 +10,7 @@ import { cartStore, onCartDrawer, useCart, type CartLine } from '@/lib/cart/stor
 import { useCartSync } from '@/lib/cart/sync';
 import { quoteCart } from '@/app/(store)/actions';
 import { lineStatusMessage, type Quote } from '@/lib/orders/quote';
+import { lineDetails } from '@/lib/catalog/variants';
 import { cn, formatMoney } from '@/lib/utils';
 
 export function useServerQuote(lines: CartLine[], opts: { enabled: boolean; couponCode?: string; shippingMethod?: string; email?: string }) {
@@ -78,7 +79,7 @@ export function CartLineRow({ line, quoteLine, onNavigate }: { line: CartLine; q
               {line.name}
             </Link>
             <p className="mt-0.5 text-xs text-muted">
-              {[line.colorName, line.sizeLabel].filter(Boolean).join(' · ')}
+              {lineDetails({ colorName: line.colorName, variantLabel: quoteLine?.variantLabel ?? line.variantLabel, sizeLabel: line.sizeLabel })}
             </p>
           </div>
           <p className="text-sm font-medium tabular-nums">{formatMoney(unit * line.quantity)}</p>
@@ -144,7 +145,7 @@ export function CartDrawer() {
             </div>
             <div>
               <p className="font-medium">Your cart is empty</p>
-              <p className="mt-1 text-sm text-muted">Discover new arrivals and bestsellers.</p>
+              <p className="mt-1 text-sm text-muted">Discover new arrivals, deals and bestsellers.</p>
             </div>
             <Button asChild onClick={() => setOpen(false)}>
               <Link href="/shop">Start shopping</Link>

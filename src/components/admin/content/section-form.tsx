@@ -333,20 +333,20 @@ export function SectionForm({
                 kinds={['image']}
                 uploadFolder="content"
                 error={errors.image_asset_id}
-                hint={section.type === 'hero' ? 'Shown before (or instead of) the 3D shoe.' : 'Large, landscape images work best.'}
+                hint={section.type === 'hero' ? 'Shown before (or instead of) the 3D scene.' : 'Large, landscape images work best.'}
               />
             ) : null}
             {has('mobileImage') ? (
               <AssetField label="Phone image (optional)" value={values.mobileImage} onChange={(a) => set('mobileImage', a)} kinds={['image']} uploadFolder="content" error={errors.mobile_image_asset_id} hint="Used on small screens instead of the poster image." />
             ) : null}
             {has('model') ? (
-              <AssetField label="3D model (optional)" value={values.model} onChange={(a) => set('model', a)} kinds={['model']} uploadFolder="models" error={errors.model_asset_id} hint="A .glb shoe; the default AUREN runner is used when empty." />
+              <AssetField label="3D model (optional)" value={values.model} onChange={(a) => set('model', a)} kinds={['model']} uploadFolder="models" error={errors.model_asset_id} hint="A single .glb product model. When empty, the default scene of several products is shown." />
             ) : null}
           </div>
           {has('show3d') ? (
             <div className="flex items-center justify-between gap-4 rounded-lg border border-line px-3.5 py-3">
               <label htmlFor={`${pid}-3d`} className="text-sm">
-                <span className="font-medium">Interactive 3D shoe</span>
+                <span className="font-medium">Interactive 3D scene</span>
                 <span className="block text-xs text-muted">Loads after the page is idle on capable devices; the poster image is always shown first.</span>
               </label>
               <Switch id={`${pid}-3d`} checked={values.show_3d} onCheckedChange={(v) => set('show_3d', v)} />

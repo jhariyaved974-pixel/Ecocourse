@@ -8,6 +8,7 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Field, Textarea } from '@/components/ui/form-controls';
 import type { ActionResult } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 
 /** Debounced search box bound to a URL search param (default `q`). Must be rendered inside <Suspense>. */
 export function SearchParamInput({ param = 'q', placeholder = 'Search…', className }: { param?: string; placeholder?: string; className?: string }) {
@@ -45,7 +46,18 @@ export function SearchParamInput({ param = 'q', placeholder = 'Search…', class
 }
 
 /** Select bound to a URL search param. Must be rendered inside <Suspense>. */
-export function SearchParamSelect({ param, options, label }: { param: string; options: { value: string; label: string }[]; label: string }) {
+export function SearchParamSelect({
+  param,
+  options,
+  label,
+  selectClassName,
+}: {
+  param: string;
+  options: { value: string; label: string }[];
+  label: string;
+  /** Extra classes for the <select>, e.g. a max width for long option labels. */
+  selectClassName?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -62,7 +74,7 @@ export function SearchParamSelect({ param, options, label }: { param: string; op
           const qs = sp.toString();
           router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
         }}
-        className="h-9 rounded-full border border-line-strong bg-surface px-3 pr-8 text-sm"
+        className={cn('h-9 rounded-full border border-line-strong bg-surface px-3 pr-8 text-sm', selectClassName)}
         aria-label={label}
       >
         {options.map((o) => (

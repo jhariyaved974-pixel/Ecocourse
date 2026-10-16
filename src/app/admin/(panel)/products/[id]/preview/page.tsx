@@ -62,7 +62,7 @@ export default async function ProductPreviewPage({ params }: { params: Promise<{
       <div className="rounded-2xl border border-line bg-paper p-4 md:p-8">
         <ProductExperience
           product={product}
-          sizeGuide={sizeGuide ? { name: sizeGuide.name, intro: sizeGuide.intro, notes: sizeGuide.notes, rows: sizeGuide.rows } : null}
+          sizeGuide={sizeGuide}
           shipping={shipping}
           returnDays={settings.free_returns_days}
           description={<Markdown>{product.description}</Markdown>}

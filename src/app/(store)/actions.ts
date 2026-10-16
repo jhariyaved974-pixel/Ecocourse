@@ -109,7 +109,7 @@ export async function getSavedCart(): Promise<CartLine[]> {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from('cart_items')
-    .select('quantity, variant:product_variants(id, size_label, is_active, color:product_colors(name), product:products(id, slug, name, status))')
+    .select('quantity, variant:product_variants(id, size_label, is_active, color:product_colors(name), product:products(id, slug, name, status, variant_label))')
     .order('updated_at', { ascending: false })
     .limit(30);
   const rows = (data ?? []).filter((r) => r.variant?.is_active && r.variant.product?.status === 'published');
@@ -127,6 +127,7 @@ export async function getSavedCart(): Promise<CartLine[]> {
       image: card.image,
       colorName: v.color?.name ?? null,
       sizeLabel: v.size_label,
+      variantLabel: v.product!.variant_label,
       unitPrice: card.finalPrice,
       quantity: r.quantity,
     }];

@@ -8,7 +8,7 @@ import { rateLimit, rateLimitByIp } from '@/lib/security';
 export type TrackState = { ok?: boolean; message?: string; error?: string } | null;
 
 const schema = z.object({
-  orderNumber: z.string().trim().toUpperCase().regex(/^[A-Z]{2,4}-[0-9]{6}-[0-9A-Z]{5}$/, 'Enter the order number exactly as in your email (e.g. AU-261014-7K2QD).'),
+  orderNumber: z.string().trim().toUpperCase().regex(/^[A-Z]{2,4}-[0-9]{6}-[0-9A-Z]{5}$/, 'Enter the order number exactly as in your email (e.g. STM-261014-7K2QD).'),
   email: z.email('Enter the email used for the order.').max(254).transform((v) => v.toLowerCase()),
 });
 

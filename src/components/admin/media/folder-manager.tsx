@@ -86,7 +86,7 @@ function FolderNameForm({
           autoComplete="off"
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={error ? `${fieldId}-error` : undefined}
-          placeholder="e.g. Summer drop 2026"
+          placeholder="e.g. Diwali sale 2026"
         />
       </Field>
       <DialogFooter>

@@ -20,6 +20,9 @@ export const PRODUCT_STATUS_TONE: Record<ProductStatus, 'neutral' | 'success' | 
 
 export const GENDERS = ['men', 'women', 'kids', 'unisex'] as const satisfies readonly GenderTarget[];
 export const GENDER_TEXT: Record<GenderTarget, string> = { men: 'Men', women: 'Women', kids: 'Kids', unisex: 'Unisex' };
+/** The gender column is shown to staff as a neutral "Audience" (most products are for everyone). */
+export const AUDIENCES = ['unisex', 'men', 'women', 'kids'] as const satisfies readonly GenderTarget[];
+export const AUDIENCE_TEXT: Record<GenderTarget, string> = { unisex: 'Everyone', men: 'Men', women: 'Women', kids: 'Kids' };
 
 export const COLOR_FAMILIES = [
   'black', 'white', 'grey', 'beige', 'brown', 'blue', 'green', 'red', 'pink', 'purple', 'yellow', 'orange', 'multi',
@@ -78,6 +81,56 @@ export type BulkActionValue = (typeof BULK_ACTIONS)[number]['value'];
 export const BULK_ACTION_VALUES = BULK_ACTIONS.map((a) => a.value) as [BulkActionValue, ...BulkActionValue[]];
 
 // ---------------------------------------------------------------------------
+// Variant options: products.variant_label names the option a shopper picks
+// ("Size", "Weight", …); product_variants.size_label holds each option value.
+// ---------------------------------------------------------------------------
+/** Option value of a product without options (one variant per colour). */
+export const STANDARD_OPTION = 'Standard';
+export const DEFAULT_VARIANT_LABEL = 'Size';
+export const VARIANT_LABEL_MAX = 30;
+export const OPTION_VALUE_MAX = 20;
+
+export const VARIANT_PRESETS = [
+  { value: 'shoe', label: 'Size (shoes, UK)', variantLabel: 'Size', values: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'], placeholder: '6, 7, 8 (numbers become UK sizes)' },
+  { value: 'clothing', label: 'Size (clothing)', variantLabel: 'Size', values: ['S', 'M', 'L', 'XL', 'XXL'], placeholder: 'S, M, L, XL' },
+  { value: 'none', label: 'No options', variantLabel: 'Option', values: [STANDARD_OPTION], placeholder: '' },
+  { value: 'weight', label: 'Weight', variantLabel: 'Weight', values: [], placeholder: '500 g, 1 kg, 2 kg' },
+  { value: 'capacity', label: 'Capacity', variantLabel: 'Capacity', values: [], placeholder: '500 ml, 750 ml, 1 L' },
+  { value: 'custom', label: 'Custom…', variantLabel: '', values: [], placeholder: 'Type values separated by commas' },
+] as const;
+export type VariantPreset = (typeof VARIANT_PRESETS)[number]['value'];
+
+export function isStandardOption(value: string): boolean {
+  return value.trim().toLowerCase() === STANDARD_OPTION.toLowerCase();
+}
+
+/** True when the product sells a single variant per colour (no option for shoppers to pick). */
+export function hasNoOptions(variants: readonly { sizeLabel: string }[]): boolean {
+  return variants.length > 0 && variants.every((v) => isStandardOption(v.sizeLabel));
+}
+
+/** Best guess of the preset that describes the current options (used to initialise the editor). */
+export function detectVariantPreset(variantLabel: string, variants: readonly { sizeLabel: string }[]): VariantPreset | '' {
+  if (hasNoOptions(variants)) return 'none';
+  const label = variantLabel.trim().toLowerCase();
+  const values = variants.map((v) => v.sizeLabel.trim().toUpperCase());
+  if (label === 'size' && values.length) {
+    if (values.every((v) => /^UK\s?\d/.test(v))) return 'shoe';
+    if (values.every((v) => /^(XXS|XS|S|M|L|XL|XXL|XXXL|[2-5]XL)$/.test(v))) return 'clothing';
+  }
+  if (label === 'weight') return 'weight';
+  if (label === 'capacity') return 'capacity';
+  if (label === 'size' && values.length === 0) return '';
+  return 'custom';
+}
+
+/** "Size: UK 8" for order lines and lists; empty for products without options. */
+export function formatOption(variantLabel: string | null | undefined, value: string | null | undefined): string {
+  if (!value || isStandardOption(value)) return '';
+  return `${variantLabel?.trim() || DEFAULT_VARIANT_LABEL}: ${value}`;
+}
+
+// ---------------------------------------------------------------------------
 // Formats shared with the database checks
 // ---------------------------------------------------------------------------
 export const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -98,19 +151,10 @@ export function skuFragment(input: string, max = 12): string {
 }
 
 export function suggestVariantSku(productSku: string, colorName: string | null, sizeLabel: string): string {
-  const size = skuFragment(sizeLabel.replace(/^(UK|US|EU|IND?)\s*/i, ''), 8) || skuFragment(sizeLabel, 8);
+  // Products without options use PRODUCT-COLOUR (no option code), like the sample catalogue.
+  const size = isStandardOption(sizeLabel) ? '' : skuFragment(sizeLabel.replace(/^(UK|US|EU|IND?)\s*/i, ''), 8) || skuFragment(sizeLabel, 8);
   const parts = [skuFragment(productSku, 30) || 'SKU', colorName ? skuFragment(colorName, 10) : '', size].filter(Boolean);
   return parts.join('-').slice(0, 60).replace(/-+$/g, '');
-}
-
-/** Numeric sort key for a size label ("UK 7.5" → 7.5); falls back to the row position. */
-export function deriveSizeSort(label: string, position: number): number {
-  const match = label.match(/\d+(?:\.\d+)?/);
-  if (match) {
-    const n = Number(match[0]);
-    if (Number.isFinite(n) && n < 10_000) return Math.round(n * 100) / 100;
-  }
-  return position;
 }
 
 const IST_OFFSET_MINUTES = 330;
@@ -194,6 +238,7 @@ export interface ProductFormState {
   categoryId: string;
   brandId: string;
   gender: GenderTarget;
+  variantLabel: string; // option name shown to shoppers ("Size", "Weight"…)
   shortDescription: string;
   description: string;
   tags: string;
@@ -229,6 +274,7 @@ export function emptyProductForm(): ProductFormState {
     categoryId: '',
     brandId: '',
     gender: 'unisex',
+    variantLabel: DEFAULT_VARIANT_LABEL,
     shortDescription: '',
     description: '',
     tags: '',
@@ -306,12 +352,12 @@ const variantSchema = z.object({
   key: keyString,
   id: z.uuid().nullable(),
   colorKey: keyString.nullable(),
-  sizeLabel: z.string().trim().min(1, 'Size label is required.').max(20, 'Size labels are limited to 20 characters.'),
+  sizeLabel: z.string().trim().min(1, 'Enter the option value.').max(OPTION_VALUE_MAX, `Option values are limited to ${OPTION_VALUE_MAX} characters.`),
   sku: z
     .string()
     .trim()
     .transform((v) => v.toUpperCase())
-    .pipe(z.string().regex(VARIANT_SKU_RE, 'Size SKU must be 2–60 characters: A–Z, 0–9 and dashes.')),
+    .pipe(z.string().regex(VARIANT_SKU_RE, 'Variant SKU must be 2–60 characters: A–Z, 0–9 and dashes.')),
   isActive: z.boolean(),
   initialStock: wholeNumber('Initial stock', 100_000),
 });
@@ -341,7 +387,7 @@ export const productFormSchema = z
       .trim()
       .min(1, 'Slug is required.')
       .max(120, 'Slug is limited to 120 characters.')
-      .regex(SLUG_RE, 'Use lowercase letters, numbers and single dashes (e.g. velocity-runner-x).'),
+      .regex(SLUG_RE, 'Use lowercase letters, numbers and single dashes (e.g. steel-water-bottle).'),
     sku: z
       .string()
       .trim()
@@ -350,6 +396,12 @@ export const productFormSchema = z
     categoryId: optionalUuid,
     brandId: optionalUuid,
     gender: z.enum(GENDERS),
+    // Trimmed; empty falls back to "Size" (the database default).
+    variantLabel: z
+      .string()
+      .trim()
+      .max(VARIANT_LABEL_MAX, `The option name is limited to ${VARIANT_LABEL_MAX} characters.`)
+      .transform((v) => v.replace(/\s+/g, ' ') || DEFAULT_VARIANT_LABEL),
     shortDescription: z.string().trim().max(300, 'Short description is limited to 300 characters.'),
     description: z.string().max(8000, 'Description is limited to 8,000 characters.'),
     tags: z.string().max(1500).transform((v, ctx) => {
@@ -369,7 +421,7 @@ export const productFormSchema = z
     isBestseller: z.boolean(),
     isTrending: z.boolean(),
     colors: z.array(colorSchema).max(20, 'Use at most 20 colours.'),
-    variants: z.array(variantSchema).max(300, 'Use at most 300 sizes.'),
+    variants: z.array(variantSchema).max(300, 'Use at most 300 variants.'),
     media: z.array(mediaSchema).max(40, 'Use at most 40 media items.'),
     model: assetRef,
     ogImage: assetRef,
@@ -406,18 +458,31 @@ export const productFormSchema = z
 
     const skus = new Set<string>();
     const combos = new Set<string>();
+    const name = (v: { sizeLabel: string }) => (isStandardOption(v.sizeLabel) ? 'The single variant' : `${p.variantLabel} ${v.sizeLabel}`);
     p.variants.forEach((v, i) => {
       if (p.colors.length > 0 && (v.colorKey === null || !colorKeys.has(v.colorKey))) {
-        ctx.addIssue({ code: 'custom', path: ['variants', i, 'colorKey'], message: `Size ${v.sizeLabel} must belong to one of the colours.` });
+        ctx.addIssue({ code: 'custom', path: ['variants', i, 'colorKey'], message: `${name(v)} must belong to one of the colours.` });
       }
       if (p.colors.length === 0 && v.colorKey !== null) {
-        ctx.addIssue({ code: 'custom', path: ['variants', i, 'colorKey'], message: `Size ${v.sizeLabel} refers to a removed colour.` });
+        ctx.addIssue({ code: 'custom', path: ['variants', i, 'colorKey'], message: `${name(v)} refers to a removed colour.` });
       }
-      if (skus.has(v.sku)) ctx.addIssue({ code: 'custom', path: ['variants', i, 'sku'], message: `Size SKU ${v.sku} is used more than once.` });
+      if (skus.has(v.sku)) ctx.addIssue({ code: 'custom', path: ['variants', i, 'sku'], message: `Variant SKU ${v.sku} is used more than once.` });
       skus.add(v.sku);
       const combo = `${v.colorKey ?? ''}|${v.sizeLabel.toLowerCase()}`;
-      if (combos.has(combo)) ctx.addIssue({ code: 'custom', path: ['variants', i, 'sizeLabel'], message: `Size ${v.sizeLabel} is listed twice for the same colour.` });
+      if (combos.has(combo)) ctx.addIssue({ code: 'custom', path: ['variants', i, 'sizeLabel'], message: `${name(v)} is listed twice for the same colour.` });
       combos.add(combo);
+    });
+    // "Standard" means "no options", so it cannot sit next to real option values of the same colour.
+    const groups = new Map<string, string[]>();
+    for (const v of p.variants) groups.set(v.colorKey ?? '', [...(groups.get(v.colorKey ?? '') ?? []), v.sizeLabel]);
+    p.variants.forEach((v, i) => {
+      if (isStandardOption(v.sizeLabel) && (groups.get(v.colorKey ?? '') ?? []).some((l) => !isStandardOption(l))) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['variants', i, 'sizeLabel'],
+          message: `“${STANDARD_OPTION}” means the product has no options; remove it or the other ${p.variantLabel.toLowerCase()} values of this colour.`,
+        });
+      }
     });
 
     const assets = new Set<string>();
@@ -435,7 +500,7 @@ export const productFormSchema = z
         ctx.addIssue({ code: 'custom', path: ['status'], message: 'Add at least one image before publishing.' });
       }
       if (!p.variants.some((v) => v.isActive)) {
-        ctx.addIssue({ code: 'custom', path: ['status'], message: 'Add at least one active size before publishing.' });
+        ctx.addIssue({ code: 'custom', path: ['status'], message: 'Add at least one active variant before publishing.' });
       }
     }
   });
@@ -453,6 +518,7 @@ export function toSaveProductPayload(p: ProductFormParsed, opts: { includeCost: 
     brand_id: p.brandId ?? '',
     category_id: p.categoryId ?? '',
     gender: p.gender,
+    variant_label: p.variantLabel,
     short_description: p.shortDescription,
     description: p.description,
     price: p.price ?? 0,
@@ -476,7 +542,8 @@ export function toSaveProductPayload(p: ProductFormParsed, opts: { includeCost: 
       id: v.id ?? '',
       color_key: v.colorKey ?? '',
       size_label: v.sizeLabel,
-      size_sort: deriveSizeSort(v.sizeLabel, i + 1),
+      // Options are shown in the order staff arranged them (1-based position).
+      size_sort: i + 1,
       sku: v.sku,
       is_active: v.isActive,
       initial_stock: v.id ? 0 : v.initialStock ?? 0,
@@ -489,15 +556,16 @@ export function toSaveProductPayload(p: ProductFormParsed, opts: { includeCost: 
   return payload;
 }
 
-/** Human description of a validation issue path inside the editor (e.g. "Black · UK 8"). */
+/** Human description of a validation issue path inside the editor (e.g. "Black · Size UK 8"). */
 export function describeIssuePath(path: PropertyKey[], form: ProductFormState): string | null {
   const [section, index] = path;
   if (typeof index !== 'number') return null;
   if (section === 'variants') {
     const v = form.variants[index];
-    if (!v) return 'Sizes';
+    if (!v) return 'Variants';
     const color = form.colors.find((c) => c.key === v.colorKey);
-    return `Size ${[color?.name, v.sizeLabel || '(no label)'].filter(Boolean).join(' · ')}`;
+    const option = isStandardOption(v.sizeLabel) ? 'Single variant' : `${form.variantLabel.trim() || DEFAULT_VARIANT_LABEL} ${v.sizeLabel || '(no value)'}`;
+    return [color?.name, option].filter(Boolean).join(' · ');
   }
   if (section === 'colors') return `Colour ${form.colors[index]?.name || index + 1}`;
   if (section === 'media') return `Media item ${index + 1}`;
@@ -508,7 +576,7 @@ export function describeIssuePath(path: PropertyKey[], form: ProductFormState): 
 // ---------------------------------------------------------------------------
 // CSV
 // ---------------------------------------------------------------------------
-export const PRODUCT_CSV_COLUMNS = ['id', 'name', 'slug', 'sku', 'status', 'category', 'price_rupees', 'sale_price_rupees', 'stock', 'tags'] as const;
+export const PRODUCT_CSV_COLUMNS = ['id', 'name', 'slug', 'sku', 'status', 'category', 'variant_label', 'price_rupees', 'sale_price_rupees', 'stock', 'tags'] as const;
 export const PRODUCT_IMPORT_OPTIONAL_COLUMNS = ['short_description', 'gender'] as const;
 export const PRODUCT_IMPORT_MAX_ROWS = 500;
 
@@ -542,6 +610,11 @@ export const importRowSchema = z.object({
     .transform((v) => v.toLowerCase())
     .refine((v): v is '' | ProductStatus => v === '' || (PRODUCT_STATUSES as readonly string[]).includes(v), 'status must be draft, published or archived.'),
   category: z.string().max(120),
+  // Name of the option shoppers pick ("Size", "Weight"…). Empty: new products use "Size", existing ones keep theirs.
+  variant_label: z
+    .string()
+    .transform((v) => v.replace(/\s+/g, ' ').trim())
+    .refine((v) => v.length <= VARIANT_LABEL_MAX, `variant_label is limited to ${VARIANT_LABEL_MAX} characters.`),
   price_rupees: z.string().transform((v, ctx) => {
     const paise = rupeesToPaise(v);
     if (paise === null || paise <= 0 || paise > MAX_PRICE_PAISE) {

@@ -9,11 +9,11 @@ import { ArrowRight, Move3d } from 'lucide-react';
 import type { HomeSection } from '@/lib/content/queries';
 import { Button } from '@/components/ui/button';
 import { canRender3D, StageErrorBoundary } from '@/components/three/capability';
+import { DEFAULT_HERO_MODELS, type HeroModel } from '@/components/three/hero-models';
 import { cn } from '@/lib/utils';
 
-const ShoeStage = dynamic(() => import('@/components/three/shoe-stage').then((m) => m.ShoeStage), { ssr: false });
+const HeroStage = dynamic(() => import('@/components/three/hero-stage').then((m) => m.HeroStage), { ssr: false });
 
-const DEFAULT_MODEL = '/models/velocity-runner-x.glb';
 
 export function Hero({ section, priority }: { section: HomeSection; priority?: boolean }) {
   const reduceMotion = useReducedMotion();
@@ -21,6 +21,17 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
   const scrollValue = React.useRef(0);
   const [mount3D, setMount3D] = React.useState(false);
   const [ready, setReady] = React.useState(false);
+  // Several product models float together (see hero-stage.tsx). A model chosen
+  // in the CMS takes the centre spot; the others stay as supporting products.
+  const models = React.useMemo<HeroModel[]>(
+    () => (section.model ? DEFAULT_HERO_MODELS.map((m, i) => (i === 0 ? { ...m, url: section.model! } : m)) : DEFAULT_HERO_MODELS),
+    [section.model],
+  );
+  const onReady = React.useCallback(() => setReady(true), []);
+  const onFail = React.useCallback(() => {
+    setReady(false);
+    setMount3D(false);
+  }, []);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   useMotionValueEvent(scrollYProgress, 'change', (v) => {
     scrollValue.current = v;
@@ -47,13 +58,13 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
   const words = section.heading.split(' ');
 
   return (
-    <section ref={ref} data-surface="dark" className={cn('relative overflow-hidden', priority && '-mt-16 lg:-mt-[72px]')} aria-labelledby="hero-heading">
+    <section ref={ref} data-surface="dark" className={cn('relative overflow-hidden', priority && '-mt-16 lg:-mt-[72px] xl:-mt-[117px]')} aria-labelledby="hero-heading">
       {priority ? <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.heroOverlay='1'" }} /> : null}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute -top-1/3 right-[-10%] size-[70vw] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--accent)_28%,transparent),transparent_65%)] blur-2xl" />
         <div className="absolute bottom-0 left-0 h-1/2 w-full bg-gradient-to-t from-black/40 to-transparent" />
       </div>
-      <div className="container-x relative grid min-h-[min(100svh,980px)] items-center gap-6 pt-24 pb-12 lg:grid-cols-[1.05fr_1fr] lg:pt-28">
+      <div className="container-x relative grid min-h-[min(100svh,980px)] items-center gap-6 pt-24 pb-12 lg:grid-cols-[1.05fr_1fr] lg:pt-28 xl:pt-36">
         <div className="relative z-10 order-2 max-w-2xl lg:order-1">
           {section.eyebrow ? (
             <motion.p
@@ -135,12 +146,13 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
             </div>
           ) : null}
           {mount3D ? (
-            <StageErrorBoundary onError={() => setReady(false)}>
-              <ShoeStage
-                url={section.model ?? DEFAULT_MODEL}
-                autoRotate={!reduceMotion}
+            <StageErrorBoundary onError={onFail}>
+              <HeroStage
+                models={models}
+                motion={!reduceMotion}
                 scrollRef={reduceMotion ? undefined : scrollValue}
-                onReady={() => setReady(true)}
+                onReady={onReady}
+                onFail={onFail}
                 className={cn('absolute inset-0 transition-opacity duration-1000', ready ? 'opacity-100' : 'opacity-0')}
               />
             </StageErrorBoundary>

@@ -3,26 +3,46 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, Star, X } from 'lucide-react';
 import { Dialog, DialogTrigger, SheetContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { COLOR_SWATCHES, SORT_OPTIONS } from '@/lib/catalog/params';
+import { COLOR_SWATCHES, RATING_OPTIONS, SORT_OPTIONS } from '@/lib/catalog/params';
+import { shortOptionValue } from '@/lib/catalog/variants';
 import { cn, formatMoney, titleCase } from '@/lib/utils';
 
 export interface FilterFacets {
-  sizes: string[];
+  /** Departments with their sub-categories and product counts (empty ones are left out). */
+  departments: { slug: string; name: string; count: number; children: { slug: string; name: string; count: number }[] }[];
+  /** Option facet ("Size", "Weight" ...); only when the listing is scoped to a category. */
+  option: { title: string; values: string[]; stripUk: boolean } | null;
+  /** Non-unisex audiences present in the listing (men, women, kids). */
+  audiences: string[];
   colors: string[];
+  brands: { slug: string; name: string }[];
+  showRating: boolean;
   priceMin: number;
   priceMax: number;
-  categories: { slug: string; name: string }[];
 }
 
+// Rupees. Bands outside the listing's price range are hidden.
 const PRICE_BANDS = [
-  { label: 'Under ₹2,000', min: null, max: 2000 },
-  { label: '₹2,000 – ₹5,000', min: 2000, max: 5000 },
-  { label: '₹5,000 – ₹8,000', min: 5000, max: 8000 },
-  { label: 'Over ₹8,000', min: 8000, max: null },
+  { label: 'Under ₹500', min: null, max: 500 },
+  { label: '₹500 – ₹1,000', min: 500, max: 1000 },
+  { label: '₹1,000 – ₹2,500', min: 1000, max: 2500 },
+  { label: '₹2,500 – ₹5,000', min: 2500, max: 5000 },
+  { label: 'Over ₹5,000', min: 5000, max: null },
 ];
+
+const AUDIENCE_LABEL: Record<string, string> = { men: 'Men', women: 'Women', kids: 'Kids' };
+
+function categoryName(facets: FilterFacets, slug: string) {
+  for (const d of facets.departments) {
+    if (d.slug === slug) return d.name;
+    const child = d.children.find((c) => c.slug === slug);
+    if (child) return child.name;
+  }
+  return slug;
+}
 
 function useFilterNavigation() {
   const router = useRouter();
@@ -62,62 +82,115 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
   const { searchParams, update } = useFilterNavigation();
   const sizes = (searchParams.get('size') ?? '').split(',').filter(Boolean);
   const colors = (searchParams.get('color') ?? '').split(',').filter(Boolean);
+  const brands = (searchParams.get('brand') ?? '').split(',').filter(Boolean);
   const min = searchParams.get('min');
   const max = searchParams.get('max');
   const category = searchParams.get('category');
   const gender = searchParams.get('gender');
+  const rating = searchParams.get('rating');
+  // Changing the category resets option values, which belong to the old category.
+  const setCategory = (slug: string | null) =>
+    update((sp) => {
+      sp.delete('size');
+      if (slug) sp.set('category', slug);
+      else sp.delete('category');
+    });
+  const activeDepartment = facets.departments.find((d) => d.slug === category || d.children.some((c) => c.slug === category));
+  const priceBands = facets.priceMax
+    ? PRICE_BANDS.filter((b) => (b.min === null || b.min * 100 < facets.priceMax) && (b.max === null || b.max * 100 > facets.priceMin))
+    : PRICE_BANDS;
 
   return (
     <div>
-      {showCategories && facets.categories.length ? (
-        <FilterGroup title="Category">
-          <ul className="space-y-1 text-sm">
-            {facets.categories.map((c) => (
-              <li key={c.slug}>
-                <button
-                  type="button"
-                  onClick={() => update((sp) => (category === c.slug ? sp.delete('category') : sp.set('category', c.slug)))}
-                  className={cn('w-full rounded-md px-2 py-1.5 text-left transition-colors hover:bg-surface-2', category === c.slug && 'bg-surface-2 font-medium')}
-                  aria-pressed={category === c.slug}
-                >
-                  {c.name}
-                </button>
-              </li>
-            ))}
+      {showCategories && facets.departments.length ? (
+        <FilterGroup title="Department">
+          <ul className="space-y-0.5 text-sm">
+            {facets.departments.map((d) => {
+              const open = activeDepartment?.slug === d.slug;
+              return (
+                <li key={d.slug}>
+                  <button
+                    type="button"
+                    onClick={() => setCategory(category === d.slug ? null : d.slug)}
+                    className={cn('flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-surface-2', category === d.slug && 'bg-surface-2 font-medium')}
+                    aria-pressed={category === d.slug}
+                  >
+                    <span>{d.name}</span>
+                    {d.count ? <span className="text-xs text-muted tabular-nums">{d.count}</span> : null}
+                  </button>
+                  {open && d.children.length ? (
+                    <ul className="mt-0.5 mb-1 ml-2 space-y-0.5 border-l border-line pl-2">
+                      {d.children.map((c) => (
+                        <li key={c.slug}>
+                          <button
+                            type="button"
+                            onClick={() => setCategory(category === c.slug ? d.slug : c.slug)}
+                            className={cn('flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-[13px] transition-colors hover:bg-surface-2', category === c.slug && 'bg-surface-2 font-medium')}
+                            aria-pressed={category === c.slug}
+                          >
+                            <span>{c.name}</span>
+                            {c.count ? <span className="text-xs text-muted tabular-nums">{c.count}</span> : null}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </FilterGroup>
       ) : null}
-      <FilterGroup title="For">
-        <div className="flex flex-wrap gap-2">
-          {['men', 'women', 'kids'].map((g) => (
-            <button
-              key={g}
-              type="button"
-              aria-pressed={gender === g}
-              onClick={() => update((sp) => (gender === g ? sp.delete('gender') : sp.set('gender', g)))}
-              className={cn('rounded-full border px-3.5 py-1.5 text-sm transition-colors', gender === g ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink')}
-            >
-              {titleCase(g)}
-            </button>
-          ))}
-        </div>
-      </FilterGroup>
-      {facets.sizes.length ? (
-        <FilterGroup title="Size (UK)">
-          <div className="grid grid-cols-4 gap-2">
-            {facets.sizes.map((s) => (
+      {facets.audiences.length ? (
+        <FilterGroup title="For">
+          <div className="flex flex-wrap gap-2">
+            {facets.audiences.map((g) => (
+              <button
+                key={g}
+                type="button"
+                aria-pressed={gender === g}
+                onClick={() => update((sp) => (gender === g ? sp.delete('gender') : sp.set('gender', g)))}
+                className={cn('rounded-full border px-3.5 py-1.5 text-sm transition-colors', gender === g ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink')}
+              >
+                {AUDIENCE_LABEL[g] ?? titleCase(g)}
+              </button>
+            ))}
+          </div>
+        </FilterGroup>
+      ) : null}
+      {facets.option ? (
+        <FilterGroup title={facets.option.title}>
+          <div className={cn(facets.option.stripUk ? 'grid grid-cols-4 gap-2' : 'flex flex-wrap gap-2')}>
+            {facets.option.values.map((s) => (
               <button
                 key={s}
                 type="button"
                 aria-pressed={sizes.includes(s)}
                 onClick={() => update((sp) => toggleMulti(sp, 'size', s))}
-                className={cn('h-10 rounded-lg border text-sm transition-colors', sizes.includes(s) ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink')}
+                className={cn(
+                  'h-10 rounded-lg border px-3 text-sm transition-colors',
+                  sizes.includes(s) ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink',
+                )}
               >
-                {s.replace(/^UK\s*/i, '')}
+                {shortOptionValue(s, facets.option!.stripUk)}
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-muted">Shows styles with the size in stock.</p>
+          <p className="mt-2 text-xs text-muted">Shows products with this option in stock.</p>
+        </FilterGroup>
+      ) : null}
+      {facets.brands.length ? (
+        <FilterGroup title="Brand">
+          <ul className="space-y-0.5 text-sm">
+            {facets.brands.map((b) => (
+              <li key={b.slug}>
+                <label className="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-surface-2">
+                  <input type="checkbox" className="size-4 accent-[var(--ink)]" checked={brands.includes(b.slug)} onChange={() => update((sp) => toggleMulti(sp, 'brand', b.slug))} />
+                  {b.name}
+                </label>
+              </li>
+            ))}
+          </ul>
         </FilterGroup>
       ) : null}
       {facets.colors.length ? (
@@ -140,7 +213,7 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
       ) : null}
       <FilterGroup title="Price">
         <ul className="space-y-1 text-sm">
-          {PRICE_BANDS.map((b) => {
+          {priceBands.map((b) => {
             const active = (min ?? null) === (b.min === null ? null : String(b.min)) && (max ?? null) === (b.max === null ? null : String(b.max));
             return (
               <li key={b.label}>
@@ -174,6 +247,28 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
           </p>
         ) : null}
       </FilterGroup>
+      {facets.showRating ? (
+        <FilterGroup title="Customer rating">
+          <ul className="space-y-1 text-sm">
+            {RATING_OPTIONS.map((o) => {
+              const active = rating === String(o.value);
+              return (
+                <li key={o.value}>
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => update((sp) => (active ? sp.delete('rating') : sp.set('rating', String(o.value))))}
+                    className={cn('flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-surface-2', active && 'bg-surface-2 font-medium')}
+                  >
+                    <Star className="size-3.5 fill-ink" aria-hidden />
+                    {o.value} &amp; up
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </FilterGroup>
+      ) : null}
       <FilterGroup title="Availability">
         <label className="flex items-center justify-between gap-3 py-1 text-sm">
           In stock only
@@ -194,11 +289,14 @@ export function CatalogToolbar({ total, facets, showCategories }: { total: numbe
   const sort = searchParams.get('sort') ?? (searchParams.get('q') ? 'relevance' : 'featured');
   const chips: { key: string; label: string; remove: (sp: URLSearchParams) => void }[] = [];
   const cat = searchParams.get('category');
-  if (cat && showCategories) chips.push({ key: 'cat', label: facets.categories.find((c) => c.slug === cat)?.name ?? cat, remove: (sp) => sp.delete('category') });
+  if (cat && showCategories) chips.push({ key: 'cat', label: categoryName(facets, cat), remove: (sp) => { sp.delete('category'); sp.delete('size'); } });
   const g = searchParams.get('gender');
-  if (g) chips.push({ key: 'g', label: titleCase(g), remove: (sp) => sp.delete('gender') });
+  if (g) chips.push({ key: 'g', label: AUDIENCE_LABEL[g] ?? titleCase(g), remove: (sp) => sp.delete('gender') });
   for (const s of (searchParams.get('size') ?? '').split(',').filter(Boolean)) chips.push({ key: `s${s}`, label: s, remove: (sp) => toggleMulti(sp, 'size', s) });
+  for (const b of (searchParams.get('brand') ?? '').split(',').filter(Boolean)) chips.push({ key: `b${b}`, label: facets.brands.find((x) => x.slug === b)?.name ?? b, remove: (sp) => toggleMulti(sp, 'brand', b) });
   for (const c of (searchParams.get('color') ?? '').split(',').filter(Boolean)) chips.push({ key: `c${c}`, label: titleCase(c), remove: (sp) => toggleMulti(sp, 'color', c) });
+  const r = searchParams.get('rating');
+  if (r) chips.push({ key: 'r', label: RATING_OPTIONS.find((o) => String(o.value) === r)?.label ?? `${r}★ & up`, remove: (sp) => sp.delete('rating') });
   if (searchParams.get('min') || searchParams.get('max')) {
     const label = `${searchParams.get('min') ? `₹${Number(searchParams.get('min')).toLocaleString('en-IN')}` : '₹0'} – ${searchParams.get('max') ? `₹${Number(searchParams.get('max')).toLocaleString('en-IN')}` : 'max'}`;
     chips.push({ key: 'p', label, remove: (sp) => { sp.delete('min'); sp.delete('max'); } });
@@ -229,7 +327,7 @@ export function CatalogToolbar({ total, facets, showCategories }: { total: numbe
             </SheetContent>
           </Dialog>
           <p className={cn('text-sm text-muted transition-opacity', pending && 'opacity-50')} aria-live="polite">
-            {total} {total === 1 ? 'style' : 'styles'}
+            {total} {total === 1 ? 'product' : 'products'}
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm">

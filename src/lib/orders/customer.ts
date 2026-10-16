@@ -34,7 +34,7 @@ export interface CustomerOrder {
   expired: boolean;
   paidAt: string | null;
   tracking: { carrier: string | null; number: string | null; url: string | null };
-  items: { productName: string; productSlug: string | null; colorName: string | null; sizeLabel: string; image: string | null; unitPrice: number; unitRegularPrice: number; quantity: number; lineTotal: number }[];
+  items: { productName: string; productSlug: string | null; colorName: string | null; sizeLabel: string; variantLabel: string; image: string | null; unitPrice: number; unitRegularPrice: number; quantity: number; lineTotal: number }[];
   events: { type: string; message: string | null; toStatus: string | null; createdAt: string }[];
   latestProof: { status: Enums<'proof_status'>; utr: string | null; submittedAt: string; reviewReason: string | null; hasFile: boolean } | null;
 }
@@ -89,6 +89,7 @@ export async function getCustomerOrder(orderNumber: string): Promise<CustomerOrd
       productSlug: i.product_slug,
       colorName: i.color_name,
       sizeLabel: i.size_label,
+      variantLabel: i.variant_label ?? 'Size',
       image: resolveMediaUrl(i.image),
       unitPrice: i.unit_price,
       unitRegularPrice: i.unit_regular_price,

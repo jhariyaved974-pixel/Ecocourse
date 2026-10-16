@@ -47,9 +47,9 @@ export function StoreSettingsForm({ initial, logo, favicon, ogImage }: { initial
       {Object.keys(errors).length ? <Notice tone="danger">Please fix the highlighted fields.</Notice> : null}
       <Panel title="Store">
         <div className="grid gap-4 md:grid-cols-2">
-          {field('storeName', 'Store name', { max: 60, required: true })}
+          {field('storeName', 'Store name', { max: 60, required: true, hint: 'Shown in the header, emails, page titles and this admin.' })}
           {field('legalName', 'Legal business name', { max: 120, hint: 'Shown on invoices and policy pages if set.' })}
-          {field('tagline', 'Tagline', { max: 160, className: 'md:col-span-2' })}
+          {field('tagline', 'Tagline', { max: 160, className: 'md:col-span-2', hint: 'A short line under the name, e.g. “Everything you need, for less.”' })}
           {field('supportEmail', 'Support email', { type: 'email', max: 254 })}
           {field('supportPhone', 'Support phone', { max: 20 })}
           {field('whatsappNumber', 'WhatsApp number', { max: 16, hint: 'With country code, digits only.' })}
@@ -89,7 +89,7 @@ export function StoreSettingsForm({ initial, logo, favicon, ogImage }: { initial
       <Panel title="Search engines & social">
         <div className="grid gap-4 md:grid-cols-2">
           {field('seoTitle', 'Homepage title', { max: 70, required: true })}
-          {field('seoTitleTemplate', 'Page title template', { max: 70, hint: '%s is replaced by the page title.' })}
+          {field('seoTitleTemplate', 'Page title template', { max: 70, hint: '%s is replaced by the page title, e.g. “%s · Save The Money”.' })}
           {field('seoDescription', 'Default description', { max: 170, textarea: true, className: 'md:col-span-2' })}
           {field('instagramUrl', 'Instagram', { max: 300 })}
           {field('facebookUrl', 'Facebook', { max: 300 })}
@@ -107,8 +107,8 @@ export function StoreSettingsForm({ initial, logo, favicon, ogImage }: { initial
       <Panel title="Operations">
         <div className="grid gap-4 md:grid-cols-3">
           {field('lowStockThreshold', 'Low-stock alert at', { max: 4, hint: 'Units available. Products can override it.' })}
-          {field('orderNumberPrefix', 'Order number prefix', { max: 4, hint: 'e.g. AU → AU-261015-7K2QD' })}
-          {field('freeReturnsDays', 'Size exchange window (days)', { max: 2 })}
+          {field('orderNumberPrefix', 'Order number prefix', { max: 4, hint: '2–4 letters, e.g. STM → STM-261015-7K2QD. Applies to new orders.' })}
+          {field('freeReturnsDays', 'Returns & exchanges window (days)', { max: 2, hint: 'Days after delivery; shown on product pages and in {return_days}.' })}
         </div>
       </Panel>
       <Panel

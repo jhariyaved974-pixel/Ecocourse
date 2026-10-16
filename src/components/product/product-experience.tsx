@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Check, Ruler, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
-import type { ProductDetailData } from '@/lib/catalog/types';
+import type { ProductDetailData, SizeGuideData } from '@/lib/catalog/types';
+import { hasNoOptions, optionText, shortOptionValue, ukSizes, withArticle } from '@/lib/catalog/variants';
 import { ProductGallery } from './gallery';
-import { SizeGuideTable, type SizeGuideRow } from './size-guide-table';
+import { SizeGuideTable } from './size-guide-table';
 import { Price, Stars, WishlistButton } from '@/components/store/product-bits';
 import { QuantityStepper } from '@/components/store/cart-drawer';
 import { Button } from '@/components/ui/button';
@@ -17,11 +18,28 @@ import { cartStore, openCartDrawer } from '@/lib/cart/store';
 import { getLiveAvailability } from '@/app/(store)/products/[slug]/actions';
 import { cn, formatMoney } from '@/lib/utils';
 
-export interface SizeGuideData {
-  name: string;
-  intro: string;
-  notes: string;
-  rows: SizeGuideRow[];
+/** The product's size guide, as returned by getSizeGuide(). */
+export type ProductSizeGuide = Pick<SizeGuideData, 'name' | 'intro' | 'notes' | 'columns' | 'rows'>;
+
+function SizeGuideDialog({ guide }: { guide: ProductSizeGuide }) {
+  return (
+    <Dialog>
+      <DialogTrigger className="inline-flex items-center gap-1.5 text-xs font-medium underline-offset-4 hover:underline">
+        <Ruler className="size-3.5" /> Size guide
+      </DialogTrigger>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>{guide.name}</DialogTitle>
+          {guide.intro ? <DialogDescription>{guide.intro}</DialogDescription> : null}
+        </DialogHeader>
+        <SizeGuideTable columns={guide.columns} rows={guide.rows} caption={guide.name} />
+        {guide.notes ? <p className="mt-4 text-xs text-muted">{guide.notes}</p> : null}
+        <p className="mt-4 text-xs">
+          <Link href="/size-guide" className="underline underline-offset-4">All size guides</Link>
+        </p>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function ProductExperience({
@@ -33,7 +51,7 @@ export function ProductExperience({
 }: {
   description: React.ReactNode;
   product: ProductDetailData;
-  sizeGuide: SizeGuideData | null;
+  sizeGuide: ProductSizeGuide | null;
   shipping: { name: string; minDays: number; maxDays: number; fee: number; freeOver: number | null }[];
   returnDays: number;
 }) {
@@ -55,7 +73,12 @@ export function ProductExperience({
 
   const variants = product.variants.filter((v) => (product.colors.length ? v.colorId === colorId : true));
   const availableOf = (id: string) => live?.[id] ?? product.variants.find((v) => v.id === id)?.available ?? 0;
-  const selected = variants.find((v) => v.id === variantId) ?? null;
+  // A single 'Standard' variant per colour means there is nothing to pick: it is selected automatically.
+  const noOptions = hasNoOptions(product.variants.map((v) => v.sizeLabel));
+  const label = product.variantLabel;
+  const stripUk = ukSizes(variants.map((v) => v.sizeLabel));
+  const selected = noOptions ? variants[0] ?? null : variants.find((v) => v.id === variantId) ?? null;
+  const selectedOption = selected ? optionText(label, selected.sizeLabel) : null;
   const selectedAvailable = selected ? availableOf(selected.id) : 0;
   const maxQty = Math.max(1, Math.min(10, selectedAvailable));
   const anyInStock = variants.some((v) => availableOf(v.id) > 0);
@@ -77,7 +100,7 @@ export function ProductExperience({
       return;
     }
     if (selectedAvailable < 1) {
-      toast.error('That size just sold out. Please choose another.');
+      toast.error(noOptions ? 'This item just sold out.' : `That ${label.toLowerCase()} just sold out. Please choose another.`);
       return;
     }
     const added = cartStore.add(
@@ -89,6 +112,7 @@ export function ProductExperience({
         image: cover?.url ?? null,
         colorName: color?.name ?? null,
         sizeLabel: selected.sizeLabel,
+        variantLabel: label,
         unitPrice: product.finalPrice,
       },
       quantity,
@@ -101,7 +125,7 @@ export function ProductExperience({
     if (buyNow) {
       router.push('/checkout');
     } else {
-      toast.success(`Added ${product.name} (${selected.sizeLabel}) to your cart`, { action: { label: 'View cart', onClick: openCartDrawer } });
+      toast.success(`Added ${product.name}${selectedOption ? ` (${selectedOption})` : ''} to your cart`, { action: { label: 'View cart', onClick: openCartDrawer } });
       openCartDrawer();
     }
   };
@@ -135,97 +159,103 @@ export function ProductExperience({
             <p className="text-sm">
               <span className="text-muted">Colour:</span> <span className="font-medium">{color?.name}</span>
             </p>
-            <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label="Colour">
-              {product.colors.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={c.id === colorId}
-                  aria-label={c.name}
-                  title={c.name}
-                  onClick={() => selectColor(c.id)}
-                  className={cn('size-10 rounded-full border-2 border-white transition-transform hover:scale-105', c.id === colorId ? 'ring-2 ring-ink ring-offset-2 ring-offset-paper' : 'shadow-[0_0_0_1px_var(--line-strong)]')}
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
-            </div>
+            {/* One colour: the name is enough, there is nothing to choose. */}
+            {product.colors.length > 1 ? (
+              <div className="mt-3 flex flex-wrap gap-3" role="radiogroup" aria-label="Colour">
+                {product.colors.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={c.id === colorId}
+                    aria-label={c.name}
+                    title={c.name}
+                    onClick={() => selectColor(c.id)}
+                    className={cn('size-10 rounded-full border-2 border-white transition-transform hover:scale-105', c.id === colorId ? 'ring-2 ring-ink ring-offset-2 ring-offset-paper' : 'shadow-[0_0_0_1px_var(--line-strong)]')}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between">
-            <p className="text-sm">
-              <span className="text-muted">Size:</span> <span className="font-medium">{selected?.sizeLabel ?? 'Select a size'}</span>
-            </p>
-            {sizeGuide ? (
-              <Dialog>
-                <DialogTrigger className="inline-flex items-center gap-1.5 text-xs font-medium underline-offset-4 hover:underline">
-                  <Ruler className="size-3.5" /> Size guide
-                </DialogTrigger>
-                <DialogContent className="max-w-xl">
-                  <DialogHeader>
-                    <DialogTitle>{sizeGuide.name}</DialogTitle>
-                    <DialogDescription>{sizeGuide.intro}</DialogDescription>
-                  </DialogHeader>
-                  <SizeGuideTable rows={sizeGuide.rows} />
-                  {sizeGuide.notes ? <p className="mt-4 text-xs text-muted">{sizeGuide.notes}</p> : null}
-                </DialogContent>
-              </Dialog>
-            ) : null}
-          </div>
-          <div
-            id="size-picker"
-            tabIndex={-1}
-            role="radiogroup"
-            aria-label="Size"
-            aria-describedby={sizeError ? 'size-error' : undefined}
-            className="mt-3 grid grid-cols-4 gap-2 outline-none sm:grid-cols-5"
-          >
-            {variants.map((v) => {
-              const avail = availableOf(v.id);
-              const out = avail < 1;
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={v.id === variantId}
-                  aria-disabled={out}
-                  onClick={() => {
-                    if (out) return;
-                    setVariantId(v.id);
-                    setSizeError(false);
-                  }}
-                  className={cn(
-                    'relative h-12 rounded-xl border text-sm font-medium transition-colors',
-                    v.id === variantId ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink',
-                    out && 'cursor-not-allowed border-dashed text-muted line-through decoration-1 opacity-60 hover:border-line-strong',
-                  )}
-                >
-                  {v.sizeLabel.replace(/^UK\s*/i, '')}
-                  {!out && avail <= 3 ? <span className="absolute -top-1.5 -right-1.5 size-2.5 rounded-full bg-warning" aria-hidden /> : null}
-                  <span className="sr-only">{out ? ' — sold out' : avail <= 3 ? ` — only ${avail} left` : ''}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-2 min-h-5 text-xs" aria-live="polite">
-            {sizeError ? (
-              <p id="size-error" className="font-medium text-danger">Please select a size.</p>
-            ) : selected ? (
-              selectedAvailable <= 3 ? (
-                <p className="font-medium text-warning">Only {selectedAvailable} left in {selected.sizeLabel}</p>
+        {noOptions ? (
+          <div className="mt-6">
+            <div className="min-h-5 text-xs" aria-live="polite">
+              {!anyInStock ? (
+                <p className="font-medium text-danger">{product.colors.length > 1 ? 'This colour is currently sold out.' : 'Currently sold out.'}</p>
+              ) : selectedAvailable <= 3 ? (
+                <p className="font-medium text-warning">Only {selectedAvailable} left</p>
               ) : (
                 <p className="inline-flex items-center gap-1 text-success"><Check className="size-3.5" /> In stock</p>
-              )
-            ) : !anyInStock ? (
-              <p className="font-medium text-danger">This colour is currently sold out.</p>
-            ) : (
-              <p className="text-muted">Sizes are UK/India. Dot = low stock.</p>
-            )}
+              )}
+            </div>
+            {sizeGuide ? <div className="mt-2"><SizeGuideDialog guide={sizeGuide} /></div> : null}
           </div>
-        </div>
+        ) : (
+          <div className="mt-8">
+            <div className="flex items-center justify-between">
+              <p className="text-sm">
+                <span className="text-muted">{label}:</span>{' '}
+                <span className="font-medium">{selected?.sizeLabel ?? `Select ${withArticle(label)}`}</span>
+              </p>
+              {sizeGuide ? <SizeGuideDialog guide={sizeGuide} /> : null}
+            </div>
+            <div
+              id="size-picker"
+              tabIndex={-1}
+              role="radiogroup"
+              aria-label={label}
+              aria-describedby={sizeError ? 'size-error' : undefined}
+              className={cn('mt-3 outline-none', stripUk ? 'grid grid-cols-4 gap-2 sm:grid-cols-5' : 'flex flex-wrap gap-2')}
+            >
+              {variants.map((v) => {
+                const avail = availableOf(v.id);
+                const out = avail < 1;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={v.id === variantId}
+                    aria-disabled={out}
+                    onClick={() => {
+                      if (out) return;
+                      setVariantId(v.id);
+                      setSizeError(false);
+                    }}
+                    className={cn(
+                      'relative h-12 rounded-xl border px-4 text-sm font-medium transition-colors',
+                      !stripUk && 'min-w-16',
+                      v.id === variantId ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink',
+                      out && 'cursor-not-allowed border-dashed text-muted line-through decoration-1 opacity-60 hover:border-line-strong',
+                    )}
+                  >
+                    {shortOptionValue(v.sizeLabel, stripUk)}
+                    {!out && avail <= 3 ? <span className="absolute -top-1.5 -right-1.5 size-2.5 rounded-full bg-warning" aria-hidden /> : null}
+                    <span className="sr-only">{out ? ' — sold out' : avail <= 3 ? ` — only ${avail} left` : ''}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-2 min-h-5 text-xs" aria-live="polite">
+              {sizeError ? (
+                <p id="size-error" className="font-medium text-danger">Please select {withArticle(label)}.</p>
+              ) : selected ? (
+                selectedAvailable <= 3 ? (
+                  <p className="font-medium text-warning">Only {selectedAvailable} left in {selected.sizeLabel}</p>
+                ) : (
+                  <p className="inline-flex items-center gap-1 text-success"><Check className="size-3.5" /> In stock</p>
+                )
+              ) : !anyInStock ? (
+                <p className="font-medium text-danger">{product.colors.length > 1 ? 'This colour is currently sold out.' : 'Currently sold out.'}</p>
+              ) : (
+                <p className="text-muted">{stripUk ? 'Sizes are UK/India. ' : ''}Dot = low stock.</p>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <QuantityStepper value={quantity} max={maxQty} onChange={(n) => setQuantity(Math.max(1, Math.min(n, maxQty)))} label={product.name} />
@@ -253,7 +283,10 @@ export function ProductExperience({
           ) : null}
           <li className="flex gap-3">
             <RefreshCw className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>{returnDays}-day size exchanges on unworn pairs. <Link href="/pages/returns-and-exchanges" className="underline underline-offset-2">Details</Link></span>
+            <span>
+              Returns within {returnDays} days on eligible items{sizeGuide ? ', and size exchanges on unworn items' : ''}.{' '}
+              <Link href="/pages/returns-and-exchanges" className="underline underline-offset-2">Details</Link>
+            </span>
           </li>
           <li className="flex gap-3">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -279,7 +312,7 @@ export function ProductExperience({
                       <dd className="text-ink">{a.value}</dd>
                     </React.Fragment>
                   ))}
-                  <dt className="text-muted">Style code</dt>
+                  <dt className="text-muted">Item code</dt>
                   <dd className="text-ink">{product.sku}</dd>
                 </dl>
               </AccordionContent>

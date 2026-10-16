@@ -9,6 +9,8 @@ export interface QuoteLine {
   sku: string | null;
   colorName: string | null;
   sizeLabel: string | null;
+  /** Option name for sizeLabel ("Size", "Weight" ...). */
+  variantLabel: string | null;
   image: string | null;
   quantity: number;
   available: number;
@@ -49,6 +51,7 @@ export function mapQuote(raw: unknown): Quote {
       sku: (l.sku as string) ?? null,
       colorName: (l.color_name as string) ?? null,
       sizeLabel: (l.size_label as string) ?? null,
+      variantLabel: (l.variant_label as string) ?? null,
       image: resolveMediaUrl(l.image as string | null),
       quantity: Number(l.quantity ?? 0),
       available: Number(l.available ?? 0),
@@ -127,7 +130,7 @@ export function lineStatusMessage(line: Pick<QuoteLine, 'status' | 'available'>)
     case 'ok':
       return null;
     case 'out_of_stock':
-      return 'Sold out in this size.';
+      return 'Sold out.';
     case 'insufficient_stock':
       return `Only ${line.available} left — reduce the quantity.`;
     case 'max_quantity':

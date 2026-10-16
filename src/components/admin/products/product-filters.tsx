@@ -6,12 +6,12 @@ import { SearchParamInput, SearchParamSelect } from '@/components/admin/client-u
 import { PRODUCT_SORTS, PRODUCT_STATUSES, PRODUCT_STATUS_TEXT } from '@/lib/admin/products';
 
 /** Search, filters and sort for the product list (URL-driven). Render inside <Suspense>. */
-export function ProductFilters({ categories }: { categories: { id: string; name: string; depth: number }[] }) {
+export function ProductFilters({ categories }: { categories: { id: string; path: string; childCount: number }[] }) {
   const searchParams = useSearchParams();
   const active = ['q', 'status', 'category', 'flag', 'stock'].some((k) => searchParams.get(k));
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
-      <SearchParamInput placeholder="Search name, SKU or size SKU…" className="relative block w-full sm:w-72" />
+      <SearchParamInput placeholder="Search name, SKU or variant SKU…" className="relative block w-full sm:w-72" />
       <SearchParamSelect
         param="status"
         label="Status"
@@ -20,10 +20,12 @@ export function ProductFilters({ categories }: { categories: { id: string; name:
       <SearchParamSelect
         param="category"
         label="Category"
+        selectClassName="max-w-60"
         options={[
           { value: '', label: 'All categories' },
           { value: 'none', label: 'Uncategorised' },
-          ...categories.map((c) => ({ value: c.id, label: `${c.depth ? '— '.repeat(c.depth) : ''}${c.name}` })),
+          // A department filter also matches the products of its sub-categories.
+          ...categories.map((c) => ({ value: c.id, label: c.childCount ? `${c.path} (all)` : c.path })),
         ]}
       />
       <SearchParamSelect

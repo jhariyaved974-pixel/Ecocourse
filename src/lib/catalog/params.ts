@@ -16,6 +16,11 @@ export const SORT_OPTIONS = [
   { value: 'rating', label: 'Top rated' },
 ] as const;
 
+export const RATING_OPTIONS = [
+  { value: 4, label: '4★ & up' },
+  { value: 3, label: '3★ & up' },
+] as const;
+
 /** Parses and sanitises shop query parameters (prices in rupees in the URL, paise internally). */
 export function parseCatalogParams(raw: RawParams): SearchParamsInput {
   const toPaise = (v: string | undefined) => {
@@ -27,12 +32,16 @@ export function parseCatalogParams(raw: RawParams): SearchParamsInput {
   const page = Number(first(raw.page) ?? '1');
   const gender = first(raw.gender);
   const flag = first(raw.flag);
+  const rating = first(raw.rating);
   return {
     q,
     category: first(raw.category)?.replace(/[^a-z0-9-]/g, '') || undefined,
     gender: gender && ['men', 'women', 'kids', 'unisex'].includes(gender) ? gender : undefined,
-    sizes: many(raw.size).filter((s) => /^[A-Za-z0-9 .]{1,20}$/.test(s)).slice(0, 12),
+    // Option values such as "UK 8", "S/M" or "2 × 3 kg" (commas separate values in the URL).
+    sizes: many(raw.size).filter((s) => /^[\p{L}\p{N} ./×()+-]{1,30}$/u.test(s)).slice(0, 12),
     colors: many(raw.color).filter((c) => COLOR_FAMILIES.has(c)),
+    brands: many(raw.brand).filter((b) => /^[a-z0-9-]{1,60}$/.test(b)).slice(0, 12),
+    rating: rating && RATING_OPTIONS.some((o) => String(o.value) === rating) ? Number(rating) : undefined,
     min: toPaise(first(raw.min)),
     max: toPaise(first(raw.max)),
     inStock: first(raw.stock) === '1',

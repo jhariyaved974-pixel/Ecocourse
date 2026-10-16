@@ -70,7 +70,7 @@ export function DeleteProductDialog({
         <DialogHeader>
           <DialogTitle>Delete “{product?.name}”?</DialogTitle>
           <DialogDescription>
-            This permanently removes the product with its colours, sizes, stock history and media links. Media files stay in the library.
+            This permanently removes the product with its colours, variants, stock history and media links. Media files stay in the library.
             This cannot be undone.
           </DialogDescription>
         </DialogHeader>

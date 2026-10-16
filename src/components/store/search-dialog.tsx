@@ -11,9 +11,10 @@ import { formatMoney } from '@/lib/utils';
 
 type Suggestion = Awaited<ReturnType<typeof searchSuggestions>>[number];
 
-const POPULAR = ['Running', 'Sneakers', 'Boots', 'Formal', 'Slides', 'High-top'];
+const POPULAR = ['Earbuds', 'Smartwatch', 'Running shoes', 'Water bottle', 'Backpack', 'T-shirt'];
 
-export function SearchDialog({ trigger }: { trigger: React.ReactNode }) {
+/** Search dialog. `hotkey` (Ctrl/⌘ K) should be enabled on one instance per page only. */
+export function SearchDialog({ trigger, hotkey = true }: { trigger: React.ReactNode; hotkey?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const [found, setResults] = React.useState<Suggestion[]>([]);
@@ -31,6 +32,7 @@ export function SearchDialog({ trigger }: { trigger: React.ReactNode }) {
   }, [query]);
 
   React.useEffect(() => {
+    if (!hotkey) return;
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -39,7 +41,7 @@ export function SearchDialog({ trigger }: { trigger: React.ReactNode }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [hotkey]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,8 +61,8 @@ export function SearchDialog({ trigger }: { trigger: React.ReactNode }) {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search shoes, styles, colours or SKU"
-            aria-label="Search"
+            placeholder="Search products"
+            aria-label="Search products"
             className="h-16 flex-1 bg-transparent text-base outline-none placeholder:text-muted"
             maxLength={80}
           />
@@ -84,7 +86,7 @@ export function SearchDialog({ trigger }: { trigger: React.ReactNode }) {
               </div>
             </div>
           ) : results.length === 0 && !pending ? (
-            <p className="p-6 text-center text-sm text-muted">No matches for “{query.trim()}”. Try a style or colour.</p>
+            <p className="p-6 text-center text-sm text-muted">No matches for “{query.trim()}”. Try a product name, category or colour.</p>
           ) : (
             <ul aria-live="polite">
               {results.map((r) => (

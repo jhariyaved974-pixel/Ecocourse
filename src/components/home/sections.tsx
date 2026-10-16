@@ -2,10 +2,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Award, BadgeCheck, Clock, Heart, Leaf, Package, RefreshCw, Ruler, ShieldCheck, Sparkles, Star, Truck } from 'lucide-react';
 import type { HomeSection } from '@/lib/content/queries';
-import { getCategories, getFeaturedReviews, getProductsByIds, getProductsBySource } from '@/lib/catalog/queries';
+import { getCategoryTree, getFeaturedReviews, getProductsByIds, getProductsBySource } from '@/lib/catalog/queries';
 import { ProductCard } from '@/components/store/product-card';
 import { NewsletterForm, Reveal } from '@/components/store/chrome';
 import { Stars } from '@/components/store/product-bits';
+import { FallbackImage } from '@/components/store/fallback-image';
+import { DepartmentIcon } from '@/components/store/department-icon';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Hero } from './hero';
@@ -65,27 +67,44 @@ async function ProductRail({ section }: { section: HomeSection }) {
 }
 
 async function CategoryGrid({ section }: { section: HomeSection }) {
-  const categories = (await getCategories()).filter((c) => !c.parentId);
-  if (!categories.length) return null;
+  const departments = await getCategoryTree();
+  if (!departments.length) return null;
+  const tileFallback = (slug: string) => (
+    <div className="grid h-full place-items-center bg-gradient-to-br from-surface-2 to-line text-ink-2">
+      <DepartmentIcon slug={slug} className="size-10" strokeWidth={1.4} />
+    </div>
+  );
   return (
-    <section className="py-16 md:py-24" aria-label={section.heading || 'Categories'}>
+    <section className="py-16 md:py-24" aria-label={section.heading || 'Departments'}>
       <div className="container-x">
         <Reveal>
           <SectionHeading section={section} />
         </Reveal>
-        <ul className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7">
-          {categories.map((c, i) => (
+        <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 xl:grid-cols-8">
+          {departments.map((c, i) => (
             <Reveal as="li" key={c.id} delay={i * 0.04}>
               <Link href={`/category/${c.slug}`} className="group block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius)] bg-surface-2">
                   {c.image ? (
-                    <Image src={c.image} alt={c.imageAlt} fill sizes="(min-width: 1024px) 14vw, (min-width: 768px) 25vw, 50vw" className="scale-[1.35] object-cover transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-[1.45]" />
-                  ) : null}
+                    <FallbackImage
+                      src={c.image}
+                      alt={c.imageAlt}
+                      fill
+                      sizes="(min-width: 1280px) 12vw, (min-width: 640px) 25vw, 50vw"
+                      className="object-cover transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-[1.06]"
+                      fallback={tileFallback(c.slug)}
+                    />
+                  ) : (
+                    tileFallback(c.slug)
+                  )}
                 </div>
-                <div className="mt-3 flex items-center justify-between">
+                <div className="mt-3 flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">{c.name}</span>
-                  <ArrowRight className="size-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                  <ArrowRight className="size-3.5 shrink-0 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
                 </div>
+                {c.children.length ? (
+                  <p className="mt-0.5 line-clamp-1 text-xs text-muted">{c.children.map((s) => s.name).join(', ')}</p>
+                ) : null}
               </Link>
             </Reveal>
           ))}

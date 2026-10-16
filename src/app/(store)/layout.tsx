@@ -3,15 +3,15 @@ import { Header } from '@/components/store/header';
 import { Footer } from '@/components/store/footer';
 import { CartDrawer } from '@/components/store/cart-drawer';
 import { getAnnouncements, getNavigation, getStoreSettings } from '@/lib/content/queries';
-import { getCategories } from '@/lib/catalog/queries';
+import { getCategoryTree } from '@/lib/catalog/queries';
 import { MaintenancePage } from '@/components/store/maintenance';
 
 export default async function StoreLayout({ children }: LayoutProps<'/'>) {
-  const [settings, nav, announcements, categories] = await Promise.all([
+  const [settings, nav, announcements, departments] = await Promise.all([
     getStoreSettings(),
     getNavigation(),
     getAnnouncements(),
-    getCategories(),
+    getCategoryTree(),
   ]);
   // Maintenance mode hides the whole storefront (the admin lives outside this layout).
   if (settings.maintenance_mode) {
@@ -27,7 +27,13 @@ export default async function StoreLayout({ children }: LayoutProps<'/'>) {
         storeName={settings.store_name}
         logoUrl={settings.logoUrl}
         links={nav.header}
-        categories={categories.map((c) => ({ slug: c.slug, name: c.name, image: c.image }))}
+        departments={departments.map((d) => ({
+          slug: d.slug,
+          name: d.name,
+          description: d.description,
+          image: d.image,
+          children: d.children.map((c) => ({ slug: c.slug, name: c.name })),
+        }))}
       />
       <main id="main" className="flex-1">
         {children}

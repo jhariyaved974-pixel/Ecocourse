@@ -9,7 +9,7 @@ export default function NotFound() {
       <p className="mt-4 max-w-md text-muted">The page you were looking for has moved, sold out for good, or never existed.</p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Button asChild>
-          <Link href="/shop">Shop all shoes</Link>
+          <Link href="/shop">Shop all products</Link>
         </Button>
         <Button asChild variant="outline">
           <Link href="/">Back to home</Link>

@@ -5,18 +5,19 @@ import { ProductGridSkeleton } from '@/components/store/product-card';
 import { Breadcrumbs } from '@/components/store/breadcrumbs';
 
 export const metadata: Metadata = {
-  title: 'Shop all shoes',
-  description: 'Browse sneakers, running shoes, sports shoes, casual pairs, formal shoes, boots and sandals.',
+  title: 'Shop all products',
+  description: 'Browse electronics, fashion, footwear, home & kitchen, beauty, sports, toys and stationery at honest prices.',
   alternates: { canonical: '/shop' },
 };
 
 const FLAG_TITLES: Record<string, string> = { new: 'New arrivals', bestseller: 'Bestsellers', trending: 'Trending now', featured: 'Featured' };
+const ALL = 'All products';
 
 async function Heading({ searchParams }: { searchParams: PageProps<'/shop'>['searchParams'] }) {
   const sp = await searchParams;
   const q = typeof sp.q === 'string' ? sp.q.trim().slice(0, 80) : '';
   const flag = typeof sp.flag === 'string' ? FLAG_TITLES[sp.flag] : undefined;
-  const title = q ? `Results for “${q}”` : flag ?? (sp.sale === '1' ? 'Sale' : 'All shoes');
+  const title = q ? `Results for “${q}”` : flag ?? (sp.sale === '1' ? 'Deals' : ALL);
   return <h1 className="font-display text-5xl leading-none md:text-6xl">{title}</h1>;
 }
 
@@ -29,7 +30,7 @@ export default function ShopPage(props: PageProps<'/shop'>) {
     <div className="container-x py-8 md:py-12">
       <Breadcrumbs items={[{ label: 'Shop' }]} />
       <div className="mt-6 mb-10">
-        <Suspense fallback={<h1 className="font-display text-5xl leading-none md:text-6xl">All shoes</h1>}>
+        <Suspense fallback={<h1 className="font-display text-5xl leading-none md:text-6xl">{ALL}</h1>}>
           <Heading searchParams={props.searchParams} />
         </Suspense>
       </div>

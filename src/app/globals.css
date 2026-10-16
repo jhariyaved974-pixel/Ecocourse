@@ -19,8 +19,11 @@
   --dark-2: #1c1c1e;
   --dark-ink: #f5f3ef;
   --dark-muted: #a29d95;
-  --accent: #c2410c;
+  /* Default accent: "money green" (white text on it is 5:1). Admins can change it. */
+  --accent: #15803d;
   --accent-ink: #ffffff;
+  /* Accent used as text; lightened on dark surfaces (see below) so small text stays readable. */
+  --accent-text: var(--accent);
   --success: #15803d;
   --warning: #b45309;
   --danger: #b91c1c;
@@ -89,6 +92,7 @@
   --color-dark-muted: var(--dark-muted);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -152,6 +156,7 @@
   [data-surface="dark"] {
     background: var(--dark);
     color: var(--dark-ink);
+    --accent-text: color-mix(in srgb, var(--accent) 45%, white);
   }
   ::selection {
     background: color-mix(in srgb, var(--accent) 25%, transparent);
@@ -237,6 +242,7 @@ html[data-hero-overlay] [data-site-header]:not([data-scrolled]) {
   border-color: transparent;
   color: var(--dark-ink);
   backdrop-filter: none;
+  --accent-text: color-mix(in srgb, var(--accent) 45%, white);
 }
 
 @media (prefers-reduced-motion: reduce) {

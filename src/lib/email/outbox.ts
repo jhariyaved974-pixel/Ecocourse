@@ -40,7 +40,7 @@ export async function deliverQueuedEmails(limit = 20): Promise<DeliveryReport> {
 
   const { data: settings } = await db.from('store_settings').select('store_name, support_email').eq('id', true).maybeSingle();
   const base: EmailContext = {
-    storeName: settings?.store_name || 'AUREN',
+    storeName: settings?.store_name || 'Save The Money',
     siteUrl: publicEnv.siteUrl,
     supportEmail: settings?.support_email ?? null,
   };

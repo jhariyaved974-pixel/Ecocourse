@@ -29,10 +29,10 @@ export function WishlistView() {
       <EmptyState
         icon={<Heart className="size-6" />}
         title="Nothing saved yet"
-        description="Tap the heart on any pair to keep it here. Sign in to keep your wishlist across devices."
+        description="Tap the heart on any product to keep it here. Sign in to keep your wishlist across devices."
         action={
           <Button asChild>
-            <Link href="/shop">Browse shoes</Link>
+            <Link href="/shop">Browse products</Link>
           </Button>
         }
       />

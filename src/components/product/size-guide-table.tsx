@@ -1,30 +1,35 @@
-export interface SizeGuideRow {
-  uk: string;
-  us: string;
-  eu: string;
-  foot_length_cm: number | null;
-}
+import type { SizeGuideData } from '@/lib/catalog/types';
 
-export function SizeGuideTable({ rows }: { rows: SizeGuideRow[] }) {
+/** Generic size table: the guide's columns as headers, the first cell of each row as its label. */
+export function SizeGuideTable({ columns, rows, caption }: Pick<SizeGuideData, 'columns' | 'rows'> & { caption?: string }) {
+  if (!columns.length || !rows.length) return null;
   return (
     <div className="relative overflow-x-auto rounded-xl border border-line">
       <table className="w-full text-sm">
-        <caption className="sr-only">Size conversions</caption>
+        <caption className="sr-only">{caption ?? 'Size chart'}</caption>
         <thead className="bg-surface-2 text-left text-xs text-muted">
           <tr>
-            <th scope="col" className="px-4 py-2.5 font-medium">UK / India</th>
-            <th scope="col" className="px-4 py-2.5 font-medium">US</th>
-            <th scope="col" className="px-4 py-2.5 font-medium">EU</th>
-            <th scope="col" className="px-4 py-2.5 font-medium">Foot length</th>
+            {columns.map((c, i) => (
+              <th key={`${c}-${i}`} scope="col" className="px-4 py-2.5 font-medium whitespace-nowrap">
+                {c}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.uk} className="border-t border-line">
-              <th scope="row" className="px-4 py-2.5 text-left font-medium">{r.uk}</th>
-              <td className="px-4 py-2.5">{r.us}</td>
-              <td className="px-4 py-2.5">{r.eu}</td>
-              <td className="px-4 py-2.5 tabular-nums">{r.foot_length_cm ? `${r.foot_length_cm} cm` : '—'}</td>
+          {rows.map((r, ri) => (
+            <tr key={ri} className="border-t border-line">
+              {columns.map((c, ci) =>
+                ci === 0 ? (
+                  <th key={ci} scope="row" className="px-4 py-2.5 text-left font-medium whitespace-nowrap">
+                    {r.cells[0] || '—'}
+                  </th>
+                ) : (
+                  <td key={ci} className="px-4 py-2.5 tabular-nums whitespace-nowrap">
+                    {r.cells[ci] || '—'}
+                  </td>
+                ),
+              )}
             </tr>
           ))}
         </tbody>

@@ -13,13 +13,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Table, TableWrap, Td, Th } from '@/components/admin/ui';
 import { useActionRunner } from '@/components/admin/client-ui';
 import { Thumb } from '@/components/admin/catalog/thumb';
+import { CategoryOptions, type CategoryOptionItem } from '@/components/admin/catalog/category-options';
 import { DeleteProductDialog } from './delete-product-dialog';
 import { bulkUpdateProducts, duplicateProduct, setProductStatus } from '@/app/admin/(panel)/products/actions';
 import { BULK_ACTIONS, PRODUCT_STATUS_TEXT, PRODUCT_STATUS_TONE, type BulkActionValue } from '@/lib/admin/products';
 import type { ProductListRow } from '@/app/admin/(panel)/products/_lib/data';
 import { cn, formatDateTime, formatMoney } from '@/lib/utils';
 
-type CategoryOption = { id: string; name: string; depth: number };
+type CategoryOption = CategoryOptionItem;
 
 export function ProductTable({ rows, categories, canDelete }: { rows: ProductListRow[]; categories: CategoryOption[]; canDelete: boolean }) {
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
@@ -131,7 +132,7 @@ export function ProductTable({ rows, categories, canDelete }: { rows: ProductLis
 }
 
 function StockCell({ row }: { row: ProductListRow }) {
-  if (row.activeVariantCount === 0) return <span className="text-xs text-muted">No active sizes</span>;
+  if (row.activeVariantCount === 0) return <span className="text-xs text-muted">No active variants</span>;
   return (
     <div>
       <Link
@@ -142,7 +143,11 @@ function StockCell({ row }: { row: ProductListRow }) {
         {row.totalAvailable}
       </Link>
       <p className="text-[11px] text-muted">
-        {row.totalAvailable === 0 ? 'Out of stock' : row.lowStockVariants > 0 ? `${row.lowStockVariants} size(s) ≤ ${row.stockThreshold}` : `${row.activeVariantCount} sizes`}
+        {row.totalAvailable === 0
+          ? 'Out of stock'
+          : row.lowStockVariants > 0
+            ? `${row.lowStockVariants} variant${row.lowStockVariants === 1 ? '' : 's'} ≤ ${row.stockThreshold}`
+            : `${row.activeVariantCount} variant${row.activeVariantCount === 1 ? '' : 's'}`}
       </p>
     </div>
   );
@@ -270,12 +275,7 @@ function BulkBar({ ids, categories, onDone }: { ids: string[]; categories: Categ
           </label>
           <NativeSelect id="bulk-category" className="h-9 w-52" value={value} onChange={(e) => setValue(e.target.value)}>
             <option value="">No category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.depth ? '— '.repeat(c.depth) : ''}
-                {c.name}
-              </option>
-            ))}
+            <CategoryOptions categories={categories} current={value} />
           </NativeSelect>
         </>
       ) : null}

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import type { StoreSettings } from '@/lib/content/queries';
 import { NewsletterForm } from './chrome';
+import { Wordmark } from './wordmark';
 
 function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -49,7 +50,10 @@ export function Footer({ settings, groups }: { settings: StoreSettings; groups: 
     <footer data-surface="dark" className="mt-24">
       <div className="container-x grid gap-12 py-16 lg:grid-cols-12 lg:py-20">
         <div className="space-y-6 lg:col-span-5">
-          <p className="font-display text-3xl tracking-[0.08em] uppercase">{settings.store_name}</p>
+          <p>
+            <Wordmark name={settings.store_name} className="gap-3 text-3xl" markClassName="size-9" />
+          </p>
+          {settings.tagline ? <p className="-mt-3 text-sm text-dark-ink/85">{settings.tagline}</p> : null}
           <p className="max-w-sm text-sm leading-relaxed text-dark-muted">{settings.footer_about}</p>
           <div>
             <p className="eyebrow mb-3 text-dark-muted">Newsletter</p>

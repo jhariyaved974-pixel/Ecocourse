@@ -12,23 +12,16 @@ export default async function SizeGuidePage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const isNew = id === 'new';
   if (!isNew && !z.uuid().safeParse(id).success) notFound();
-  const supabase = await createSupabaseServerClient();
-  const { data: defaultGuide } = await supabase.from('size_guides').select('name').eq('is_default', true).maybeSingle();
 
   if (isNew) {
-    return (
-      <SizeGuideEditor
-        guide={{ id: null, name: '', intro: '', notes: '', isDefault: !defaultGuide, rows: [] }}
-        usage={{ products: 0, categories: 0 }}
-        currentDefault={defaultGuide?.name ?? null}
-      />
-    );
+    return <SizeGuideEditor guide={{ id: null, name: '', intro: '', notes: '', columns: [], rows: [] }} usage={{ products: 0, categories: [] }} />;
   }
 
+  const supabase = await createSupabaseServerClient();
   const [guideRes, productsRes, categoriesRes] = await Promise.all([
-    supabase.from('size_guides').select('id, name, intro, notes, is_default, updated_at, size_guide_rows(uk, us, eu, foot_length_cm, sort_order)').eq('id', id).maybeSingle(),
+    supabase.from('size_guides').select('id, name, intro, notes, columns, updated_at, size_guide_rows(cells, sort_order)').eq('id', id).maybeSingle(),
     supabase.from('products').select('id', { count: 'exact', head: true }).eq('size_guide_id', id),
-    supabase.from('categories').select('id', { count: 'exact', head: true }).eq('size_guide_id', id),
+    supabase.from('categories').select('name').eq('size_guide_id', id).order('sort_order').order('name'),
   ]);
   if (guideRes.error) throw new Error(`Could not load size guide (${guideRes.error.code})`);
   const g = guideRes.data;
@@ -43,11 +36,11 @@ export default async function SizeGuidePage({ params }: { params: Promise<{ id: 
         name: g.name,
         intro: g.intro,
         notes: g.notes,
-        isDefault: g.is_default,
-        rows: rows.map((r) => ({ uk: r.uk, us: r.us, eu: r.eu, footLengthCm: r.foot_length_cm === null ? '' : String(r.foot_length_cm) })),
+        columns: g.columns,
+        // Pad or trim defensively so every row has exactly one cell per column.
+        rows: rows.map((r) => g.columns.map((_, i) => r.cells[i] ?? '')),
       }}
-      usage={{ products: productsRes.count ?? 0, categories: categoriesRes.count ?? 0 }}
-      currentDefault={defaultGuide?.name ?? null}
+      usage={{ products: productsRes.count ?? 0, categories: (categoriesRes.data ?? []).map((c) => c.name) }}
     />
   );
 }

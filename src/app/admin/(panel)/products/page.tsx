@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { Footprints, Plus } from 'lucide-react';
+import { Package, Plus } from 'lucide-react';
 import { requireStaffPage, roleAllowed, ROLE_GROUPS } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { PageHeader, Pagination, firstParam, parsePage } from '@/components/admin/ui';
@@ -34,7 +34,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   ]);
   const pageCount = Math.max(1, Math.ceil(total / PRODUCT_PAGE_SIZE));
   const filtered = Boolean(filters.q || filters.status || filters.category || filters.flag || filters.stock);
-  const categoryOptions = lookups.categories.map((c) => ({ id: c.id, name: c.name, depth: c.depth }));
+  const categoryOptions = lookups.categories.map((c) => ({ id: c.id, name: c.name, parentId: c.parentId, path: c.path, childCount: c.childCount, isVisible: c.isVisible }));
 
   return (
     <>
@@ -58,7 +58,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       {error ? <Notice tone="danger">{error}</Notice> : null}
       {!error && rows.length === 0 ? (
         <EmptyState
-          icon={<Footprints className="size-5" />}
+          icon={<Package className="size-5" />}
           title={filtered ? 'No products match these filters' : 'No products yet'}
           description={filtered ? 'Try a different search or clear the filters.' : 'Create your first product to start selling.'}
           action={

@@ -1,14 +1,29 @@
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
-import { getCategories, getFacets, searchProducts } from '@/lib/catalog/queries';
+import { catalogHasRatings, getCategoryTree, getFacets, searchProducts } from '@/lib/catalog/queries';
 import { catalogQueryString, parseCatalogParams } from '@/lib/catalog/params';
+import { ukSizes } from '@/lib/catalog/variants';
+import type { CatalogFacets, Department } from '@/lib/catalog/types';
 import { ProductCard } from './product-card';
-import { CatalogSidebar, CatalogToolbar } from './catalog-filters';
+import { CatalogSidebar, CatalogToolbar, type FilterFacets } from './catalog-filters';
 import { EmptyState } from '@/components/ui/misc';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type Raw = Record<string, string | string[] | undefined>;
+
+/** Departments with product counts (a department counts its sub-categories), hiding empty ones. */
+function departmentFacet(tree: Department[], facets: CatalogFacets): FilterFacets['departments'] {
+  const direct = new Map(facets.categories.map((c) => [c.slug, c.productCount]));
+  const known = facets.categories.length > 0;
+  return tree
+    .map((d) => {
+      const children = d.children.map((c) => ({ slug: c.slug, name: c.name, count: direct.get(c.slug) ?? 0 }));
+      const count = (direct.get(d.slug) ?? 0) + children.reduce((n, c) => n + c.count, 0);
+      return { slug: d.slug, name: d.name, count, children: known ? children.filter((c) => c.count > 0) : children };
+    })
+    .filter((d) => !known || d.count > 0);
+}
 
 export async function CatalogView({
   searchParams,
@@ -21,28 +36,52 @@ export async function CatalogView({
 }) {
   const parsed = parseCatalogParams(searchParams);
   const filters = { ...parsed, ...fixed, pageSize: 24 };
-  const [result, facets, categories] = await Promise.all([searchProducts(filters), getFacets(), getCategories()]);
+  // The listing is "scoped to a category" on category pages and when a category filter is chosen.
+  const scopeCategory = fixed.category ?? parsed.category ?? null;
+  const [result, pageFacets, scopedFacets, tree, hasRatings] = await Promise.all([
+    searchProducts(filters),
+    getFacets(fixed.category ?? null, fixed.collection ?? null),
+    scopeCategory && scopeCategory !== fixed.category ? getFacets(scopeCategory, fixed.collection ?? null) : null,
+    getCategoryTree(),
+    catalogHasRatings(),
+  ]);
+  const facets = scopedFacets ?? pageFacets;
   const totalPages = Math.max(1, Math.ceil(result.total / result.pageSize));
-  const facetData = {
-    ...facets,
-    categories: categories.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name })),
+  const stripUk = ukSizes(facets.sizes);
+  const facetData: FilterFacets = {
+    departments: departmentFacet(tree, pageFacets),
+    // Option values only make sense within a category (UK sizes next to "S/M" straps would not).
+    option:
+      scopeCategory && facets.sizes.length
+        ? {
+            title: facets.variantLabels.length === 1 ? `${facets.variantLabels[0]}${stripUk ? ' (UK)' : ''}` : 'Size / option',
+            values: facets.sizes,
+            stripUk,
+          }
+        : null,
+    audiences: facets.genders.filter((g) => g !== 'unisex'),
+    colors: facets.colors,
+    brands: facets.brands,
+    showRating: hasRatings,
+    priceMin: facets.priceMin,
+    priceMax: facets.priceMax,
   };
   const showCategories = !fixed.category;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
+    <div className="grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]">
       <CatalogSidebar facets={facetData} showCategories={showCategories} />
-      <div>
+      <div className="min-w-0">
         <CatalogToolbar total={result.total} facets={facetData} showCategories={showCategories} />
         {result.items.length === 0 ? (
           <EmptyState
             className="mt-8"
             icon={<SearchX className="size-5" />}
-            title={parsed.q ? `No results for “${parsed.q}”` : 'No styles match these filters'}
-            description="Try removing a filter, checking the spelling or browsing all shoes."
+            title={parsed.q ? `No results for “${parsed.q}”` : 'No products match these filters'}
+            description="Try removing a filter, checking the spelling or browsing all products."
             action={
               <Button asChild variant="outline">
-                <Link href="/shop">Browse all shoes</Link>
+                <Link href="/shop">Browse all products</Link>
               </Button>
             }
           />

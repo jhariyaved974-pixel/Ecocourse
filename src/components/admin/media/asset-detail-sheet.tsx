@@ -205,7 +205,7 @@ function DetailBody({ detail, folders, onSaved, onDeleted }: { detail: MediaAsse
         >
           {missingAlt ? (
             <Notice tone="warning" title="Add alt text">
-              Describe what the image shows for shoppers using screen readers, e.g. “White leather sneaker, side view”.
+              Describe what the image shows for shoppers using screen readers, e.g. “Black over-ear headphones, folded, side view”.
             </Notice>
           ) : null}
           <Field
