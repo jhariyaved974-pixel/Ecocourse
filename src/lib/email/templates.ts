@@ -189,7 +189,7 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
         return [
           p(greeting(payload)),
           p(`We received your balance payment proof for order ${order}. Its status is now “Awaiting payment verification”.`),
-          p(`Our team checks every payment against our bank records. We will email you once your balance${expected !== null ? ` of ${formatMoney(expected)}` : ''} has been checked, and dispatch your order after it is verified. Your balance payment is not confirmed until then.`),
+          p(`Our team checks every payment against our bank records. We will email you once your balance${expected !== null ? ` of ${formatMoney(expected)}` : ''} has been checked, and dispatch your order after we verify it. Your balance payment is not confirmed until then.`),
           facts([['Order', order], ['Balance being checked', money(expected)], ['Total', money(num(payload, 'total'))]]),
           button('View your order', ctx.orderLink),
           p(SAFETY, true),
@@ -224,7 +224,7 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
       return [
         p(greeting(payload)),
         p(`We have verified your advance payment${advance !== null ? ` of ${formatMoney(advance)}` : ''} for order ${order}. Your order is confirmed and we are getting it ready.`),
-        p(`Please pay the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} online from your order page${dueAt ? ` by ${dueAt}` : ''}. We dispatch your order once the balance is verified. There is no cash on delivery.`),
+        p(`Please pay the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} online from your order page${dueAt ? ` by ${dueAt}` : ''}. We dispatch your order after we verify the balance. There is no cash on delivery.`),
         facts([
           ['Order', order],
           ['Total', money(num(payload, 'total'))],
@@ -284,7 +284,7 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
           p(greeting(payload)),
           p(`We could not verify the balance payment for order ${order}.`),
           reason ? facts([['Reason', reason]]) : p(''),
-          p(`We have received your advance and your order is still confirmed. Please check your payment and submit the correct details from your order page, or pay the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} if you have not paid it yet. We dispatch your order once the balance is verified.`),
+          p(`We have received your advance and your order is still confirmed. Please check your payment and submit the correct details from your order page, or pay the balance${balance !== null ? ` of ${formatMoney(balance)}` : ''} if you have not paid it yet. We dispatch your order after we verify the balance.`),
           p('If money was debited from your account, reply to this email or contact support with your UTR / transaction reference and we will look into it.'),
           ...orderBlocks(payload, ctx),
           p(SAFETY, true),

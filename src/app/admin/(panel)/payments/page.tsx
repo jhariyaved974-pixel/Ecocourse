@@ -127,6 +127,26 @@ function AmountCell({ row }: { row: PaymentQueueRow }) {
   );
 }
 
+/** The UTR to check: the open proof's, with the reference that already verified money underneath. */
+function UtrCell({ row }: { row: PaymentQueueRow }) {
+  const proof = row.latestProof;
+  const open = proof && (proof.status === 'submitted' || proof.status === 'under_review');
+  const confirmed = row.paymentReference;
+  const main = open ? (proof.utr ?? null) : (confirmed ?? proof?.utr ?? null);
+  const secondary = open && confirmed && confirmed !== proof.utr ? confirmed : !open && confirmed && proof?.utr && proof.utr !== confirmed ? proof.utr : null;
+  const secondaryLabel = open ? (row.amountPaid > 0 ? 'advance' : 'confirmed') : 'proof';
+  return (
+    <>
+      {main ?? <span className="text-muted">—</span>}
+      {secondary ? (
+        <span className="block font-sans text-[11px] text-muted">
+          {secondaryLabel}: <span className="font-mono">{secondary}</span>
+        </span>
+      ) : null}
+    </>
+  );
+}
+
 function PlanCell({ row }: { row: PaymentQueueRow }) {
   return (
     <div className="text-xs whitespace-nowrap">
@@ -141,7 +161,7 @@ function PlanCell({ row }: { row: PaymentQueueRow }) {
 function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number }) {
   return (
     <TableWrap>
-      <Table className="min-w-[1180px]">
+      <Table className="min-w-[1100px]">
         <thead>
           <tr>
             <Th>Order</Th>
@@ -152,7 +172,6 @@ function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number })
             <Th>Proof submitted</Th>
             <Th>Status</Th>
             <Th>Due</Th>
-            <Th>Created</Th>
             <Th>
               <span className="sr-only">Actions</span>
             </Th>
@@ -171,6 +190,7 @@ function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number })
                   </span>
                 ) : null}
                 {row.expired ? <Badge tone="warning" className="mt-1">Late payment</Badge> : null}
+                <span className="mt-0.5 block text-[11px] text-muted">Placed {formatDate(row.createdAt)}</span>
               </Td>
               <Td className="min-w-[200px]">
                 <p className="font-medium">{row.customerName}</p>
@@ -183,16 +203,7 @@ function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number })
                 <AmountCell row={row} />
               </Td>
               <Td className="font-mono text-xs">
-                {row.paymentReference ? (
-                  <>
-                    {row.paymentReference}
-                    {row.latestProof?.utr && row.latestProof.utr !== row.paymentReference ? (
-                      <span className="block font-sans text-[11px] text-muted">proof: {row.latestProof.utr}</span>
-                    ) : null}
-                  </>
-                ) : (
-                  (row.latestProof?.utr ?? <span className="text-muted">—</span>)
-                )}
+                <UtrCell row={row} />
               </Td>
               <Td className="text-xs whitespace-nowrap">
                 {row.latestProof ? formatDateTime(row.latestProof.submitted_at) : <span className="text-muted">No proof</span>}
@@ -204,7 +215,6 @@ function QueueTable({ rows, nowMs }: { rows: PaymentQueueRow[]; nowMs: number })
               <Td className="text-xs">
                 <DueCell row={row} nowMs={nowMs} />
               </Td>
-              <Td className="text-xs whitespace-nowrap text-muted">{formatDate(row.createdAt)}</Td>
               <Td className="whitespace-nowrap">
                 <div className="flex items-center justify-end gap-3">
                   {row.latestProof?.file_path ? (

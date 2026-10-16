@@ -148,10 +148,10 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
                             <span className="block text-xs text-muted">{o.customer_name} · {formatDateTime(o.created_at)}</span>
                           </span>
                           <span className="flex flex-wrap gap-1.5"><OrderStatusBadge status={o.order_status} /><PaymentStatusBadge status={o.payment_status} /></span>
-                          <span className="w-32 text-right tabular-nums">
+                          <span className="min-w-24 text-right tabular-nums">
                             {formatMoney(o.total)}
                             {o.payment_plan === 'half_prepaid' ? (
-                              <span className="block text-xs text-muted">
+                              <span className="block text-xs whitespace-nowrap text-muted">
                                 {PAYMENT_PLAN_TEXT.half_prepaid} · paid {formatMoney(o.amount_paid ?? 0)}
                               </span>
                             ) : null}

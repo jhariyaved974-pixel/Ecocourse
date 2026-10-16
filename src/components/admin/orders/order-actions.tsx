@@ -67,7 +67,7 @@ export function FulfilmentForm({
 
   const lockedNotice =
     lockedStatuses.length && lockedReason ? (
-      <Notice tone="warning" title={`${lockedStatuses.map((s) => FULFILMENT_LABEL[s] ?? s).join(' and ')} locked`}>
+      <Notice tone="warning" title="Not ready to ship yet">
         <span id={lockedId}>{lockedReason}</span>
       </Notice>
     ) : null;

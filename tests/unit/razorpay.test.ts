@@ -63,6 +63,22 @@ describe('Razorpay API calls', () => {
     expect(JSON.parse(String(init.body))).toMatchObject({ amount: 149900, currency: 'INR', receipt: 'STM-123456-ABCDE' });
   });
 
+  it('creates a balance order for the exact amount with its purpose in the notes', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ id: 'order_BAL123', amount: 49999, currency: 'INR', receipt: 'STM-1-BAL', status: 'created' }), { status: 200 }));
+    await createRazorpayOrder(
+      { amount: 49999, receipt: 'STM-123456-ABCDE-BAL', notes: { order_id: 'x', order_number: 'STM-123456-ABCDE', purpose: 'balance' } },
+      keys,
+      fetchMock as unknown as typeof fetch,
+    );
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toEqual({
+      amount: 49999,
+      currency: 'INR',
+      receipt: 'STM-123456-ABCDE-BAL',
+      notes: { order_id: 'x', order_number: 'STM-123456-ABCDE', purpose: 'balance' },
+    });
+  });
+
   it('rejects invalid amounts and surfaces API errors', async () => {
     await expect(createRazorpayOrder({ amount: 50, receipt: 'r', notes: {} }, keys)).rejects.toThrow();
     const failing = vi.fn(async () => new Response(JSON.stringify({ error: { description: 'Authentication failed' } }), { status: 401 }));

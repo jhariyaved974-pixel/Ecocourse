@@ -44,7 +44,7 @@ export default async function AccountOrdersPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge tone={o.order_status === 'cancelled' ? 'danger' : o.payment_status === 'verified_paid' ? 'success' : 'warning'}>{ORDER_STATUS_LABEL[o.order_status]}</Badge>
+              <Badge tone={o.order_status === 'cancelled' ? 'danger' : o.payment_status === 'verified_paid' ? 'success' : o.payment_status === 'partially_paid' ? 'info' : 'warning'}>{ORDER_STATUS_LABEL[o.order_status]}</Badge>
               <Badge tone="neutral">{PAYMENT_STATUS_LABEL[o.payment_status]}</Badge>
             </div>
             <p className="w-24 text-right font-medium tabular-nums">{formatMoney(o.total)}</p>
