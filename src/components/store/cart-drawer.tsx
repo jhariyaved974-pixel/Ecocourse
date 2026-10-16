@@ -7,6 +7,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { Dialog, SheetContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cartStore, onCartDrawer, useCart, type CartLine } from '@/lib/cart/store';
+import { useCartSync } from '@/lib/cart/sync';
 import { quoteCart } from '@/app/(store)/actions';
 import { lineStatusMessage, type Quote } from '@/lib/orders/quote';
 import { cn, formatMoney } from '@/lib/utils';
@@ -123,6 +124,7 @@ export function FreeShippingMeter({ quote }: { quote: Quote | null }) {
 }
 
 export function CartDrawer() {
+  useCartSync();
   const [open, setOpen] = React.useState(false);
   const { lines, count } = useCart();
   const { quote, error, loading } = useServerQuote(lines, { enabled: open && lines.length > 0 });

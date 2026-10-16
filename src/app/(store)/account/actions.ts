@@ -18,6 +18,7 @@ const profileSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter your name.').max(120),
   phone: z.string().trim().refine((v) => v === '' || MOBILE.test(v), 'Enter a valid 10-digit mobile number.'),
   marketing: z.boolean(),
+  cartReminders: z.boolean().nullable(),
 });
 
 export async function updateProfile(_prev: unknown, formData: FormData): Promise<ActionResult<null>> {
@@ -26,12 +27,19 @@ export async function updateProfile(_prev: unknown, formData: FormData): Promise
     fullName: formData.get('fullName'),
     phone: formData.get('phone') ?? '',
     marketing: formData.get('marketing') === 'on',
+    // Only change the reminder choice when the form actually showed it.
+    cartReminders: formData.get('cartRemindersShown') === '1' ? formData.get('cartReminders') === 'on' : null,
   });
   if (!parsed.success) return fail('Please check the highlighted fields.', 'validation', zodFieldErrors(parsed.error.issues));
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from('profiles')
-    .update({ full_name: parsed.data.fullName, phone: parsed.data.phone ? normalizeMobile(parsed.data.phone) : null, marketing_opt_in: parsed.data.marketing })
+    .update({
+      full_name: parsed.data.fullName,
+      phone: parsed.data.phone ? normalizeMobile(parsed.data.phone) : null,
+      marketing_opt_in: parsed.data.marketing,
+      ...(parsed.data.cartReminders === null ? {} : { cart_reminder_opt_in: parsed.data.cartReminders }),
+    })
     .eq('id', user.id);
   if (error) return fail(dbErrorMessage(error));
   revalidatePath('/account');

@@ -6,7 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/form-controls';
 import { Notice } from '@/components/ui/misc';
 
-export function ProfileForm({ email, fullName, phone, marketing }: { email: string; fullName: string; phone: string; marketing: boolean }) {
+export function ProfileForm({
+  email,
+  fullName,
+  phone,
+  marketing,
+  cartReminders,
+}: {
+  email: string;
+  fullName: string;
+  phone: string;
+  marketing: boolean;
+  /** null when the store has cart reminders turned off. */
+  cartReminders: boolean | null;
+}) {
   const [state, action, pending] = useActionState(updateProfile, null);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   return (
@@ -25,6 +38,13 @@ export function ProfileForm({ email, fullName, phone, marketing }: { email: stri
         <input type="checkbox" name="marketing" defaultChecked={marketing} className="mt-0.5 size-4 accent-[var(--ink)]" />
         <span>Email me about new releases and offers. You can unsubscribe anytime.</span>
       </label>
+      {cartReminders !== null ? (
+        <label className="flex items-start gap-3 text-sm">
+          <input type="hidden" name="cartRemindersShown" value="1" />
+          <input type="checkbox" name="cartReminders" defaultChecked={cartReminders} className="mt-0.5 size-4 accent-[var(--ink)]" />
+          <span>Send me one reminder email if I leave items in my cart. Off by default; you can turn it off from any reminder.</span>
+        </label>
+      ) : null}
       <Button type="submit" loading={pending}>Save changes</Button>
     </form>
   );

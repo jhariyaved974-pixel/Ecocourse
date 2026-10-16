@@ -4,19 +4,25 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { ProfileForm } from '@/components/account/profile-form';
 import { Notice } from '@/components/ui/misc';
 import { signOut } from '@/app/(store)/(auth)/actions';
+import { getStoreSettings } from '@/lib/content/queries';
 
 export default async function AccountPage(props: PageProps<'/account'>) {
   const user = await requireUserPage('/account');
   const sp = await props.searchParams;
   const supabase = await createSupabaseServerClient();
-  const { data: profile } = await supabase.from('profiles').select('full_name, phone, marketing_opt_in').eq('id', user.id).maybeSingle();
+  const [{ data: profile }, settings] = await Promise.all([
+    supabase.from('profiles').select('full_name, phone, marketing_opt_in, cart_reminder_opt_in').eq('id', user.id).maybeSingle(),
+    getStoreSettings(),
+  ]);
   return (
     <div className="space-y-10">
       {sp.password === 'updated' ? <Notice tone="success">Your password was updated.</Notice> : null}
       <section>
         <h2 className="text-xl font-semibold">Profile</h2>
         <div className="mt-6">
-          <ProfileForm email={user.email ?? ''} fullName={profile?.full_name ?? ''} phone={profile?.phone ?? ''} marketing={profile?.marketing_opt_in ?? false} />
+          <ProfileForm email={user.email ?? ''} fullName={profile?.full_name ?? ''} phone={profile?.phone ?? ''} marketing={profile?.marketing_opt_in ?? false}
+            cartReminders={settings.cart_reminders_enabled ? profile?.cart_reminder_opt_in ?? false : null}
+          />
         </div>
       </section>
       <section className="border-t border-line pt-8">

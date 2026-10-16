@@ -10,9 +10,10 @@ import { Field, Input, NativeSelect, Switch, Textarea } from '@/components/ui/fo
 import { Notice } from '@/components/ui/misc';
 import type { MediaAssetSummary } from '@/lib/admin/types';
 
-type Values = Omit<StoreSettingsInput, 'logoAssetId' | 'faviconAssetId' | 'ogImageAssetId' | 'lowStockThreshold' | 'freeReturnsDays'> & {
+type Values = Omit<StoreSettingsInput, 'logoAssetId' | 'faviconAssetId' | 'ogImageAssetId' | 'lowStockThreshold' | 'freeReturnsDays' | 'cartReminderDelayHours'> & {
   lowStockThreshold: string;
   freeReturnsDays: string;
+  cartReminderDelayHours: string;
 };
 
 export function StoreSettingsForm({ initial, logo, favicon, ogImage }: { initial: Values; logo: MediaAssetSummary | null; favicon: MediaAssetSummary | null; ogImage: MediaAssetSummary | null }) {
@@ -108,6 +109,18 @@ export function StoreSettingsForm({ initial, logo, favicon, ogImage }: { initial
           {field('lowStockThreshold', 'Low-stock alert at', { max: 4, hint: 'Units available. Products can override it.' })}
           {field('orderNumberPrefix', 'Order number prefix', { max: 4, hint: 'e.g. AU → AU-261015-7K2QD' })}
           {field('freeReturnsDays', 'Size exchange window (days)', { max: 2 })}
+        </div>
+      </Panel>
+      <Panel
+        title="Cart reminders"
+        description="One email to signed-in shoppers who opted in and left items in their cart. Shoppers choose this in their account and can turn it off from any reminder. Needs email delivery (Resend) to be configured."
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="flex items-center gap-3 text-sm">
+            <Switch checked={v.cartRemindersEnabled} onCheckedChange={(c) => setV((s) => ({ ...s, cartRemindersEnabled: c }))} aria-label="Cart reminders" />
+            {v.cartRemindersEnabled ? 'Reminders on (for shoppers who opted in)' : 'Reminders off'}
+          </label>
+          {v.cartRemindersEnabled ? field('cartReminderDelayHours', 'Send after (hours without changes)', { max: 2, hint: 'Between 1 and 72. At most one reminder per cart and per week.' }) : null}
         </div>
       </Panel>
       <Panel title="Analytics" description="Only privacy-friendly, cookie-light analytics are supported. Leave off until you have a privacy notice that covers it.">

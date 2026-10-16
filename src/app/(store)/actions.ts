@@ -11,6 +11,8 @@ import { fail, ok, type ActionResult } from '@/lib/errors';
 import { mapQuote, type Quote } from '@/lib/orders/quote';
 import { deliverEmailsSoon } from '@/lib/email/outbox';
 import { newsletterTokenHash } from '@/lib/email/optout';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type { CartLine } from '@/lib/cart/store';
 
 export async function searchSuggestions(query: string) {
   const q = String(query ?? '').trim().slice(0, 80);
@@ -95,4 +97,38 @@ export async function getWishlistProducts(ids: string[]) {
   const parsed = z.array(z.uuid()).max(100).safeParse(ids);
   if (!parsed.success) return [];
   return getProductsByIds(parsed.data);
+}
+
+/**
+ * The signed-in shopper's saved cart with display hints, used to restore the
+ * cart on a new device. Prices shown are hints; checkout re-prices everything.
+ */
+export async function getSavedCart(): Promise<CartLine[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from('cart_items')
+    .select('quantity, variant:product_variants(id, size_label, is_active, color:product_colors(name), product:products(id, slug, name, status))')
+    .order('updated_at', { ascending: false })
+    .limit(30);
+  const rows = (data ?? []).filter((r) => r.variant?.is_active && r.variant.product?.status === 'published');
+  if (!rows.length) return [];
+  const cards = new Map((await getProductsByIds([...new Set(rows.map((r) => r.variant!.product!.id))])).map((c) => [c.id, c]));
+  return rows.flatMap((r): CartLine[] => {
+    const v = r.variant!;
+    const card = cards.get(v.product!.id);
+    if (!card) return [];
+    return [{
+      variantId: v.id,
+      productId: card.id,
+      slug: card.slug,
+      name: card.name,
+      image: card.image,
+      colorName: v.color?.name ?? null,
+      sizeLabel: v.size_label,
+      unitPrice: card.finalPrice,
+      quantity: r.quantity,
+    }];
+  });
 }

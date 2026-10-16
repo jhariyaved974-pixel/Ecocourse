@@ -50,6 +50,8 @@ export default async function StoreSettingsPage() {
           lowStockThreshold: String(s.low_stock_threshold),
           orderNumberPrefix: s.order_number_prefix,
           freeReturnsDays: String(s.free_returns_days),
+          cartRemindersEnabled: s.cart_reminders_enabled,
+          cartReminderDelayHours: String(s.cart_reminder_delay_hours),
         }}
         logo={s.logo ? toMediaSummary(s.logo) : null}
         favicon={s.favicon ? toMediaSummary(s.favicon) : null}

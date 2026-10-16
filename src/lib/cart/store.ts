@@ -97,6 +97,11 @@ export const cartStore = {
   clear() {
     write([]);
   },
+  /** Replaces the whole cart, e.g. with the saved cart after signing in on a new device. */
+  replace(lines: CartLine[]) {
+    write(lines.slice(0, MAX_LINES).map((l) => ({ ...l, quantity: Math.max(1, Math.min(l.quantity, MAX_QTY_PER_LINE)) })));
+  },
+  subscribe,
   /** Replace display hints with server-validated values after a quote. */
   reconcile(updates: { variantId: string; unitPrice: number; quantity: number }[]) {
     const byId = new Map(updates.map((u) => [u.variantId, u]));
