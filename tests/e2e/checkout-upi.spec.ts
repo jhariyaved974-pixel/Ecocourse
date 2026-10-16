@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { addToCart, db, MERCHANT_UPI_ID, orderByNumber, placeUpiOrder, PNG_1PX, randomUtr, SUPABASE_URL, topUpStock, variantStock } from './support';
 
-const SKU = 'AU-CSE-OAT-5';
+const SKU = 'STM-CSE-OAT-5';
 
 test.beforeAll(async () => {
   await topUpStock(SKU, 30);

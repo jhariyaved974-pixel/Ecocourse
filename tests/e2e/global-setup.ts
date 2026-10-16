@@ -1,7 +1,7 @@
 import { db, ensureUser, OWNER_EMAIL, topUpStock } from './support';
 
 // Variants the tests buy; keep them stocked so repeated runs never sell out the seed catalogue.
-export const E2E_SKUS = ['AU-VRX-GLACIE-8', 'AU-VRX-GLACIE-10', 'AU-CSE-OAT-5', 'AU-CSE-OAT-6'];
+export const E2E_SKUS = ['STM-VRX-GLACIE-8', 'STM-VRX-GLACIE-10', 'STM-CSE-OAT-5', 'STM-CSE-OAT-6'];
 
 export default async function globalSetup() {
   for (const sku of E2E_SKUS) await topUpStock(sku, 30);

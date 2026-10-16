@@ -12,7 +12,7 @@ test.beforeEach(async ({ context }) => {
 
 test('changing the merchant UPI ID needs confirmation and updates new order pages', async ({ page, browser }) => {
   const newId = 'auren.e2e@okaxis';
-  await topUpStock('AU-CSE-OAT-5', 30);
+  await topUpStock('STM-CSE-OAT-5', 30);
   await page.goto('/admin/settings/payments');
   const staffEmail = page.getByLabel('Staff alert email');
   if (await staffEmail.isVisible()) await staffEmail.fill('alerts@example.com');
@@ -60,6 +60,6 @@ test('maintenance mode closes and reopens the storefront', async ({ page, browse
     await expect(page.getByText('Store settings saved').first()).toBeVisible();
   }
   await pub.goto('/shop');
-  await expect(pub.getByRole('heading', { name: 'All shoes' })).toBeVisible();
+  await expect(pub.getByRole('heading', { name: 'All products' })).toBeVisible();
   await visitor.close();
 });

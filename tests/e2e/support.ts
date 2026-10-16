@@ -104,7 +104,7 @@ export async function orderByNumber(orderNumber: string) {
   return rows[0];
 }
 
-/** Adds one pair of a product in the given colour/size to the cart from its product page. */
+/** Adds one unit of a product in the given colour/size to the cart from its product page. */
 export async function addToCart(page: Page, slug: string, opts: { color?: string; size: string }) {
   await page.goto(`/products/${slug}`);
   if (opts.color) await page.getByRole('radiogroup', { name: 'Colour' }).getByRole('radio', { name: opts.color }).click();

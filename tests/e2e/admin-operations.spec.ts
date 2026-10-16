@@ -7,7 +7,7 @@ test.beforeEach(async ({ context }) => {
 });
 
 test('inventory changes are recorded and cannot drop below reserved stock', async ({ page, browser }) => {
-  const sku = 'AU-VRX-GLACIE-10';
+  const sku = 'STM-VRX-GLACIE-10';
   await topUpStock(sku, 30);
   // A guest's unpaid order reserves one unit.
   const shopper = await browser.newContext();

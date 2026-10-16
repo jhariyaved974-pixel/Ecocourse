@@ -32,7 +32,7 @@ test('requires a size and refuses sold-out sizes', async ({ page }) => {
 });
 
 test('adds to cart and updates quantities using server prices @mobile', async ({ page }) => {
-  await topUpStock('AU-VRX-GLACIE-8', 30);
+  await topUpStock('STM-VRX-GLACIE-8', 30);
   await addToCart(page, 'velocity-runner-x', { color: 'Glacier', size: '8' });
   await expect(page.getByRole('dialog', { name: /Your cart/ })).toBeVisible();
   await page.goto('/cart');
@@ -50,7 +50,7 @@ test('adds to cart and updates quantities using server prices @mobile', async ({
 
 test('ignores prices tampered with in the browser cart', async ({ page }) => {
   const { rows } = await db.query<{ id: string; product_id: string; price: number; sale_price: number | null }>(
-    `select v.id, v.product_id, p.price, p.sale_price from product_variants v join products p on p.id = v.product_id where v.sku = 'AU-VRX-GLACIE-8'`,
+    `select v.id, v.product_id, p.price, p.sale_price from product_variants v join products p on p.id = v.product_id where v.sku = 'STM-VRX-GLACIE-8'`,
   );
   const v = rows[0];
   await page.goto('/');

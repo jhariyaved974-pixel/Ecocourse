@@ -1,7 +1,7 @@
 import { expect, test, type Browser } from '@playwright/test';
 import { addToCart, db, ensureUser, orderByNumber, OWNER_EMAIL, placeUpiOrder, PNG_1PX, randomUtr, signInContext, topUpStock, variantStock } from './support';
 
-const SKU = 'AU-CSE-OAT-6';
+const SKU = 'STM-CSE-OAT-6';
 
 test.beforeAll(async () => {
   await topUpStock(SKU, 30);
