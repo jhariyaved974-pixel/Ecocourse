@@ -385,13 +385,18 @@ export async function resolveProductRedirect(slug: string): Promise<string | nul
   return product?.slug ?? null;
 }
 
-export async function getRelatedProducts(productId: string, categorySlug: string | null): Promise<ProductCardData[]> {
-  const result = await searchProducts({ category: categorySlug ?? undefined, pageSize: 9, sort: 'popular' });
-  let items = result.items.filter((p) => p.id !== productId);
-  if (items.length < 4) {
-    const more = await searchProducts({ pageSize: 12, sort: 'popular' });
-    items = [...items, ...more.items.filter((p) => p.id !== productId && !items.some((i) => i.id === p.id))];
+/** Same sub-category first, then the rest of its department, then popular products. */
+export async function getRelatedProducts(productId: string, categorySlug: string | null, departmentSlug?: string | null): Promise<ProductCardData[]> {
+  const scopes = [categorySlug, departmentSlug].filter((s, i, all): s is string => Boolean(s) && all.indexOf(s) === i);
+  let items: ProductCardData[] = [];
+  const addFrom = (more: ProductCardData[]) => {
+    items = [...items, ...more.filter((p) => p.id !== productId && !items.some((i) => i.id === p.id))];
+  };
+  for (const category of scopes) {
+    if (items.length >= 4) break;
+    addFrom((await searchProducts({ category, pageSize: 9, sort: 'popular' })).items);
   }
+  if (items.length < 4) addFrom((await searchProducts({ pageSize: 12, sort: 'popular' })).items);
   return items.slice(0, 8);
 }
 

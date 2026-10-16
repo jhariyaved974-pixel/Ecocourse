@@ -67,7 +67,7 @@ function DepartmentTile({ department, className }: { department: HeaderDepartmen
 
 function MegaPanel({ department }: { department: HeaderDepartment }) {
   return (
-    <div className="container-x grid grid-cols-[minmax(0,240px)_minmax(0,1fr)_240px] gap-10 py-8">
+    <div className="container-x grid grid-cols-[260px_minmax(0,1fr)_240px] gap-12 py-8">
       <div>
         <p className="eyebrow text-muted">Department</p>
         <p className="mt-2 font-display text-3xl leading-tight">{department.name}</p>
@@ -79,7 +79,7 @@ function MegaPanel({ department }: { department: HeaderDepartment }) {
           </Link>
         </NM.Link>
       </div>
-      <ul className="grid content-start gap-x-6 gap-y-0.5 sm:grid-cols-2">
+      <ul className="grid grid-cols-[repeat(2,minmax(0,260px))] content-start gap-x-6 gap-y-0.5 border-l border-line pl-8">
         {department.children.map((c) => (
           <li key={c.slug}>
             <NM.Link asChild>

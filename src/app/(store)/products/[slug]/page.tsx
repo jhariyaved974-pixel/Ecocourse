@@ -40,7 +40,7 @@ async function ProductContent({ params }: { params: PageProps<'/products/[slug]'
   }
   const [reviews, related, sizeGuide, shipping, settings] = await Promise.all([
     getProductReviews(product.id),
-    getRelatedProducts(product.id, product.category?.slug ?? null),
+    getRelatedProducts(product.id, product.category?.slug ?? null, product.category?.parent?.slug ?? null),
     getSizeGuide(product.sizeGuideId),
     getShippingOptions(),
     getStoreSettings(),

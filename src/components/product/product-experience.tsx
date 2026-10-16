@@ -208,7 +208,7 @@ export function ProductExperience({
               role="radiogroup"
               aria-label={label}
               aria-describedby={sizeError ? 'size-error' : undefined}
-              className={cn('mt-3 outline-none', stripUk ? 'grid grid-cols-4 gap-2 sm:grid-cols-5' : 'flex flex-wrap gap-2')}
+              className={cn('mt-3 outline-none', stripUk ? 'grid grid-cols-4 gap-2 sm:grid-cols-6' : 'flex flex-wrap gap-2')}
             >
               {variants.map((v) => {
                 const avail = availableOf(v.id);

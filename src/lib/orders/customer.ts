@@ -117,6 +117,7 @@ export const PAYMENT_STATUS_LABEL: Record<Enums<'payment_status'>, string> = {
   unpaid: 'Unpaid',
   proof_submitted: 'Awaiting Payment Verification',
   verification_pending: 'Awaiting Payment Verification',
+  partially_paid: 'Advance received — balance due',
   verified_paid: 'Paid (verified)',
   rejected: 'Payment not verified',
   refund_pending: 'Refund pending',

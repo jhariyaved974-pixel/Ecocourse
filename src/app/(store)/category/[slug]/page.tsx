@@ -7,6 +7,7 @@ import { CatalogView } from '@/components/store/catalog-view';
 import { ProductGridSkeleton } from '@/components/store/product-card';
 import { Breadcrumbs } from '@/components/store/breadcrumbs';
 import { FallbackImage } from '@/components/store/fallback-image';
+import { DepartmentIcon } from '@/components/store/department-icon';
 import { Skeleton } from '@/components/ui/misc';
 import { cn } from '@/lib/utils';
 
@@ -77,7 +78,18 @@ async function CategoryContent({ params, searchParams }: Pick<PageProps<'/catego
         </div>
         {category.image ? (
           <div className="relative hidden h-28 w-44 overflow-hidden rounded-[var(--radius)] bg-surface-2 md:block">
-            <FallbackImage src={category.image} alt="" fill sizes="176px" className="scale-125 object-cover" />
+            <FallbackImage
+              src={category.image}
+              alt=""
+              fill
+              sizes="176px"
+              className="object-cover"
+              fallback={
+                <div className="grid h-full place-items-center bg-gradient-to-br from-surface-2 to-line text-ink-2">
+                  <DepartmentIcon slug={department.slug} className="size-8" strokeWidth={1.4} />
+                </div>
+              }
+            />
           </div>
         ) : null}
       </header>
