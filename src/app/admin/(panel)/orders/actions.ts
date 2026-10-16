@@ -6,6 +6,7 @@ import { dbFail, staffAction } from '@/lib/admin/action';
 import { invalidateOrderStock } from '@/lib/admin/orders';
 import { fail, ok, sqlNull, zodFieldErrors, type ActionResult } from '@/lib/errors';
 import { formatMoney, rupeesToPaise } from '@/lib/utils';
+import { deliverEmailsSoon } from '@/lib/email/outbox';
 
 // Order operations. Every function re-checks the staff role here and the SQL
 // functions check it again (require_role), so hidden buttons are never the
@@ -82,6 +83,7 @@ export async function updateFulfillment(input: z.input<typeof fulfilmentSchema>)
     if (error) return dbFail(error);
     const message =
       order.order_status === v.status ? 'Tracking details updated.' : `Order marked as ${v.status}.`;
+    deliverEmailsSoon();
     return ok({ status: jsonStatus(data) ?? v.status }, message);
   });
 }
@@ -105,6 +107,7 @@ export async function cancelOrder(input: z.input<typeof cancelSchema>) {
     if (status === 'already_cancelled') return ok({ status }, 'This order was already cancelled. Nothing changed.');
     await invalidateOrderStock(supabase, orderId);
     const refundPending = Boolean(data && typeof data === 'object' && (data as { refund_pending?: boolean }).refund_pending);
+    deliverEmailsSoon();
     return ok(
       { status: status ?? 'cancelled', refundPending },
       refundPending ? 'Order cancelled. Stock restored and a refund is now pending.' : 'Order cancelled and stock restored.',
@@ -148,6 +151,7 @@ export async function markRefundProcessed(input: z.input<typeof processRefundSch
       });
       if (noteError) console.error('refund note failed', noteError.code);
     }
+    deliverEmailsSoon();
     return ok({ status: 'processed' }, 'Refund recorded as sent. The customer will be notified.');
   });
 }
@@ -182,6 +186,7 @@ export async function recordRefund(input: z.input<typeof newRefundSchema>) {
       return dbFail(error);
     }
     if (v.restock) await invalidateOrderStock(supabase, v.orderId);
+    deliverEmailsSoon();
     return ok({ status: jsonStatus(data) ?? 'processed' }, `Refund of ${formatMoney(amount)} recorded.`);
   });
 }
@@ -252,6 +257,7 @@ export async function expireStaleOrdersNow() {
       expired === 0 ? 'No unpaid orders were past their payment window.' : `Expired ${expired} unpaid order${expired === 1 ? '' : 's'} and released their stock.`,
     ];
     if (flagged > 0) parts.push(`Flagged ${flagged} overdue payment review${flagged === 1 ? '' : 's'} for attention.`);
+    deliverEmailsSoon();
     return ok({ expired, flagged }, parts.join(' '));
   });
 }

@@ -6,6 +6,7 @@ import { dbFail, staffAction } from '@/lib/admin/action';
 import { invalidateOrderStock } from '@/lib/admin/orders';
 import { dbErrorMessage, fail, ok, zodFieldErrors, type ActionResult } from '@/lib/errors';
 import { rupeesToPaise } from '@/lib/utils';
+import { deliverEmailsSoon } from '@/lib/email/outbox';
 
 // Manual UPI payment verification (owner/admin only). The SQL functions are
 // the source of truth for every rule (role, state, exact amount, UTR reuse,
@@ -104,6 +105,7 @@ export async function approvePayment(input: z.input<typeof approveSchema>) {
     }
     // Stock was consumed: refresh storefront availability.
     await invalidateOrderStock(supabase, v.orderId);
+    deliverEmailsSoon();
     return ok({ status: status ?? 'approved' }, 'Payment verified. The order is confirmed and the customer has been notified.');
   });
 }
@@ -138,6 +140,7 @@ export async function rejectPayment(input: z.input<typeof rejectSchema>) {
     if (status === 'already_rejected') return ok({ status }, 'This payment was already rejected. Nothing changed.');
     const orderStatus = data && typeof data === 'object' ? (data as { order_status?: string }).order_status : undefined;
     const tail = orderStatus === 'cancelled' ? ' The order had no stock reserved any more, so it is now cancelled.' : '';
+    deliverEmailsSoon();
     return ok(
       { status: status ?? 'rejected' },
       (v.requestResubmission ? 'New proof requested. The customer has been asked to resubmit.' : 'Payment rejected. The customer has been notified.') + tail,
@@ -178,6 +181,7 @@ export async function recordPaymentAndRefund(input: z.input<typeof recordAndRefu
     const status = jsonStatus(data);
     if (status === 'already_recorded') return ok({ status }, 'A payment was already recorded for this order. Nothing changed.');
     await invalidateOrderStock(supabase, v.orderId);
+    deliverEmailsSoon();
     return ok({ status: status ?? 'refund_pending' }, 'Payment recorded and a refund is pending. Send the refund, then record it on the order page.');
   });
 }

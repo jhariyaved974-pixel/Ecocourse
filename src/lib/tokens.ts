@@ -26,3 +26,18 @@ export function deriveOrderId(secret: string, idempotencyKey: string): string {
 export function sha256(value: string | Buffer | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex');
 }
+
+/** Signed token for the "stop cart reminders" link in reminder emails. */
+export function deriveCartReminderStopToken(secret: string, userId: string): string {
+  if (!secret) throw new Error('ORDER_ACCESS_SECRET is not configured');
+  return createHmac('sha256', secret).update(`cart-reminder-stop:${userId.toLowerCase()}`).digest('base64url');
+}
+
+/**
+ * Newsletter unsubscribe token. Derived from the address so every email can
+ * carry a working link; the database stores only its SHA-256 hash.
+ */
+export function deriveNewsletterToken(secret: string, email: string): string {
+  if (!secret) throw new Error('ORDER_ACCESS_SECRET is not configured');
+  return createHmac('sha256', secret).update(`newsletter-unsubscribe:${email.trim().toLowerCase()}`).digest('base64url');
+}

@@ -8,6 +8,7 @@ import { ORDER_NUMBER, canSubmitProof, getCustomerOrder, getOrderAccess } from '
 import { PROOF_MAX_BYTES, processPaymentProof } from '@/lib/uploads/payment-proof';
 import { isValidUpiId, normalizeUtr } from '@/lib/payments/upi';
 import { sqlNull } from '@/lib/errors';
+import { deliverEmailsSoon } from '@/lib/email/outbox';
 
 const BUCKET = 'payment-proofs';
 
@@ -131,5 +132,6 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/orders/
     if (status === 500) console.error('submit_payment_proof failed', rpcError.code, rpcError.message);
     return error(status, message);
   }
+  deliverEmailsSoon();
   return NextResponse.json({ ok: true, status: result?.payment_status ?? 'proof_submitted' }, { headers: { 'Cache-Control': 'no-store' } });
 }

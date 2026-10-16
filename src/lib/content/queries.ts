@@ -23,6 +23,8 @@ export type StoreSettings = Tables<'store_settings'> & {
 export const DEFAULT_SETTINGS: StoreSettings = {
   id: true,
   store_name: 'AUREN',
+  cart_reminders_enabled: false,
+  cart_reminder_delay_hours: 6,
   legal_name: null,
   tagline: 'Considered footwear for every stride.',
   logo_asset_id: null,

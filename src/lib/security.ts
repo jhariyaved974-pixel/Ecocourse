@@ -101,6 +101,17 @@ export function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
+/**
+ * Cron endpoints accept only `Authorization: Bearer <CRON_SECRET>` (Vercel Cron
+ * sends exactly this header). Without a configured secret they are disabled.
+ */
+export function isCronRequest(request: Request): boolean {
+  const secret = serverEnv.cronSecret;
+  if (!secret) return false;
+  const header = request.headers.get('authorization') ?? '';
+  return safeEqual(header, `Bearer ${secret}`);
+}
+
 export const ORDER_COOKIE_PREFIX = 'au_ord_';
 export function orderCookieName(orderNumber: string) {
   return `${ORDER_COOKIE_PREFIX}${orderNumber.replace(/[^A-Z0-9-]/gi, '')}`;

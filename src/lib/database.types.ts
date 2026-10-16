@@ -2099,6 +2099,9 @@ export type Database = {
           blocked_reason: string | null
           created_at: string
           updated_at: string
+          cart_reminder_opt_in: boolean
+          cart_reminder_opt_in_at: string | null
+          cart_reminder_sent_at: string | null
         }
         Insert: {
           id: string
@@ -2111,6 +2114,9 @@ export type Database = {
           blocked_reason?: string | null
           created_at?: string
           updated_at?: string
+          cart_reminder_opt_in?: boolean
+          cart_reminder_opt_in_at?: string | null
+          cart_reminder_sent_at?: string | null
         }
         Update: {
           id?: string
@@ -2123,6 +2129,9 @@ export type Database = {
           blocked_reason?: string | null
           created_at?: string
           updated_at?: string
+          cart_reminder_opt_in?: boolean
+          cart_reminder_opt_in_at?: string | null
+          cart_reminder_sent_at?: string | null
         }
         Relationships: [
 
@@ -2518,6 +2527,8 @@ export type Database = {
           free_returns_days: number
           updated_at: string
           updated_by: string | null
+          cart_reminders_enabled: boolean
+          cart_reminder_delay_hours: number
         }
         Insert: {
           id?: boolean
@@ -2556,6 +2567,8 @@ export type Database = {
           free_returns_days?: number
           updated_at?: string
           updated_by?: string | null
+          cart_reminders_enabled?: boolean
+          cart_reminder_delay_hours?: number
         }
         Update: {
           id?: boolean
@@ -2594,6 +2607,8 @@ export type Database = {
           free_returns_days?: number
           updated_at?: string
           updated_by?: string | null
+          cart_reminders_enabled?: boolean
+          cart_reminder_delay_hours?: number
         }
         Relationships: [
           {
@@ -2926,6 +2941,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      claim_email_batch: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: unknown[]
+      }
       compute_quote: {
         Args: {
           p_lines: Json
@@ -2981,6 +3002,12 @@ export type Database = {
         }
         Returns: number
       }
+      enqueue_cart_reminders: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: number
+      }
       enqueue_email: {
         Args: {
           p_dedupe_key: string
@@ -3017,6 +3044,15 @@ export type Database = {
           p_email: string
         }
         Returns: string
+      }
+      finish_email: {
+        Args: {
+          p_id: string
+          p_status: string
+          p_provider_message_id: string
+          p_error: string
+        }
+        Returns: undefined
       }
       get_order_for_customer: {
         Args: {
@@ -3305,6 +3341,12 @@ export type Database = {
         }
         Returns: Json
       }
+      stop_cart_reminders: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       submit_payment_proof: {
         Args: {
           p_order_number: string
@@ -3330,6 +3372,12 @@ export type Database = {
           p_token_hash: string
         }
         Returns: string
+      }
+      sync_my_cart: {
+        Args: {
+          p_lines: Json
+        }
+        Returns: number
       }
       text_array_to_string: {
         Args: {

@@ -9,6 +9,8 @@ import { rateLimitByIp, sha256Hex } from '@/lib/security';
 import { integrations } from '@/lib/env.server';
 import { fail, ok, type ActionResult } from '@/lib/errors';
 import { mapQuote, type Quote } from '@/lib/orders/quote';
+import { deliverEmailsSoon } from '@/lib/email/outbox';
+import { newsletterTokenHash } from '@/lib/email/optout';
 
 export async function searchSuggestions(query: string) {
   const q = String(query ?? '').trim().slice(0, 80);
@@ -65,14 +67,26 @@ export async function subscribeNewsletter(_prev: unknown, formData: FormData): P
   if (formData.get('company')) return ok({ status: 'subscribed' }); // honeypot: silently ignore bots
   if (!integrations.serviceRole) return fail('Newsletter sign-up is not available yet.');
   if (!(await rateLimitByIp('newsletter', 5, 3600))) return fail('Too many attempts. Please try again later.');
-  const token = randomBytes(24).toString('base64url');
-  const { data, error } = await createSupabaseServiceClient().rpc('subscribe_newsletter', {
-    p_email: parsed.data.email,
+  const email = parsed.data.email.trim().toLowerCase();
+  // The unsubscribe token is derived from the address (see lib/email/optout),
+  // so every email can carry a working link; only its hash is stored.
+  const tokenHash = newsletterTokenHash(email) ?? sha256Hex(randomBytes(24).toString('base64url'));
+  const db = createSupabaseServiceClient();
+  const { data, error } = await db.rpc('subscribe_newsletter', {
+    p_email: email,
     p_source: parsed.data.source ?? 'footer',
     p_consent_text: 'I agree to receive marketing emails and can unsubscribe at any time.',
-    p_token_hash: sha256Hex(token),
+    p_token_hash: tokenHash,
   });
   if (error) return fail('We could not sign you up right now. Please try again.');
+  if (data === 'subscribed' && integrations.email) {
+    const day = new Date().toISOString().slice(0, 10);
+    await db.from('email_outbox').upsert(
+      { dedupe_key: `newsletter_welcome:${email}:${day}`, to_email: email, template: 'newsletter_welcome', subject: 'Welcome to the list', payload: {} },
+      { onConflict: 'dedupe_key', ignoreDuplicates: true },
+    );
+    deliverEmailsSoon();
+  }
   return ok({ status: String(data) }, data === 'already_subscribed' ? "You're already on the list." : "You're subscribed. Welcome!");
 }
 

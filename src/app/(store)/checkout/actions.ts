@@ -11,6 +11,7 @@ import { orderAccessToken, orderCookieName, orderIdForCheckout, rateLimitByIp, s
 import { INDIAN_STATES, MOBILE, PIN_CODE, normalizeMobile } from '@/lib/india';
 import { getPublicPaymentSettings } from '@/lib/payments/settings';
 import { getStoreSettings } from '@/lib/content/queries';
+import { deliverEmailsSoon } from '@/lib/email/outbox';
 
 const addressSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter the recipient’s full name.').max(120),
@@ -104,6 +105,7 @@ export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ o
     return fail('We could not place your order. Nothing has been charged — please try again.', 'error');
   }
   const placed = result as { order_number: string; payment_method: string };
+  deliverEmailsSoon();
 
   // The order cookie lets this browser open the order page and upload the
   // payment proof. It holds the access token (the database stores only its hash).
