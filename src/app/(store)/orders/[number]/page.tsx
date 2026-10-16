@@ -9,6 +9,7 @@ import { getPublicPaymentSettings, type PublicPaymentSettings } from '@/lib/paym
 import { buildUpiUri } from '@/lib/payments/upi';
 import { getStoreSettings } from '@/lib/content/queries';
 import { UpiPaymentPanel } from '@/components/orders/upi-payment-panel';
+import { RazorpayPayButton } from '@/components/orders/razorpay-pay-button';
 import { ProofForm } from '@/components/orders/proof-form';
 import { OrderProgress } from '@/components/orders/order-progress';
 import { Badge, Notice, Skeleton } from '@/components/ui/misc';
@@ -117,6 +118,7 @@ async function OrderContent({ params }: { params: PageProps<'/orders/[number]'>[
   }
 
   const showPay = canSubmitProof(order) && settings !== null;
+  const payOnline = order.paymentMethod === 'razorpay' && order.paymentStatus === 'unpaid' && order.orderStatus === 'pending_payment';
   const late = order.orderStatus === 'cancelled' && order.expired;
   const awaiting = order.paymentStatus === 'proof_submitted' || order.paymentStatus === 'verification_pending';
   const fulfilled = ['confirmed', 'processing', 'shipped', 'delivered'].includes(order.orderStatus);
@@ -139,7 +141,9 @@ async function OrderContent({ params }: { params: PageProps<'/orders/[number]'>[
 
         {order.paymentStatus === 'unpaid' && order.orderStatus === 'pending_payment' ? (
           <Notice tone="success" title="Order received — complete your payment">
-            Your pairs are reserved. Pay the exact amount below, then submit the payment details so we can verify it.
+            {order.paymentMethod === 'razorpay'
+              ? 'Your items are reserved. Complete the payment below to confirm your order.'
+              : 'Your items are reserved. Pay the exact amount below, then submit the payment details so we can verify it.'}
           </Notice>
         ) : null}
         {rejected ? (
@@ -167,6 +171,15 @@ async function OrderContent({ params }: { params: PageProps<'/orders/[number]'>[
             expiresAt={order.reservationExpiresAt}
             late={late}
           />
+        ) : null}
+        {payOnline ? (
+          settings?.razorpayEnabled ? (
+            <RazorpayPayButton orderNumber={order.orderNumber} amount={order.total} />
+          ) : (
+            <Notice tone="warning" title="Online payment is unavailable right now">
+              Please try again later or contact us. Your order stays reserved until {order.reservationExpiresAt ? formatDateTime(order.reservationExpiresAt) : 'the payment window ends'}.
+            </Notice>
+          )
         ) : null}
         {showPay && settings ? <ProofForm orderNumber={order.orderNumber} amount={order.total} upiId={settings.upiId} requireProof={settings.requireProof} late={late} /> : null}
         {awaiting ? <AwaitingVerification order={order} settings={settings} /> : null}
