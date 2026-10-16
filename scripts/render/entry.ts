@@ -34,12 +34,45 @@ export type Job =
       height: number;
       background: string;
       dark?: boolean;
-      items: { subject: Subject; position: [number, number, number]; rotation: [number, number, number]; scale?: number }[];
+      items: {
+        subject: Subject;
+        position: [number, number, number];
+        rotation: [number, number, number];
+        scale?: number;
+        /** false: no soft contact shadow under this item (it still casts a shadow-map shadow). */
+        shadow?: boolean;
+        /**
+         * Centre the item on `position` and scale it so its bounding sphere has this
+         * radius (like the homepage 3D hero, src/components/three/hero-stage.tsx);
+         * `scale` then multiplies that.
+         */
+        fitRadius?: number;
+      }[];
       camera: { position: [number, number, number]; target: [number, number, number]; fov: number };
       accentLight?: string;
       fill?: number;
+      /** Fraction of the half-frame to move the subject right (negative: left). */
       offsetX?: number;
+      /** Fraction of the half-frame to move the subject up (negative: down). */
+      offsetY?: number;
+      /** Put every contact shadow on the floor (y = 0), fading with height, for floating compositions. */
+      groundShadows?: boolean;
+      /** Soft radial glow painted into the backdrop behind the subject (CSS colour). */
+      glow?: string;
     };
+
+// Scene jobs reuse built subjects (several site images share products), cloned
+// so each scene gets its own transform; geometry and materials are shared.
+const subjectCache = new Map<string, THREE.Group>();
+function cachedSubject(subject: Subject): THREE.Group {
+  const key = JSON.stringify(subject);
+  let g = subjectCache.get(key);
+  if (!g) {
+    g = buildSubject(subject);
+    subjectCache.set(key, g);
+  }
+  return g.clone();
+}
 
 function buildSubject(subject: Subject): THREE.Group {
   if (subject.type === 'shoe') return buildShoe(subject.silhouette, subject.colorway).group;
@@ -117,18 +150,46 @@ function studio(background: string, dark = false, accent?: string) {
   return scene;
 }
 
-function addContactShadow(scene: THREE.Scene, obj: THREE.Object3D, dark: boolean) {
+function addContactShadow(scene: THREE.Scene, obj: THREE.Object3D, dark: boolean, onGround = false) {
   const box = new THREE.Box3().setFromObject(obj);
   const size = box.getSize(new THREE.Vector3());
   const centre = box.getCenter(new THREE.Vector3());
+  // Floating objects (onGround): the blob sits on the floor, grows and fades with height.
+  const lift = onGround ? Math.max(0, box.min.y) / Math.max(size.x, size.z, 0.05) : 0;
+  const spread = 1 + lift * 0.6;
   const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(size.x * 1.25, size.z * 1.6),
-    new THREE.MeshBasicMaterial({ map: contactShadowTexture(dark), transparent: true, depthWrite: false }),
+    new THREE.PlaneGeometry(size.x * 1.25 * spread, size.z * 1.6 * spread),
+    new THREE.MeshBasicMaterial({
+      map: contactShadowTexture(dark), transparent: true, depthWrite: false,
+      opacity: onGround ? Math.max(0.3, 1 / (1 + lift * 1.4)) : 1,
+    }),
   );
   plane.rotation.x = -Math.PI / 2;
-  plane.position.set(centre.x, Math.max(0.0005, box.min.y - 0.0005), centre.z);
+  plane.position.set(centre.x, onGround ? 0.0005 : Math.max(0.0005, box.min.y - 0.0005), centre.z);
   plane.renderOrder = -1;
   scene.add(plane);
+}
+
+/** Flat backdrop with a soft radial glow, centred where the subject sits. */
+function glowBackdrop(background: string, glow: string, aspect: number, offsetX: number) {
+  const c = document.createElement('canvas');
+  c.height = 512;
+  c.width = Math.round(512 * aspect);
+  const g = c.getContext('2d')!;
+  g.fillStyle = background;
+  g.fillRect(0, 0, c.width, c.height);
+  const cx = c.width * (0.5 + offsetX / 2);
+  const grad = g.createRadialGradient(cx, c.height * 0.42, 0, cx, c.height * 0.42, c.height * 0.75);
+  const rgb = new THREE.Color(glow).getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+  const rgba = (a: number) => `rgba(${Math.round(rgb.r * 255)},${Math.round(rgb.g * 255)},${Math.round(rgb.b * 255)},${a})`;
+  grad.addColorStop(0, rgba(0.22));
+  grad.addColorStop(0.5, rgba(0.07));
+  grad.addColorStop(1, rgba(0));
+  g.fillStyle = grad;
+  g.fillRect(0, 0, c.width, c.height);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
 const VIEWS: Record<View, { position: [number, number, number]; target: [number, number, number]; fov: number }> = {
@@ -140,12 +201,15 @@ const VIEWS: Record<View, { position: [number, number, number]; target: [number,
   detail: { position: [0.9, 0.5, 0.95], target: [0.12, 0.12, 0.05], fov: 22 },
 };
 
-function fitCamera(camera: THREE.PerspectiveCamera, obj: THREE.Object3D, target: THREE.Vector3, fill: number) {
+function fitCamera(camera: THREE.PerspectiveCamera, obj: THREE.Object3D, target: THREE.Vector3, fill: number, parts?: THREE.Object3D[]) {
   // Binary-search the camera distance so the projected bounding box fills the
-  // frame, then re-centre the projected box.
-  const box = new THREE.Box3().setFromObject(obj);
+  // frame, then re-centre the projected box. With `parts`, each part's own box
+  // is projected (a tighter fit for spread-out compositions).
   const corners: THREE.Vector3[] = [];
-  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new THREE.Vector3(x, y, z));
+  for (const o of parts ?? [obj]) {
+    const box = new THREE.Box3().setFromObject(o);
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new THREE.Vector3(x, y, z));
+  }
   const dir = camera.position.clone().sub(target).normalize();
   const project = () => {
     camera.lookAt(target);
@@ -235,27 +299,50 @@ async function runJob(job: Job): Promise<string> {
     camera.updateProjectionMatrix();
     fitCamera(camera, group, target, job.view === 'detail' ? 1.4 : job.view === 'side' ? 0.86 : 0.8);
   } else {
+    if (job.groundShadows) {
+      // Floating products: their cast shadows land far below, so keep them faint.
+      scene.traverse((o) => {
+        if (o instanceof THREE.Mesh && o.material instanceof THREE.ShadowMaterial) o.material.opacity *= 0.5;
+      });
+    }
+    if (job.glow) scene.background = glowBackdrop(job.background, job.glow, job.width / job.height, job.offsetX ?? 0);
     const all = new THREE.Group();
+    const shadowed: THREE.Object3D[] = [];
     for (const s of job.items) {
-      const group = buildSubject(s.subject);
+      let group = cachedSubject(s.subject);
+      if (s.fitRadius) {
+        const box = new THREE.Box3().setFromObject(group);
+        const sphere = box.getBoundingSphere(new THREE.Sphere());
+        const k = sphere.radius > 0 ? s.fitRadius / sphere.radius : 1;
+        const centre = box.getCenter(new THREE.Vector3());
+        group.position.set(-centre.x * k, -centre.y * k, -centre.z * k);
+        group.scale.setScalar(k);
+        const wrapper = new THREE.Group();
+        wrapper.add(group);
+        group = wrapper;
+      }
       group.position.set(...s.position);
       group.rotation.set(...s.rotation);
       group.scale.setScalar(s.scale ?? 1);
       all.add(group);
+      if (s.shadow !== false) shadowed.push(group);
     }
     scene.add(all);
-    for (const child of all.children) addContactShadow(scene, child, Boolean(job.dark));
+    all.updateMatrixWorld(true);
+    for (const child of shadowed) addContactShadow(scene, child, Boolean(job.dark), Boolean(job.groundShadows));
     camera.fov = job.camera.fov;
     camera.position.set(...job.camera.position);
     const target = new THREE.Vector3(...job.camera.target);
     if (job.fill) {
-      fitCamera(camera, all, target, job.fill);
-      if (job.offsetX) {
-        // Shift the subject sideways (e.g. to leave room for hero copy).
+      fitCamera(camera, all, target, job.fill, all.children);
+      if (job.offsetX || job.offsetY) {
+        // Shift the subject sideways / vertically (e.g. to leave room for copy).
         const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
         const dist = camera.position.distanceTo(target);
-        const halfW = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * dist * camera.aspect;
-        const shift = right.multiplyScalar(-job.offsetX * halfW);
+        const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * dist;
+        const halfW = halfH * camera.aspect;
+        const shift = right.multiplyScalar(-(job.offsetX ?? 0) * halfW).add(up.multiplyScalar(-(job.offsetY ?? 0) * halfH));
         camera.position.add(shift);
         target.add(shift);
       }

@@ -4,7 +4,8 @@
 //   public/images/products/<product>/<colour>-<view>.webp
 //   public/images/site/*.webp                      (hero, categories, banners)
 //
-// Usage: node scripts/render/run.mjs [--only=<slug>[,<slug>...]] [--site] [--models] [--photos] [--preview] [--side]
+// Usage: node scripts/render/run.mjs [--only=<slug>[,<slug>...]] [--site[=<name>,...]] [--models] [--photos] [--preview] [--side]
+//   --site=hero,category-beauty renders only those site images (names without .webp)
 //   --preview renders only the first colourway's hero34 view (or side view with --side)
 //   Set RENDER_TMP to a private directory when running several renders at once.
 import { build } from 'esbuild';
@@ -22,7 +23,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const OUT_TMP = process.env.RENDER_TMP ?? path.join(ROOT, '.render-cache');
 const args = new Set(process.argv.slice(2));
 const only = [...args].find((a) => a.startsWith('--only='))?.split('=')[1]?.split(',').filter(Boolean);
-const wantAll = !args.has('--site') && !args.has('--models') && !args.has('--photos');
+const siteArg = [...args].find((a) => a === '--site' || a.startsWith('--site='));
+const wantAll = !siteArg && !args.has('--models') && !args.has('--photos');
 const SS = 1.6; // supersampling factor
 
 const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -106,25 +108,121 @@ async function main() {
     }
   }
 
-  if ((wantAll || args.has('--site')) && !only) {
+  if ((wantAll || siteArg) && !only) {
     const byslug = Object.fromEntries(catalog.PRODUCTS.map((p) => [p.slug, p]));
+    const product = (slug) => {
+      if (!byslug[slug]) throw new Error(`Unknown product in --site scene: ${slug}`);
+      return byslug[slug];
+    };
+    // Footwear sub-category tiles: shoes at their own (photo) scale.
     const shoe = (slug, ci, position, rotation, scale = 1) => ({
-      subject: subjectOf(byslug[slug], byslug[slug].colorways[ci]), position, rotation, scale,
+      subject: subjectOf(product(slug), product(slug).colorways[ci]), position, rotation, scale,
     });
-    const site = path.join(ROOT, 'public/images/site');
-    // Hero fallback (also used as the poster behind the WebGL hero).
-    await savePhoto({
-      kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
-      items: [shoe('velocity-runner-x', 0, [0.05, 0.2, 0], [0.18, -0.55, 0.2], 1)],
-      camera: { position: [0.2, 0.5, 2.6], target: [0.05, 0.28, 0], fov: 26 }, fill: 0.62, offsetX: 0.32,
-    }, path.join(site, 'hero.webp'), 2000, 1250);
-    await savePhoto({
-      kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
-      items: [shoe('velocity-runner-x', 0, [0.0, 0.2, 0], [0.18, -0.55, 0.2], 1)],
-      camera: { position: [0.1, 0.55, 2.9], target: [0.0, 0.3, 0], fov: 30 }, fill: 0.78,
-    }, path.join(site, 'hero-mobile.webp'), 900, 1200);
-    // Category tiles.
-    const tiles = {
+    // Mixed scenes are laid out in real metres. Item builders already are; the
+    // procedural shoes are ~1 unit long, so they are scaled to a ~30 cm shoe.
+    const SHOE_M = 0.3;
+    const put = (slug, { c = 0, at = [0, 0], y = 0, ry = 0, rot, s = 1, ...rest } = {}) => {
+      const p = product(slug);
+      return {
+        subject: subjectOf(p, p.colorways[c]),
+        position: [at[0], y, at[1]],
+        rotation: rot ?? [0, ry, 0],
+        scale: s * (p.kind === 'shoe' ? SHOE_M : 1),
+        ...rest,
+      };
+    };
+    // Camera directions (fitCamera sets the distance): a three-quarter view from
+    // the front right, and a higher one for low, flat products.
+    const CAM_34 = { position: [0.9, 1.05, 1.9], target: [0, 0.1, 0], fov: 30 };
+    const CAM_HIGH = { position: [0.75, 1.55, 1.6], target: [0, 0.05, 0], fov: 30 };
+    const CAM_WIDE = { position: [0.35, 0.8, 2.3], target: [0, 0.1, 0], fov: 28 };
+    const DARK = { dark: true, accentLight: '#4ade80' };
+
+    const jobs = [];
+    const add = (name, w, h, job) => jobs.push({ name, w, h, job: { kind: 'scene', ...job } });
+
+    // Homepage hero poster / no-WebGL fallback. Mirrors DEFAULT_HERO_MODELS in
+    // src/components/three/hero-models.ts: the same five products, positions,
+    // rotations and bounding radii (hero units scaled by U metres), floating
+    // over a floor at the hero's contact-shadow height.
+    const U = 0.13;
+    const HERO = [
+      ['velocity-runner-x', 0, [0, -0.2, 0.5], 1.25, [0.12, -0.6, 0.05]],
+      ['orbit-over-ear-headphones', 0, [-1.5, 1.05, -0.3], 0.85, [0.2, 0.5, -0.1]],
+      ['stride-smartwatch-2', 0, [1.5, 1.05, -0.2], 0.7, [0.5, -0.35, 0.08]],
+      ['thermosteel-bottle-1l', 0, [-1.6, -1.0, 0], 0.85, [0.05, 0.4, 0.12]],
+      ['pulse-wireless-earbuds', 1, [1.55, -1.0, 0.2], 0.68, [0.45, -0.3, 0]],
+    ];
+    const heroRadius = Math.max(1, ...HERO.map(([, , p, r]) => Math.max(Math.abs(p[0]), Math.abs(p[1])) + r));
+    const floor = heroRadius * 0.82 * U;
+    const heroItems = HERO.map(([slug, c, p, r, rot]) => ({
+      ...put(slug, { c, rot, s: 1 }), scale: 1, fitRadius: r * U, position: [p[0] * U, p[1] * U + floor, p[2] * U],
+    }));
+    const heroCam = { position: [0, floor, 9 * U], target: [0, floor, 0], fov: 30 };
+    const heroLook = { background: '#111112', glow: '#22c55e', groundShadows: true, ...DARK };
+    // Desktop: shown at roughly 32–91% of the width (object-position 78%), so the subject sits right of centre.
+    add('hero', 2000, 1250, { ...heroLook, items: heroItems, camera: heroCam, fill: 0.7, offsetX: 0.23 });
+    // Mobile: cropped to the central square.
+    add('hero-mobile', 900, 1200, { ...heroLook, items: heroItems, camera: heroCam, fill: 0.86 });
+
+    // Link previews: brand-neutral, centred, everything grounded.
+    add('og-default', 1200, 630, {
+      background: '#ebe6dd',
+      items: [
+        put('metro-laptop-backpack', { c: 0, at: [-0.3, -0.12], ry: 0.4, s: 0.72 }),
+        put('orbit-over-ear-headphones', { c: 1, at: [-0.08, -0.21], ry: 0.15 }),
+        put('thermosteel-bottle-1l', { c: 0, at: [0.13, -0.15], ry: -0.2, s: 0.85 }),
+        put('cuddle-bear-plush', { c: 0, at: [0.33, -0.08], ry: -0.45, s: 0.85 }),
+        put('urban-street-pro', { c: 0, at: [0.03, 0.08], ry: -0.35 }),
+        put('stride-smartwatch-2', { c: 0, at: [-0.25, 0.16], ry: 0.35, s: 1.7 }),
+        put('hydraglow-face-serum', { c: 0, at: [0.21, 0.17], ry: -0.3, s: 1.2 }),
+      ],
+      camera: CAM_WIDE, fill: 0.8,
+    });
+
+    // Department tiles (900×1125): two or three products from each department.
+    const tile = (slug, background, items, camera = CAM_34, fill = 0.88) =>
+      add(`category-${slug}`, 900, 1125, { background, items, camera, fill });
+    tile('electronics', '#dde3ea', [
+      put('orbit-over-ear-headphones', { c: 0, at: [0.01, -0.09], ry: 0.2 }),
+      put('stride-smartwatch-2', { c: 0, at: [0.075, 0.09], ry: -0.3, s: 1.7 }),
+      put('pulse-wireless-earbuds', { c: 1, at: [-0.085, 0.07], ry: 0.45, s: 1.5 }),
+    ], CAM_HIGH);
+    tile('fashion', '#ece2d6', [
+      put('metro-laptop-backpack', { c: 1, at: [0.15, -0.16], ry: -0.45, s: 0.7 }),
+      put('everyday-cotton-tee', { c: 2, at: [-0.11, -0.04], ry: 0.25, s: 0.46 }),
+      put('classic-aviator-sunglasses', { c: 0, at: [0.06, 0.15], ry: 0.25, s: 1.25 }),
+    ]);
+    tile('footwear', '#e7e2d8', [
+      put('urban-street-pro', { c: 0, at: [-0.05, -0.2], ry: Math.PI + 0.45 }),
+      put('velocity-runner-x', { c: 2, at: [0.05, 0.12], ry: -0.55 }),
+    ], CAM_HIGH);
+    tile('home-kitchen', '#e1e6dc', [
+      put('ceramic-planter-set', { c: 0, at: [0.11, -0.12], ry: -0.3, s: 0.75 }),
+      put('thermosteel-bottle-1l', { c: 0, at: [-0.13, -0.09], ry: 0.2, s: 0.85 }),
+      put('stoneware-mug-set', { c: 1, at: [-0.01, 0.11], ry: 0.2, s: 0.7 }),
+    ]);
+    tile('beauty', '#f0e3dc', [
+      put('daily-moisturising-lotion', { c: 0, at: [-0.06, -0.045], ry: 0.15 }),
+      put('citrus-fresh-body-wash', { c: 0, at: [0.05, -0.07], ry: -0.2 }),
+      put('hydraglow-face-serum', { c: 0, at: [0.045, 0.06], ry: -0.2, s: 1.05 }),
+    ], CAM_34, 0.82);
+    tile('sports-fitness', '#dce6e2', [
+      put('flexgrip-yoga-mat', { c: 0, at: [0.0, -0.17], ry: Math.PI + 0.3, s: 0.85 }),
+      put('trailhead-camping-lantern', { c: 1, at: [0.15, 0.06], ry: -0.4 }),
+      put('powergrip-neoprene-dumbbells', { c: 0, at: [-0.1, 0.08], ry: 0.45 }),
+    ], CAM_HIGH);
+    tile('toys-kids', '#f1e7cf', [
+      put('cuddle-bear-plush', { c: 0, at: [0.06, -0.06], ry: -0.3 }),
+      put('build-and-play-blocks', { c: 0, at: [-0.1, 0.13], ry: 0.4, s: 1.1 }),
+    ]);
+    tile('books-stationery', '#e6e1ee', [
+      put('dot-grid-notebook-a5', { c: 0, at: [-0.05, -0.06], ry: 0.35 }),
+      put('smooth-gel-pen-set', { c: 0, at: [0.1, 0.18], ry: -0.45 }),
+    ], CAM_HIGH, 0.84);
+
+    // Footwear sub-category tiles.
+    const shoeTiles = {
       sneakers: shoe('urban-street-pro', 0, [0, 0, 0], [0, -0.7, 0]),
       running: shoe('velocity-runner-x', 1, [0, 0, 0], [0, -0.7, 0]),
       sports: shoe('courtvision-elite', 0, [0, 0, 0], [0, -0.7, 0]),
@@ -133,40 +231,61 @@ async function main() {
       boots: shoe('trailforce-outdoor', 0, [0, 0, 0], [0, -0.7, 0]),
       sandals: shoe('coastline-slide', 1, [0, 0, 0], [0, -0.7, 0]),
     };
-    const tileBg = { sneakers: '#e7e2d8', running: '#dfe5ea', sports: '#e4e1ec', casual: '#e6e2d6', formal: '#e2dbd3', boots: '#e0ddd2', sandals: '#e0e6e6' };
-    for (const [slug, s] of Object.entries(tiles)) {
-      await savePhoto({
-        kind: 'scene', background: tileBg[slug], items: [s],
+    const shoeTileBg = { sneakers: '#e7e2d8', running: '#dfe5ea', sports: '#e4e1ec', casual: '#e6e2d6', formal: '#e2dbd3', boots: '#e0ddd2', sandals: '#e0e6e6' };
+    for (const [slug, s] of Object.entries(shoeTiles)) {
+      add(`category-${slug}`, 900, 1125, {
+        background: shoeTileBg[slug], items: [s],
         camera: { position: [0.9, 1.05, 1.9], target: [0, 0.1, 0], fov: 30 }, fill: 0.78,
-      }, path.join(site, `category-${slug}.webp`), 900, 1125);
+      });
     }
-    // Editorial / promo banners.
-    await savePhoto({
-      kind: 'scene', background: '#1a1a1d', dark: true, accentLight: '#38bdf8',
+
+    // Promo banner (dark; copy sits on the right on large screens, below the image on phones).
+    add('banner-performance', 2000, 900, {
+      background: '#141517', ...DARK,
       items: [
-        shoe('trailforce-outdoor', 0, [-0.55, 0, -0.1], [0, 0.5, 0]),
-        shoe('courtvision-elite', 0, [0.6, 0, 0.05], [0, -0.6, 0]),
+        put('flexgrip-yoga-mat', { c: 1, at: [0.04, -0.24], ry: 0.12, s: 0.85 }),
+        put('trailhead-camping-lantern', { c: 0, at: [-0.33, -0.21], ry: 0.35 }),
+        put('velocity-runner-x', { c: 1, at: [-0.02, 0.06], ry: -0.35, s: 1.2 }),
+        put('powergrip-neoprene-dumbbells', { c: 0, at: [0.29, 0.02], ry: -0.5 }),
+        put('stride-smartwatch-2', { c: 0, at: [-0.26, 0.13], ry: 0.45, s: 1.6 }),
       ],
-      camera: { position: [0, 0.75, 3.4], target: [0, 0.2, 0], fov: 32 }, fill: 0.72, offsetX: -0.28,
-    }, path.join(site, 'banner-performance.webp'), 2000, 900);
-    await savePhoto({
-      kind: 'scene', background: '#e9e4da',
+      camera: CAM_WIDE, fill: 0.48, offsetX: -0.17,
+    });
+    // Collection spotlight / collection image: cropped to its centre on large
+    // screens, with copy over the bottom left, so the products sit centred and high.
+    add('banner-essentials', 2000, 900, {
+      background: '#e9e4da',
       items: [
-        shoe('cloudstep-everyday', 0, [-0.5, 0, 0.05], [0, 0.6, 0]),
-        shoe('urban-street-pro', 0, [0.55, 0, -0.08], [0, -0.5, 0]),
+        put('metro-laptop-backpack', { c: 1, at: [-0.08, -0.17], ry: 0.3, s: 0.72 }),
+        put('everyday-cotton-tee', { c: 0, at: [0.13, -0.2], ry: -0.35, s: 0.42 }),
+        put('thermosteel-bottle-1l', { c: 2, at: [0.01, 0.0], ry: 0, s: 0.85 }),
+        put('volt-20000-power-bank', { c: 1, at: [0.12, 0.06], ry: -0.4 }),
+        put('dot-grid-notebook-a5', { c: 0, at: [-0.11, 0.1], ry: 0.3, s: 0.8 }),
       ],
-      camera: { position: [0, 0.85, 3.3], target: [0, 0.12, 0], fov: 32 }, fill: 0.72, offsetX: -0.28,
-    }, path.join(site, 'banner-essentials.webp'), 2000, 900);
-    await savePhoto({
-      kind: 'scene', background: '#d9d3c7',
-      items: [shoe('midnight-leather-classic', 1, [0, 0, 0], [0, -0.35, 0])],
-      camera: { position: [0.9, 0.55, 1.5], target: [0.05, 0.08, 0], fov: 30 }, fill: 0.8,
-    }, path.join(site, 'story-craft.webp'), 1200, 1500);
-    await savePhoto({
-      kind: 'scene', background: '#121214', dark: true, accentLight: '#f97316',
-      items: [shoe('velocity-runner-x', 2, [0, 0.12, 0], [0.12, -0.6, 0.15])],
-      camera: { position: [0.2, 0.45, 2.6], target: [0, 0.22, 0], fov: 26 }, fill: 0.7, offsetX: 0.3,
-    }, path.join(site, 'og-default.webp'), 1200, 630);
+      camera: CAM_34, fill: 0.56, offsetX: -0.05, offsetY: 0.33,
+    });
+    // Editorial story (4:5, no text over it): a calm still life.
+    add('story-craft', 1200, 1500, {
+      background: '#e2dbd0',
+      items: [
+        put('lumen-led-table-lamp', { c: 0, at: [-0.1, -0.13], ry: 0.2 }),
+        put('dot-grid-notebook-a5', { c: 1, at: [0.07, 0.07], ry: -0.35 }),
+        put('classic-aviator-sunglasses', { c: 0, at: [0.08, 0.06], y: 0.036, ry: -0.15 }),
+        put('hydraglow-face-serum', { c: 0, at: [-0.14, 0.14], ry: 0.2, s: 1.1 }),
+      ],
+      camera: CAM_34, fill: 0.84,
+    });
+
+    const site = path.join(ROOT, 'public/images/site');
+    const pick = siteArg && siteArg !== '--site' ? siteArg.split('=')[1].split(',').filter(Boolean) : null;
+    if (pick) {
+      const unknown = pick.filter((n) => !jobs.some((j) => j.name === n));
+      if (unknown.length) throw new Error(`Unknown --site image: ${unknown.join(', ')} (have ${jobs.map((j) => j.name).join(', ')})`);
+    }
+    for (const { name, w, h, job } of jobs) {
+      if (pick && !pick.includes(name)) continue;
+      await savePhoto(job, path.join(site, `${name}.webp`), w, h);
+    }
   }
 
   await browser.close();
