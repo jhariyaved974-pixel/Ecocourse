@@ -2,10 +2,13 @@
 -- Import the archived single-page-app catalogue (legacy schema) into the new
 -- relational tables. Runs only when legacy.products exists; idempotent.
 --
---   legacy.categories -> categories (slides -> sandals)
+--   legacy.categories -> sub-categories of the 'footwear' department (created
+--                        if missing; slides -> sandals). A legacy slug already
+--                        used outside Footwear is imported as '<slug>-footwear'.
 --   legacy.products   -> products (as DRAFTS: they have no images or stock yet),
---                        product_colors, product_variants (UK sizes from the old
---                        catalogue settings, stock 0), product_attributes
+--                        variant label 'Size', product_colors, product_variants
+--                        (UK sizes from the old catalogue settings, stock 0),
+--                        product_attributes
 --   legacy.coupons    -> coupons (amounts converted from rupees to paise)
 --   legacy.subscribers-> newsletter_subscribers
 --   legacy shipping settings -> shipping_methods fees/thresholds
@@ -23,18 +26,46 @@ declare
   v_size integer;
   v_shipping jsonb;
   v_cat_slug text;
+  v_footwear uuid;
+  v_footwear_guide uuid;
+  v_cat_id uuid;
+  v_existing record;
+  v_cat_map jsonb := '{}'::jsonb;
 begin
   if to_regclass('legacy.products') is null then
     raise notice 'No legacy catalogue to import.';
     return;
   end if;
 
-  -- Categories
-  for c in execute 'select id, name, blurb, sort, published from legacy.categories' loop
+  -- Categories: the old store sold only shoes, so every legacy category becomes
+  -- a sub-category of the Footwear department (and uses the footwear size guide).
+  select id into v_footwear_guide from public.size_guides where name = 'Footwear (UK/India)' limit 1;
+  insert into public.categories (name, slug, description, sort_order, size_guide_id)
+  values ('Footwear', 'footwear', 'Sneakers, running shoes, formal pairs, boots and sandals.',
+    coalesce((select max(sort_order) + 1 from public.categories where parent_id is null), 1), v_footwear_guide)
+  on conflict (slug) do nothing;
+  select id into v_footwear from public.categories where slug = 'footwear';
+  if (select parent_id from public.categories where id = v_footwear) is not null then
+    raise exception 'The "footwear" category must be a top-level department before the legacy catalogue can be imported.';
+  end if;
+
+  for c in execute 'select id, name, blurb, sort, published from legacy.categories order by sort, id' loop
     v_cat_slug := case c.id when 'slides' then 'sandals' else c.id end;
-    insert into public.categories (name, slug, description, sort_order, is_visible)
-    values (case c.id when 'slides' then 'Sandals & Slides' else c.name end, v_cat_slug, coalesce(c.blurb, ''), 100 + c.sort, c.published)
-    on conflict (slug) do nothing;
+    select id, parent_id into v_existing from public.categories where slug = v_cat_slug;
+    if found and v_existing.id is distinct from v_footwear and v_existing.parent_id is distinct from v_footwear then
+      -- The slug belongs to another department's category; keep the shoes apart.
+      v_cat_slug := left(v_cat_slug, 100) || '-footwear';
+      select id, parent_id into v_existing from public.categories where slug = v_cat_slug;
+    end if;
+    if found then
+      v_cat_id := v_existing.id;
+    else
+      insert into public.categories (parent_id, name, slug, description, sort_order, is_visible, size_guide_id)
+      values (v_footwear, case c.id when 'slides' then 'Sandals & Slides' else c.name end, v_cat_slug,
+        coalesce(c.blurb, ''), 100 + c.sort, c.published, v_footwear_guide)
+      returning id into v_cat_id;
+    end if;
+    v_cat_map := v_cat_map || jsonb_build_object(c.id, v_cat_id);
   end loop;
 
   select coalesce(array(select (jsonb_array_elements_text(value -> 'sizes'))::integer), '{6,7,8,9,10,11}')
@@ -47,15 +78,14 @@ begin
     if exists (select 1 from public.products where slug = p.id) then
       continue;
     end if;
-    v_cat_slug := case p.cat when 'slides' then 'sandals' else p.cat end;
     insert into public.products (
       name, slug, sku, category_id, gender, short_description, description, price, sale_price,
-      status, is_new_arrival, is_bestseller, tags
+      status, is_new_arrival, is_bestseller, tags, variant_label
     ) values (
       p.name,
       p.id,
       left(upper(regexp_replace(p.id, '[^a-z0-9]+', '-', 'g')), 40),
-      (select id from public.categories where slug = v_cat_slug),
+      coalesce(nullif(v_cat_map ->> p.cat, '')::uuid, v_footwear),
       p.gender::public.gender_target,
       left(coalesce(p.description, ''), 300),
       coalesce(p.description, '') ||
@@ -67,7 +97,8 @@ begin
       'draft',
       p.tag = 'new',
       p.tag = 'bestseller',
-      array_remove(array[p.type, nullif(p.tag, ''), 'imported'], null)
+      array_remove(array[p.type, nullif(p.tag, ''), 'imported'], null),
+      'Size'
     ) returning id into v_product;
 
     if coalesce(p.material, '') <> '' then
