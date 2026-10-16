@@ -49,12 +49,16 @@ build a preview for every PR. Protect the production branch and never commit `.e
    Generate secrets with
    `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
    Never reuse the local development keys.
-3. Cron jobs are declared in `vercel.json`:
+3. Cron jobs are declared in `vercel.json` and run **once a day**, which every Vercel plan
+   allows:
    - `/api/cron/expire-orders` — releases stock held by unpaid orders whose reservation expired.
-   - `/api/cron/send-emails` — delivers queued transactional emails (and consent-based cart reminders).
-   Vercel sends `Authorization: Bearer $CRON_SECRET`. **Hobby plans only run crons once a day**:
-   on Hobby, rely on `pg_cron` for expiry (step 1.6) and expect delayed emails, or upgrade to Pro
-   for the configured schedules.
+   - `/api/cron/send-emails` — queues consent-based cart reminders and sends anything still
+     waiting in the email outbox (retries).
+   Vercel sends `Authorization: Bearer $CRON_SECRET`; without `CRON_SECRET` both endpoints answer
+   401. The daily runs are only a safety net: emails are sent right after the action that queued
+   them, and unpaid orders also expire every 5 minutes through `pg_cron` (step 1.6) and whenever
+   someone checks out. On a Pro plan you can make the schedules more frequent (for example
+   `*/15 * * * *`) by editing `vercel.json`.
 4. Add your domain (Project → Domains) and set `NEXT_PUBLIC_SITE_URL` to it.
 5. Deploy. After the first deployment, create the first owner — see [ADMIN.md](ADMIN.md).
 
@@ -62,14 +66,23 @@ build a preview for every PR. Protect the production branch and never commit `.e
 
 1. Verify your sending domain in Resend (SPF/DKIM DNS records).
 2. Set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `AUREN <orders@yourdomain.in>`) in Vercel.
-3. Queued emails (`email_outbox`) are delivered by the cron job; failed sends retry with backoff.
+3. Emails are queued in `email_outbox` by the database (order placed, proof received, payment
+   verified or rejected, shipped, delivered, cancelled, refunds, staff proof alerts) and sent
+   right after the request that queued them. Failed sends retry with exponential backoff (up to
+   6 attempts, also from the daily cron); messages older than 3 days are skipped rather than sent
+   late. Until Resend is configured nothing is sent and nothing breaks.
+4. Optional cart reminders: turn them on in Admin → Settings → Cart reminders. Only signed-in
+   shoppers who ticked the opt-in in their account get one reminder per cart (at most one a
+   week); every reminder has a one-click opt-out (also sent as a `List-Unsubscribe` header).
+   Newsletter sign-ups get a welcome email with an unsubscribe link.
 
 ## 4. Razorpay (optional)
 
 1. Create API keys in **Test mode** first; set the three `RAZORPAY_*` variables.
 2. Add a webhook: URL `https://<your-domain>/api/webhooks/razorpay`, secret =
-   `RAZORPAY_WEBHOOK_SECRET`, events `payment.captured`, `payment.failed`, `order.paid`,
-   `refund.processed`.
+   `RAZORPAY_WEBHOOK_SECRET`, events `payment.captured`, `payment.failed` and `order.paid`
+   (other events are acknowledged and ignored). Keep automatic capture on in the Razorpay
+   dashboard; if it is off, the server captures authorised payments after verifying them.
 3. Enable Razorpay in Admin → Payment settings (the toggle stays disabled until keys exist).
 4. Orders are marked paid only from server-side verification of Razorpay's signed data
    (webhook / API fetch), never from the browser redirect. Switch to live keys only after a

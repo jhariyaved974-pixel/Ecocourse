@@ -80,5 +80,11 @@ Disabled until `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SE
 3. The browser's success callback is only a hint: the server verifies the signature and fetches
    the payment from Razorpay; the signed webhook (`/api/webhooks/razorpay`) is authoritative.
    Both paths are idempotent (each provider event is processed once) and check the amount.
+4. A payment captured after the order already expired (stock released) is not silently
+   accepted: the order is flagged for attention with a pending refund.
+5. Refunds for Razorpay payments are issued in the Razorpay dashboard and then recorded on the
+   order in Admin → Orders (the app does not call the refund API itself).
+
+The shopper pays from the order page ("Pay online"), which opens Razorpay Checkout on demand.
 
 Test with Razorpay **test mode** keys and a test webhook before switching to live keys.
