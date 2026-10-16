@@ -116,7 +116,7 @@ export default async function PaymentReviewPage({ params }: { params: Promise<{ 
             {proofs.length ? (
               <div className="space-y-4">
                 {proofs.map((p) => (
-                  <ProofCard key={p.id} proof={p} isCurrent={p.id === openProof?.id} />
+                  <ProofCard key={p.id} proof={p} isCurrent={p.id === openProof?.id} advanceReference={order.amount_paid > 0 ? order.payment_reference : null} />
                 ))}
               </div>
             ) : (

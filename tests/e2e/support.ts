@@ -146,3 +146,45 @@ export const PNG_1PX = Buffer.from(
 export function randomUtr() {
   return `4${String(Math.floor(Math.random() * 1e11)).padStart(11, '0')}`;
 }
+
+/**
+ * Like placeUpiOrder, but chooses the Half prepaid plan (the advance now, the
+ * balance online before dispatch) before placing the manual UPI order.
+ * Returns the order number; the page is left on the order page.
+ */
+export async function placeHalfPrepaidUpiOrder(page: Page, details: CheckoutDetails): Promise<string> {
+  await page.goto('/checkout');
+  await page.getByRole('button', { name: /Place order/ }).waitFor();
+  const email = page.locator('#email');
+  if (await email.isEditable()) await email.fill(details.email);
+  await page.fill('#fullName', details.name ?? 'Asha Verma');
+  await page.fill('#phone', '9876543210');
+  await page.fill('#line1', '12 MG Road');
+  await page.fill('#city', 'Bengaluru');
+  await page.fill('#postalCode', '560001');
+  await page.selectOption('#state', 'Karnataka');
+  await page.locator('aside input[type=checkbox]').check();
+  // The plan radios carry the server-quoted amounts; wait for them, then pick Half prepaid.
+  await page.getByRole('button', { name: /Place order · ₹/ }).waitFor();
+  await page.getByRole('radiogroup', { name: 'Payment plan' }).getByRole('radio', { name: /^Half prepaid/ }).click();
+  const place = page.getByRole('button', { name: /Place order · pay ₹[\d,.]+ now/ });
+  await place.waitFor();
+  await place.click();
+  await page.waitForURL(/\/orders\/[A-Z]{2,4}-\d{6}-[0-9A-Z]{5}$/, { timeout: 60_000 });
+  return decodeURIComponent(new URL(page.url()).pathname.split('/').pop()!);
+}
+
+/**
+ * Submits a payment screenshot and UTR from the customer's order page (for the
+ * full amount, the advance or the balance, whichever the page asks for) and
+ * waits until the payment-proof route has accepted it.
+ */
+export async function submitProofOnOrderPage(page: Page, utr: string) {
+  await page.setInputFiles('#proof-file', { name: 'payment.png', mimeType: 'image/png', buffer: PNG_1PX });
+  await page.fill('#utr', utr);
+  await page.locator('input[name="confirm"]').check();
+  const response = page.waitForResponse((r) => r.request().method() === 'POST' && /\/api\/orders\/[^/]+\/payment-proof$/.test(new URL(r.url()).pathname));
+  await page.getByRole('button', { name: 'Submit payment details' }).click();
+  const res = await response;
+  if (!res.ok()) throw new Error(`the payment proof was refused: ${res.status()} ${await res.text()}`);
+}

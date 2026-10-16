@@ -10,7 +10,12 @@ import { PAYMENT_SETTINGS_TAG } from '@/lib/payments/settings';
 import { isValidUpiId } from '@/lib/payments/upi';
 import { ADVANCE_PERCENT_MAX, ADVANCE_PERCENT_MIN, BALANCE_DUE_DAYS_MAX, BALANCE_DUE_DAYS_MIN } from '@/lib/admin/payment-plans';
 
-const int = (min: number, max: number, label: string) => z.coerce.number({ error: `${label} must be a number.` }).int().min(min, `${label}: at least ${min}.`).max(max, `${label}: at most ${max}.`);
+const int = (min: number, max: number, label: string) =>
+  z.coerce
+    .number({ error: `${label} must be a number.` })
+    .int(`${label} must be a whole number.`)
+    .min(min, `${label}: at least ${min}.`)
+    .max(max, `${label}: at most ${max}.`);
 
 const schema = z
   .object({

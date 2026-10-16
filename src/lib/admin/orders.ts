@@ -135,7 +135,14 @@ export async function listPaymentQueue({ tab, q, page }: { tab: PaymentTab; q: s
 
   if (q) {
     const like = `%${q}%`;
-    const parts = [`order_number.ilike.${like}`, `email.ilike.${like}`, `customer_name.ilike.${like}`, `payment_reference.ilike.${like}`];
+    const parts = [
+      `order_number.ilike.${like}`,
+      `email.ilike.${like}`,
+      `customer_name.ilike.${like}`,
+      `payment_reference.ilike.${like}`,
+      // Half prepaid: the balance UTR is stored separately from the advance UTR.
+      `balance_reference.ilike.${like}`,
+    ];
     if (utrOrderIds.length) parts.push(`id.in.(${utrOrderIds.join(',')})`);
     query = query.or(parts.join(','));
   }
@@ -361,7 +368,8 @@ export async function getOrderProofs(orderId: string): Promise<AdminProof[]> {
   const proofs = data ?? [];
   if (!proofs.length) return [];
 
-  const utrs = [...new Set(proofs.map((p) => p.utr?.toUpperCase()).filter((v): v is string => Boolean(v)))];
+  // UTRs are stored as letters and digits only (submit_payment_proof); anything else is skipped so it cannot alter the filter below.
+  const utrs = [...new Set(proofs.map((p) => p.utr?.toUpperCase()).filter((v): v is string => typeof v === 'string' && /^[A-Z0-9]+$/.test(v)))];
   const reviewerIds = [...new Set(proofs.map((p) => p.reviewed_by).filter((v): v is string => Boolean(v)))];
 
   const [dupProofs, dupOrders, reviewers, signed] = await Promise.all([
@@ -369,7 +377,13 @@ export async function getOrderProofs(orderId: string): Promise<AdminProof[]> {
       ? supabase.from('payment_proofs').select('order_id, utr, status, orders(order_number)').in('utr', utrs).neq('order_id', orderId).limit(50)
       : null,
     utrs.length
-      ? supabase.from('orders').select('id, order_number, payment_reference, payment_status').in('payment_reference', utrs).neq('id', orderId).limit(50)
+      ? supabase
+          .from('orders')
+          .select('id, order_number, payment_reference, balance_reference, payment_status, amount_paid')
+          // The advance / full payment reference and, for half prepaid, the balance reference.
+          .or(`payment_reference.in.(${utrs.join(',')}),balance_reference.in.(${utrs.join(',')})`)
+          .neq('id', orderId)
+          .limit(50)
       : null,
     reviewerIds.length ? supabase.from('profiles').select('id, email').in('id', reviewerIds) : null,
     Promise.all(
@@ -395,13 +409,16 @@ export async function getOrderProofs(orderId: string): Promise<AdminProof[]> {
         }
       }
       for (const o of dupOrders?.data ?? []) {
-        if (o.payment_reference?.toUpperCase() !== utr) continue;
+        const asBalance = o.balance_reference?.toUpperCase() === utr;
+        if (o.payment_reference?.toUpperCase() !== utr && !asBalance) continue;
         const existing = duplicates.find((x) => x.id === o.id);
-        const paid = o.payment_status === 'verified_paid' || o.payment_status === 'refund_pending' || o.payment_status === 'refunded';
+        // Money verified with this reference (an advance counts), as approve_payment checks it.
+        const paid = o.amount_paid > 0 || o.payment_status === 'verified_paid' || o.payment_status === 'refund_pending' || o.payment_status === 'refunded';
+        const how = asBalance ? 'confirmed balance reference' : 'confirmed payment reference';
         if (existing) {
-          existing.how = `${existing.how}; confirmed payment reference`;
+          existing.how = `${existing.how}; ${how}`;
           existing.approvedElsewhere ||= paid;
-        } else duplicates.push({ id: o.id, orderNumber: o.order_number, how: 'confirmed payment reference', approvedElsewhere: paid });
+        } else duplicates.push({ id: o.id, orderNumber: o.order_number, how, approvedElsewhere: paid });
       }
     }
     return {

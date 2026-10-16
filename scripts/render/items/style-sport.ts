@@ -721,6 +721,175 @@ const buildSunglasses: Builder = (c) => {
   return grounded(g);
 };
 
+// ------------------------------------------------------------------ wallet
+
+/** Smooth-grain leather with a waxy finish. */
+function leatherMaterial(hex: string) {
+  return new THREE.MeshPhysicalMaterial({
+    color: hex, roughness: 0.52, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.45,
+    sheen: 0.25, sheenRoughness: 0.5, sheenColor: new THREE.Color(hex).lerp(new THREE.Color('#ffffff'), 0.3),
+  });
+}
+
+/**
+ * Running stitches along a 2D polyline. `place(p)` maps a polyline point to 3D and `frame(p)`
+ * returns the surface normal there; stitches are flattened ellipsoids sunk into the surface.
+ */
+function stitches(
+  path: THREE.Vector2[], place: (p: THREE.Vector2) => THREE.Vector3, normal: THREE.Vector3,
+  o: { pitch?: number; len?: number; width?: number; skip?: (p: THREE.Vector2) => boolean } = {},
+) {
+  const pitch = o.pitch ?? 0.003, len = o.len ?? 0.002, width = o.width ?? 0.00075;
+  const seg: number[] = [0];
+  for (let i = 1; i < path.length; i++) seg.push(seg[i - 1] + path[i].distanceTo(path[i - 1]));
+  const total = seg[seg.length - 1];
+  const n = Math.floor(total / pitch);
+  const start = (total - n * pitch) / 2 + pitch / 2;
+  const base = new THREE.SphereGeometry(1, 8, 4);
+  base.deleteAttribute('uv');
+  const parts: THREE.BufferGeometry[] = [];
+  let k = 0;
+  for (let i = 0; i < n; i++) {
+    const s = start + i * pitch;
+    while (k < seg.length - 2 && seg[k + 1] < s) k++;
+    const t = (s - seg[k]) / Math.max(seg[k + 1] - seg[k], 1e-9);
+    const p = path[k].clone().lerp(path[k + 1], t);
+    if (o.skip?.(p)) continue;
+    const dir2 = path[k + 1].clone().sub(path[k]).normalize();
+    const a = place(p), b = place(p.clone().addScaledVector(dir2, 0.001));
+    const X = b.sub(a).normalize();
+    const Y = normal.clone();
+    const Z = new THREE.Vector3().crossVectors(X, Y).normalize();
+    const m = new THREE.Matrix4().makeBasis(X, Y, Z).scale(v3(len / 2, 0.00034, width / 2));
+    m.setPosition(a.addScaledVector(Y, -0.00022)); // sunk in, standing ~0.12 mm proud
+    parts.push(base.clone().applyMatrix4(m));
+  }
+  return mergeGeometries(parts)!;
+}
+
+/**
+ * Slim bifold wallet lying on its back, opened about 35° so the stepped card slots (with card
+ * edges peeking out) show on both halves. Outer leather wraps round a soft spine; edges are
+ * stitched in a contrast thread.
+ */
+const buildWallet: Builder = (c) => {
+  const g = new THREE.Group();
+  const outer = named(leatherMaterial(albedo(c.primary, 0.82)), 'upper');
+  const panel = leatherMaterial(albedo(shade(c.primary, -0.025), 0.8));
+  const lining = leatherMaterial(albedo(c.secondary, 0.85));
+  const thread = mat.matte(c.accent, 0.75);
+  const cardMats = ['#2c56a8', '#d5b46c', '#dfe2e6', '#1f1f22', '#b5372f', '#2f8466'].map((h) => mat.plastic(h, 0.3));
+
+  const H = 0.09; // height along the spine (x)
+  const L = 0.108; // width of each half (z)
+  const T0 = 0.0018; // outer leather
+  const TL = 0.0007; // lining / slot layers
+  const TC = 0.00076; // cards
+  const GAP = 0.00004;
+  const R = 0.0068; // spine bend radius (outer face)
+  const OPEN = THREE.MathUtils.degToRad(35);
+  const RC = 0.0065; // free-edge corner radius
+  const E = 0.0005; // edge rounding
+
+  // Slot tiers (v = distance from the bottom edge of the half, along +x).
+  const cardTop = [0.0848, 0.0698, 0.0552];
+  const layerTop = [0.0762, 0.0614, 0.047];
+  const U0 = 0.0045, U1 = L - 0.0012; // panel extent across the half
+  const V0 = 0.0012, V1 = H - 0.0012;
+  const yLining = T0 + GAP;
+  const yCard = (k: number) => yLining + TL + GAP + k * (TC + TL + 2 * GAP);
+  const yLayer = (k: number) => yCard(k) + TC + GAP;
+
+  /** One half in its flat-open position: s = +1 extends towards +z (base), -1 towards -z (lid). */
+  const half = (s: 1 | -1, cardOffset: number) => {
+    const h = new THREE.Group();
+    const at = (u: number, v: number, y: number) => v3(v - H / 2, y, s * u);
+    // Corner radii in flatSlab order [tl, tr, br, bl]: the spine side is square.
+    const radii = (r: number, spine = 0.0004) => (s > 0 ? [spine, spine, r, r] : [r, r, spine, spine]);
+    const flat = (u0: number, u1: number, v0: number, v1: number, y: number, t: number, r: number[], m: THREE.Material, name?: string, edge = E) => {
+      const piece = mesh(flatSlab(v1 - v0, u1 - u0, t, r, Math.min(edge, t * 0.45), 8, 3), m, name);
+      piece.position.copy(at((u0 + u1) / 2, (v0 + v1) / 2, y + t / 2));
+      return piece;
+    };
+    h.add(flat(0, L, 0, H, 0, T0, radii(RC), outer, 'wallet-shell'));
+    h.add(flat(0.0015, L - 0.0012, V0, V1, yLining, TL, radii(RC - 0.0012), lining, 'wallet-lining'));
+    for (let k = 0; k < 3; k++) {
+      // Card: long side across the half, top edge peeking above its pocket.
+      const cw = 0.0856, ch = 0.054;
+      const cu = (U0 + U1) / 2 + s * 0.0004;
+      const card = mesh(flatSlab(ch, cw, TC, 0.003, 0.00028, 6, 2), cardMats[(k + cardOffset) % cardMats.length], 'wallet-card');
+      card.position.copy(at(cu, cardTop[k] - ch / 2, yCard(k) + TC / 2));
+      h.add(card);
+      // Pocket layer in front of the card: from the bottom edge up to its top edge.
+      // flatSlab corners (v → x, u → z): tl(-v,-z) tr(+v,-z) br(+v,+z) bl(-v,+z); only the
+      // bottom corner on the free edge follows the shell's rounding.
+      const rr = s > 0 ? [0.0009, 0.001, 0.001, RC - 0.0012] : [RC - 0.0012, 0.001, 0.001, 0.0009];
+      h.add(flat(U0, U1, V0, layerTop[k], yLayer(k), TL, rr, panel, 'wallet-slot'));
+    }
+
+    // Stitching round the three open edges, 3 mm in: outside on the shell, inside through
+    // the slot layers (skipping the steps between tiers).
+    const d = 0.003, rs = RC - d;
+    const open: THREE.Vector2[] = [new THREE.Vector2(0.006, d)];
+    for (let i = 0; i <= 10; i++) {
+      const a = -Math.PI / 2 + (i / 10) * (Math.PI / 2);
+      open.push(new THREE.Vector2(L - RC + rs * Math.cos(a), RC + rs * Math.sin(a)));
+    }
+    for (let i = 0; i <= 10; i++) {
+      const a = (i / 10) * (Math.PI / 2);
+      open.push(new THREE.Vector2(L - RC + rs * Math.cos(a), H - RC + rs * Math.sin(a)));
+    }
+    open.push(new THREE.Vector2(0.006, H - d));
+    h.add(mesh(stitches(open, (p) => at(p.x, p.y, 0), v3(0, -1, 0)), thread, 'wallet-stitch'));
+    const top = (u: number, v: number) => {
+      if (u < U0 || u > U1 || v < V0 || v > V1) return T0;
+      for (let k = 2; k >= 0; k--) if (v <= layerTop[k]) return yLayer(k) + TL;
+      return yLining + TL;
+    };
+    const near = (v: number) => layerTop.some((e) => Math.abs(v - e) < 0.0016);
+    h.add(mesh(stitches(open, (p) => at(p.x, p.y, top(p.x, p.y)), v3(0, 1, 0), { skip: (p) => near(p.y) }), thread, 'wallet-stitch'));
+    return h;
+  };
+
+  g.add(half(1, 0));
+  // Lid: the mirrored half swung up about the spine axis (x through y = R, z = 0).
+  const lidPivot = new THREE.Group();
+  lidPivot.position.set(0, R, 0);
+  lidPivot.rotation.x = Math.PI - OPEN;
+  const lid = half(-1, 3);
+  lid.position.set(0, -R, 0);
+  lidPivot.add(lid);
+  g.add(lidPivot);
+
+  // Spine: the outer leather bending round from the base to the lid (with short straight
+  // tongues tucked just inside both shells so the joins stay seamless).
+  const prof: THREE.Vector2[] = [];
+  const bevel = 0.0004;
+  const ro = R - 0.00005 - bevel, ri = R - T0 + 0.00005 + bevel; // the bevel grows it back
+  const sweepAngle = Math.PI - OPEN;
+  const arc = (r: number, rev: boolean) => {
+    const pts: THREE.Vector2[] = [];
+    // Tongue into the base half (z > 0).
+    pts.push(new THREE.Vector2(0.003, R - r));
+    for (let i = 0; i <= 24; i++) {
+      const f = (i / 24) * sweepAngle;
+      pts.push(new THREE.Vector2(-r * Math.sin(f), R - r * Math.cos(f)));
+    }
+    // Tongue into the lid.
+    const tip = pts[pts.length - 1];
+    pts.push(new THREE.Vector2(tip.x + 0.003 * Math.cos(OPEN), tip.y + 0.003 * Math.sin(OPEN)));
+    return rev ? pts.reverse() : pts;
+  };
+  prof.push(...arc(ro, false), ...arc(ri, true));
+  const spineGeo = new THREE.ExtrudeGeometry(new THREE.Shape(prof), {
+    depth: H - 2 * bevel - 0.0002, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 1,
+  });
+  spineGeo.translate(0, 0, -(H - 2 * bevel - 0.0002) / 2);
+  spineGeo.rotateY(-Math.PI / 2);
+  g.add(mesh(smooth(spineGeo), outer, 'wallet-spine'));
+  return grounded(g);
+};
+
 // ------------------------------------------------------------------ export
 
 void luminance;
@@ -730,7 +899,7 @@ export const BUILDERS = {
   tshirt: buildTshirt,
   backpack: buildBackpack,
   sunglasses: buildSunglasses,
-  wallet: ((c) => placeholder(c)) as Builder,
+  wallet: buildWallet,
   yogamat: ((c) => placeholder(c)) as Builder,
   dumbbells: ((c) => placeholder(c)) as Builder,
   notebooks: ((c) => placeholder(c)) as Builder,

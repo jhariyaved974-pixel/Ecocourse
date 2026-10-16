@@ -14,9 +14,19 @@ export function proofHref(proofId: string) {
   return `/admin/payments/proofs/${proofId}`;
 }
 
-export function ProofCard({ proof, isCurrent }: { proof: AdminProof; isCurrent: boolean }) {
+export function ProofCard({
+  proof,
+  isCurrent,
+  advanceReference = null,
+}: {
+  proof: AdminProof;
+  isCurrent: boolean;
+  /** The reference that verified this order's advance (half prepaid), to spot a balance proof that reuses it. */
+  advanceReference?: string | null;
+}) {
   const isPdf = proof.file_mime === 'application/pdf';
   const purpose = asPurpose(proof.purpose) ?? 'full';
+  const reusesAdvanceUtr = purpose === 'balance' && Boolean(proof.utr && advanceReference && proof.utr.toUpperCase() === advanceReference.toUpperCase());
   return (
     <article className={cn('rounded-xl border bg-surface', isCurrent ? 'border-info/50 ring-1 ring-info/20' : 'border-line')} aria-label={`Payment proof submitted ${formatDateTime(proof.submitted_at)}`}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
@@ -90,6 +100,17 @@ export function ProofCard({ proof, isCurrent }: { proof: AdminProof; isCurrent: 
               ['Reviewed', proof.reviewed_at ? `${formatDateTime(proof.reviewed_at)}${proof.reviewedByEmail ? ` · ${proof.reviewedByEmail}` : ''}` : '—'],
             ]}
           />
+          {reusesAdvanceUtr ? (
+            <div className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm" role="alert">
+              <p className="flex items-center gap-1.5 font-medium text-danger">
+                <AlertTriangle className="size-4" aria-hidden /> Same UTR as the verified advance
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                The balance is a separate payment with its own bank credit and UTR. Find a credit of exactly {proof.expected_amount !== null ? formatMoney(proof.expected_amount) : 'the balance'} with a
+                different UTR, or ask the customer for the correct proof.
+              </p>
+            </div>
+          ) : null}
           {proof.duplicateOrders.length ? (
             <div className="rounded-lg border border-danger/30 bg-danger/5 p-3 text-sm" role="alert">
               <p className="flex items-center gap-1.5 font-medium text-danger">
