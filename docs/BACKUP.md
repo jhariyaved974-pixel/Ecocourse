@@ -9,7 +9,7 @@
   database connection string kept as a secret):
 
   ```bash
-  pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --file=auren-$(date +%F).dump
+  pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --file=save-the-money-$(date +%F).dump
   ```
 
   Store dumps encrypted (they contain customer personal data) and delete old ones on a schedule.

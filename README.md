@@ -1,10 +1,14 @@
-# AUREN — premium footwear store
+# Save The Money — everyday products at honest prices
 
-A full-stack, shoe-only e-commerce site for the Indian market: editorial storefront with an
-interactive 3D hero, product pages with colour-aware galleries and 3D models, a real cart and
-checkout, **manual UPI payments verified by staff against bank records**, optional Razorpay,
-and a complete admin panel (catalogue, media, CMS, orders, payments, inventory, coupons,
-reviews, customers, settings, staff and audit log).
+A full-stack, multi-category e-commerce store for the Indian market: electronics, fashion,
+footwear, home & kitchen, beauty, sports & fitness, toys and stationery. Editorial storefront
+with an interactive 3D hero, department/sub-category navigation, product pages with
+colour-aware galleries, generic variant options (size, strap size, weight…) and 3D models, a
+real cart and checkout with **two payment plans — Prepaid and Half prepaid (advance now,
+balance online before dispatch; no cash on delivery)** — **manual UPI payments verified by
+staff against bank records**, optional Razorpay, transactional email, and a complete admin
+panel (catalogue, media, CMS, orders, payments, inventory, coupons, reviews, customers,
+settings, staff and audit log).
 
 Supabase (Postgres, Auth, Storage) is the source of truth. Prices, discounts, shipping, tax and
 stock are always computed and reserved inside the database; the browser only says what the
@@ -23,7 +27,7 @@ shopper picked.
 | 3D | React Three Fiber, Drei, Three.js (meshopt-compressed GLB models generated in `scripts/render`) |
 | Data | Supabase Postgres with Row Level Security, Supabase Auth (email + TOTP MFA for staff), Supabase Storage |
 | Validation | Zod on every server boundary; database check constraints and SQL functions as the last line |
-| Payments | Manual UPI (QR + deep link + proof upload + staff verification); Razorpay (optional, webhook-confirmed) |
+| Payments | Payment plans Prepaid / Half prepaid (no COD); manual UPI (QR + deep link + proof upload + staff verification); Razorpay (optional, webhook-confirmed) |
 | Email | Resend REST API through a transactional outbox |
 | Hosting | Vercel (app + cron), Supabase (database, auth, storage) |
 | Tests | Vitest (unit + database integration against a real Postgres), Playwright (browser flows) |
@@ -51,7 +55,7 @@ Full instructions, including how to get local keys and create the first admin:
 | `npm run typecheck` | Generate route types and run `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm test` | Unit tests (UPI link/QR data, money, tokens, file sniffing, emails, signatures…) |
-| `npm run test:db` | Recreates the isolated `auren_test` database and runs the database integration tests (orders, payments, RLS, concurrency) |
+| `npm run test:db` | Recreates the isolated `auren_test` database (internal name) and runs the database integration tests (orders, payments, RLS, concurrency) |
 | `npm run test:e2e` | Playwright browser tests |
 | `npm run stack:up` / `stack:reset` / `stack:down` | Local Supabase-compatible stack |
 | `npm run db:types` | Regenerate `src/lib/database.types.ts` from the local database |
@@ -86,8 +90,9 @@ tests/                  unit/, db/ (integration), e2e/
 
 ## Sample catalogue
 
-The seed creates original sample products — Velocity Runner X, Urban Street Pro, AeroFlex
-Sport, Midnight Leather Classic, CloudStep Everyday, Phantom High-Top, TrailForce Outdoor,
-CourtVision Elite and Coastline Slide — with procedurally generated product renders and 3D
-models. They are fictional; no third-party brands, endorsements or reviews are implied. Replace
-them with your real catalogue from the admin panel.
+The seed creates 33 original sample products across 8 departments (for example Pulse Wireless
+Earbuds, Stride Smartwatch 2, Everyday Cotton Crew Tee, ThermoSteel Insulated Bottle, HydraGlow
+Face Serum, FlexGrip Yoga Mat, Build & Play Blocks and nine sample shoes under Footwear), with
+procedurally generated product renders and 3D models (`scripts/render`). They are fictional;
+no third-party brands, endorsements or reviews are implied. Replace them with your real
+catalogue from the admin panel.
