@@ -57,7 +57,7 @@ export async function deliverQueuedEmails(limit = 20): Promise<DeliveryReport> {
       ctx.orderLink = integrations.orderTokens ? orderUrl(orderNumber, orderId) : `${publicEnv.siteUrl}/account/orders`;
     }
     if (row.template === 'admin_proof_submitted' && orderId) {
-      ctx.adminLink = `${publicEnv.siteUrl}/admin/payments/${orderId}`;
+      ctx.adminLink = `${(process.env.ADMIN_URL || publicEnv.siteUrl).replace(/\/$/, '')}/admin/payments/${orderId}`;
     }
     if (row.template === 'cart_reminder') {
       const optOut = typeof payload.user_id === 'string' && UUID.test(payload.user_id) ? cartReminderOptOut(payload.user_id) : null;

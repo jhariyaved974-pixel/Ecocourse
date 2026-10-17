@@ -10,6 +10,7 @@ import {
 import { ADMIN_NAV } from '@/lib/admin/nav';
 import type { StaffRole } from '@/lib/auth';
 import { cn, titleCase } from '@/lib/utils';
+import { publicEnv } from '@/lib/env';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
@@ -73,7 +74,7 @@ export function AdminNav({ role, email, storeName, signOut }: { role: StaffRole;
   const brand = (
     <div className="flex h-14 items-center justify-between px-4">
       <Link href="/admin" className="font-display text-xl tracking-wide">{storeName}</Link>
-      <Link href="/" target="_blank" className="text-xs text-muted hover:text-ink">View store ↗</Link>
+      <a href={publicEnv.siteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-muted hover:text-ink">View store ↗</a>
     </div>
   );
   return (

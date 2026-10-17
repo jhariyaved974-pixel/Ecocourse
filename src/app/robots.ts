@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 import { publicEnv } from '@/lib/env';
 
 export default function robots(): MetadataRoute.Robots {
+  // The admin-only deployment must never be indexed.
+  if (process.env.APP_MODE === 'admin') return { rules: [{ userAgent: '*', disallow: '/' }] };
   return {
     rules: [
       {
