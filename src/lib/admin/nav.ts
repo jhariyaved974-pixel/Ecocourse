@@ -31,6 +31,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { href: '/admin/customers', label: 'Customers', icon: 'Users', roles: ORDERS },
       { href: '/admin/requests', label: 'Customer requests', icon: 'Inbox', roles: ORDERS },
       { href: '/admin/coupons', label: 'Coupons', icon: 'TicketPercent', roles: ADMIN },
+      { href: '/admin/affiliates', label: 'Affiliates', icon: 'Handshake', roles: ADMIN },
     ],
   },
   {

@@ -133,3 +133,29 @@ export async function createCustomerRequest(_prev: unknown, formData: FormData):
   revalidatePath('/account/requests');
   return ok(null, 'Request sent. We usually reply within 2 business days.');
 }
+
+const affiliateSchema = z.object({
+  upi: z.string().trim().toLowerCase().regex(/^[a-z0-9._-]{2,255}@[a-z][a-z0-9.-]{1,63}$/, 'Enter a valid UPI ID, for example name@okbank.'),
+  note: z.string().trim().max(500),
+});
+
+const AFFILIATE_HINTS: Record<string, string> = {
+  program_closed: 'The affiliate program is closed right now.',
+  invalid_upi: 'Enter a valid UPI ID, for example name@okbank.',
+  account_blocked: 'This account cannot join the affiliate program.',
+  suspended: 'Your affiliate account is suspended. Please contact support.',
+};
+
+/** Applies to the affiliate program, or updates the payout UPI ID of an existing application. */
+export async function applyAffiliate(_prev: unknown, formData: FormData): Promise<ActionResult<null>> {
+  const user = await requireUser();
+  const parsed = affiliateSchema.safeParse({ upi: formData.get('upi') ?? '', note: formData.get('note') ?? '' });
+  if (!parsed.success) return fail('Please check the highlighted fields.', 'validation', zodFieldErrors(parsed.error.issues));
+  if (!(await rateLimit('affiliate_apply', user.id, 10, 3600))) return fail('Too many attempts. Please try again later.', 'rate_limited');
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('apply_affiliate', { p_payout_upi_id: parsed.data.upi, p_promotion_note: parsed.data.note || undefined });
+  if (error) return fail(AFFILIATE_HINTS[error.hint ?? ''] ?? dbErrorMessage(error), error.hint ?? undefined);
+  revalidatePath('/account/affiliate');
+  const status = (data as { status?: string } | null)?.status;
+  return ok(null, status === 'approved' ? 'Payout details saved.' : 'Application received. We will review it shortly.');
+}

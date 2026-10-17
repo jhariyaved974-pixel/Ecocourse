@@ -13,6 +13,7 @@ import { getPublicPaymentSettings } from '@/lib/payments/settings';
 import { getStoreSettings } from '@/lib/content/queries';
 import { deliverEmailsSoon } from '@/lib/email/outbox';
 import { PAYMENT_PLANS } from '@/lib/orders/payment-plan';
+import { AFFILIATE_COOKIE, normalizeAffiliateCode } from '@/lib/affiliates';
 
 const addressSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter the recipient’s full name.').max(120),
@@ -109,12 +110,20 @@ export async function placeOrder(input: CheckoutInput): Promise<ActionResult<{ o
     console.error('place_order failed', error.code, error.message);
     return fail('We could not place your order. Nothing has been charged — please try again.', 'error');
   }
-  const placed = result as { order_number: string; payment_method: string; payment_plan?: string; amount_due?: number; total?: number };
+  const placed = result as { order_number: string; payment_method: string; payment_plan?: string; amount_due?: number; total?: number; replayed?: boolean };
   deliverEmailsSoon();
 
   // The order cookie lets this browser open the order page and upload the
   // payment proof. It holds the access token (the database stores only its hash).
   const jar = await cookies();
+
+  // Referral: the database validates the code and refuses self-referrals.
+  const affiliateCode = normalizeAffiliateCode(jar.get(AFFILIATE_COOKIE)?.value);
+  if (affiliateCode && !placed.replayed) {
+    const { error: affiliateError } = await createSupabaseServiceClient().rpc('attribute_order_to_affiliate', { p_order_id: orderId, p_code: affiliateCode });
+    if (affiliateError) console.error('affiliate attribution failed', affiliateError.code, affiliateError.message);
+  }
+
   jar.set(orderCookieName(placed.order_number), token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

@@ -60,6 +60,164 @@ export type Database = {
 
         ]
       }
+      affiliate_commissions: {
+        Row: {
+          id: string
+          affiliate_id: string
+          order_id: string
+          order_number: string
+          base_amount: number
+          rate_bps: number
+          amount: number
+          status: string
+          payout_id: string | null
+          cancel_reason: string | null
+          approved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          affiliate_id: string
+          order_id: string
+          order_number: string
+          base_amount: number
+          rate_bps: number
+          amount: number
+          status?: string
+          payout_id?: string | null
+          cancel_reason?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          affiliate_id?: string
+          order_id?: string
+          order_number?: string
+          base_amount?: number
+          rate_bps?: number
+          amount?: number
+          status?: string
+          payout_id?: string | null
+          cancel_reason?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_payouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_payouts: {
+        Row: {
+          id: string
+          affiliate_id: string
+          amount: number
+          reference: string
+          note: string | null
+          created_by: string | null
+          paid_at: string
+        }
+        Insert: {
+          id?: string
+          affiliate_id: string
+          amount: number
+          reference: string
+          note?: string | null
+          created_by?: string | null
+          paid_at?: string
+        }
+        Update: {
+          id?: string
+          affiliate_id?: string
+          amount?: number
+          reference?: string
+          note?: string | null
+          created_by?: string | null
+          paid_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_payouts_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          id: string
+          user_id: string
+          code: string
+          status: string
+          commission_bps: number | null
+          payout_upi_id: string
+          promotion_note: string | null
+          admin_note: string | null
+          clicks: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          code: string
+          status?: string
+          commission_bps?: number | null
+          payout_upi_id: string
+          promotion_note?: string | null
+          admin_note?: string | null
+          clicks?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          code?: string
+          status?: string
+          commission_bps?: number | null
+          payout_upi_id?: string
+          promotion_note?: string | null
+          admin_note?: string | null
+          clicks?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+
+        ]
+      }
       announcements: {
         Row: {
           id: string
@@ -2565,6 +2723,10 @@ export type Database = {
           updated_by: string | null
           cart_reminders_enabled: boolean
           cart_reminder_delay_hours: number
+          affiliate_enabled: boolean
+          affiliate_commission_bps: number
+          affiliate_cookie_days: number
+          affiliate_min_payout: number
         }
         Insert: {
           id?: boolean
@@ -2605,6 +2767,10 @@ export type Database = {
           updated_by?: string | null
           cart_reminders_enabled?: boolean
           cart_reminder_delay_hours?: number
+          affiliate_enabled?: boolean
+          affiliate_commission_bps?: number
+          affiliate_cookie_days?: number
+          affiliate_min_payout?: number
         }
         Update: {
           id?: boolean
@@ -2645,6 +2811,10 @@ export type Database = {
           updated_by?: string | null
           cart_reminders_enabled?: boolean
           cart_reminder_delay_hours?: number
+          affiliate_enabled?: boolean
+          affiliate_commission_bps?: number
+          affiliate_cookie_days?: number
+          affiliate_min_payout?: number
         }
         Relationships: [
           {
@@ -2785,6 +2955,13 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_cancel_affiliate_commission: {
+        Args: {
+          p_commission_id: string
+          p_reason: string
+        }
+        Returns: undefined
+      }
       admin_content_revisions: {
         Args: {
           p_content_type: string
@@ -2814,6 +2991,29 @@ export type Database = {
           p_section_id: string
         }
         Returns: string
+      }
+      admin_list_affiliates: {
+        Args: {
+          p_status?: string
+        }
+        Returns: {
+            id: string
+            user_id: string
+            email: string
+            full_name: string
+            code: string
+            status: string
+            commission_bps: number
+            payout_upi_id: string
+            promotion_note: string
+            admin_note: string
+            clicks: number
+            orders: number
+            pending_amount: number
+            approved_amount: number
+            paid_amount: number
+            created_at: string
+          }[]
       }
       admin_list_customers: {
         Args: {
@@ -2904,6 +3104,29 @@ export type Database = {
             total_count: number
           }[]
       }
+      admin_product_sync_details: {
+        Args: {
+          p_product_id: string
+          p_product: Json
+          p_color_map: Json
+        }
+        Returns: undefined
+      }
+      admin_product_sync_variants: {
+        Args: {
+          p_product_id: string
+          p_product: Json
+        }
+        Returns: Json
+      }
+      admin_record_affiliate_payout: {
+        Args: {
+          p_affiliate_id: string
+          p_reference: string
+          p_note?: string
+        }
+        Returns: Json
+      }
       admin_reorder_content: {
         Args: {
           p_list: string
@@ -2916,6 +3139,15 @@ export type Database = {
           p_section_ids: string[]
         }
         Returns: undefined
+      }
+      admin_review_affiliate: {
+        Args: {
+          p_affiliate_id: string
+          p_status: string
+          p_commission_bps?: number
+          p_note?: string
+        }
+        Returns: Json
       }
       admin_save_homepage_section: {
         Args: {
@@ -2948,6 +3180,13 @@ export type Database = {
         }
         Returns: number
       }
+      apply_affiliate: {
+        Args: {
+          p_payout_upi_id: string
+          p_promotion_note?: string
+        }
+        Returns: Json
+      }
       approve_payment: {
         Args: {
           p_order_id: string
@@ -2958,6 +3197,13 @@ export type Database = {
           p_proof_id?: string
         }
         Returns: Json
+      }
+      attribute_order_to_affiliate: {
+        Args: {
+          p_order_id: string
+          p_code: string
+        }
+        Returns: string
       }
       bootstrap_owner: {
         Args: {
@@ -3244,6 +3490,13 @@ export type Database = {
           p_bucket: string
           p_limit: number
           p_window_seconds: number
+        }
+        Returns: boolean
+      }
+      record_affiliate_click: {
+        Args: {
+          p_code: string
+          p_count?: boolean
         }
         Returns: boolean
       }

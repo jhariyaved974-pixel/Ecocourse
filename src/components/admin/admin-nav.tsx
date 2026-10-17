@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
+  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Handshake, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
   LogOut, Megaphone, Menu, MessageSquareText, Package, Ruler, ScrollText, ShieldCheck, ShoppingBag, Store, TicketPercent, Truck, Users, Wallet, X,
 } from 'lucide-react';
 import { ADMIN_NAV } from '@/lib/admin/nav';
@@ -13,7 +13,7 @@ import { cn, titleCase } from '@/lib/utils';
 import { publicEnv } from '@/lib/env';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
+  BadgeIndianRupee, Boxes, CircleHelp, FileText, FolderTree, Handshake, Home, Images, Inbox, LayoutDashboard, LayoutGrid,
   Megaphone, Menu, MessageSquareText, Package, Ruler, ScrollText, ShieldCheck, ShoppingBag, Store, TicketPercent, Truck, Users, Wallet,
 };
 
