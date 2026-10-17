@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServiceClient } from '@/lib/supabase/service';
+import { integrations } from '@/lib/env.server';
 import { getCurrentUser } from '@/lib/auth';
 import { rateLimit, rateLimitByIp } from '@/lib/security';
 import { publicEnv, isSupabaseConfigured } from '@/lib/env';
@@ -43,7 +45,7 @@ export async function signIn(_prev: AuthFormState, formData: FormData): Promise<
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
     if (error.code === 'email_not_confirmed') {
-      return { error: 'Please confirm your email address first — check your inbox for the link.', email: typedEmail };
+      return { error: 'This account is not active yet. Please create it again or contact us.', email: typedEmail };
     }
     // Same message for unknown email and wrong password (no account enumeration).
     return { error: 'Incorrect email or password.', email: typedEmail };
@@ -76,11 +78,36 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   const next = safeNextPath(formData.get('next'));
   // Only the display name is sent as metadata. Roles are never derived from
   // sign-up data: staff access is granted separately by an owner.
+  const metadata = { full_name: parsed.data.fullName, marketing_opt_in: parsed.data.marketing === 'on' };
+
+  // The store does not use email verification: the account is created already
+  // confirmed (server-side, secret key) and the shopper is signed in at once.
+  if (integrations.serviceRole) {
+    const { error } = await createSupabaseServiceClient().auth.admin.createUser({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      email_confirm: true,
+      user_metadata: metadata,
+    });
+    if (error) {
+      if (error.code === 'email_exists') return { error: 'An account with this email already exists. Please sign in.', email: typedEmail };
+      if (error.code === 'weak_password') return { fieldErrors: { password: 'Choose a stronger password.' }, email: typedEmail };
+      console.error('signup failed', error.code);
+      return { error: 'We could not create your account. Please try again.', email: typedEmail };
+    }
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
+    if (signInError) {
+      console.error('signin after signup failed', signInError.code);
+      return { ok: true, message: 'Your account is ready. Please sign in.' };
+    }
+    redirect(next);
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName, marketing_opt_in: parsed.data.marketing === 'on' },
+      data: metadata,
       emailRedirectTo: `${publicEnv.siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
@@ -91,7 +118,7 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
     return { error: 'We could not create your account. Please try again.', email: typedEmail };
   }
   if (data.session) redirect(next);
-  return { ok: true, message: `We've sent a confirmation link to ${parsed.data.email}. Open it to activate your account.` };
+  return { ok: true, message: 'Your account is ready. Please sign in.' };
 }
 
 export async function requestPasswordReset(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
