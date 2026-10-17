@@ -9,18 +9,21 @@ import { useWishlist, wishlistStore } from '@/lib/wishlist/store';
 export function Price({ price, finalPrice, size = 'sm', className }: { price: number; finalPrice: number; size?: 'sm' | 'lg'; className?: string }) {
   const off = discountPercent(price, finalPrice);
   return (
-    <div className={cn('flex flex-wrap items-baseline gap-x-2 gap-y-0.5', className)}>
-      <span className={cn('font-semibold tabular-nums', size === 'lg' ? 'text-2xl' : 'text-sm')}>
+    <div className={cn('flex flex-wrap items-baseline gap-x-2 gap-y-1', className)}>
+      <span className={cn('font-bold tabular-nums', off && 'text-sale', size === 'lg' ? 'text-2xl' : 'text-sm')}>
         <span className="sr-only">{off ? 'Sale price ' : 'Price '}</span>
         {formatMoney(finalPrice)}
       </span>
       {off ? (
         <>
-          <span className={cn('text-muted line-through tabular-nums', size === 'lg' ? 'text-base' : 'text-xs')}>
+          <span className={cn('text-muted tabular-nums', size === 'lg' ? 'text-base' : 'text-xs')}>
             <span className="sr-only">Regular price </span>
-            {formatMoney(price)}
+            <span aria-hidden>MRP </span>
+            <span className="line-through">{formatMoney(price)}</span>
           </span>
-          <span className={cn('font-semibold text-accent', size === 'lg' ? 'text-sm' : 'text-xs')}>{off}% off</span>
+          <span className={cn('rounded-full bg-highlight px-2 py-0.5 font-bold text-highlight-ink', size === 'lg' ? 'text-sm' : 'text-[11px]')}>
+            Save {formatMoney(price - finalPrice)} ({off}%)
+          </span>
         </>
       ) : null}
     </div>

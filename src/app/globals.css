@@ -7,31 +7,37 @@
    applied as data attributes on <html>; the accent colour is a CSS variable.
    ------------------------------------------------------------------------- */
 :root {
-  --paper: #f6f4f0;
+  /* Save The Money look: warm paper, white cards, money green, deal yellow, sale red. */
+  --paper: #f4f2ee;
   --surface: #ffffff;
-  --surface-2: #efebe5;
-  --ink: #141414;
-  --ink-2: #2a2826;
-  --muted: #6b665f;
-  --line: #e4dfd6;
-  --line-strong: #cfc8bc;
-  --dark: #111112;
-  --dark-2: #1c1c1e;
-  --dark-ink: #f5f3ef;
+  --surface-2: #ebe8e1;
+  --ink: #111111;
+  --ink-2: #262624;
+  --muted: #66625b;
+  --line: #dcd8d0;
+  --line-strong: #c6c1b7;
+  --dark: #111111;
+  --dark-2: #1d1d1c;
+  --dark-ink: #f4f2ee;
   --dark-muted: #a29d95;
-  /* Default accent: "money green" (white text on it is 5:1). Admins can change it. */
-  --accent: #15803d;
+  /* Default accent: "money green" (white text on it is 6.6:1). Admins can change it. */
+  --accent: #0b6b47;
   --accent-ink: #ffffff;
   /* Accent used as text; lightened on dark surfaces (see below) so small text stays readable. */
   --accent-text: var(--accent);
-  --success: #15803d;
+  /* Deal highlight (always with dark text) and sale price red. */
+  --highlight: #f2c230;
+  --highlight-ink: #111111;
+  --sale: #c0352b;
+  --success: #0b6b47;
   --warning: #b45309;
-  --danger: #b91c1c;
+  --danger: #c0352b;
   --info: #1d4ed8;
-  --radius: 10px;
-  --font-display-stack: var(--font-instrument), var(--font-instrument-ext), ui-serif, Georgia, serif;
-  --display-tracking: -0.01em;
-  --display-weight: 400;
+  --radius: 16px;
+  --font-display-stack: var(--font-archivo), var(--font-archivo-ext), ui-sans-serif, system-ui, sans-serif;
+  --display-tracking: -0.02em;
+  --display-weight: 800;
+  --display-transform: uppercase;
 }
 
 [data-theme="bone"] {
@@ -70,11 +76,13 @@
   --font-display-stack: var(--font-inter), var(--font-inter-ext), ui-sans-serif, system-ui, sans-serif;
   --display-tracking: -0.035em;
   --display-weight: 600;
+  --display-transform: none;
 }
 [data-font="classic"] {
   --font-display-stack: var(--font-fraunces), var(--font-instrument-ext), ui-serif, Georgia, serif;
   --display-tracking: -0.02em;
   --display-weight: 500;
+  --display-transform: none;
 }
 
 @theme inline {
@@ -93,6 +101,9 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-text: var(--accent-text);
+  --color-highlight: var(--highlight);
+  --color-highlight-ink: var(--highlight-ink);
+  --color-sale: var(--sale);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -179,6 +190,7 @@
     font-family: var(--font-display);
     letter-spacing: var(--display-tracking);
     font-weight: var(--display-weight);
+    text-transform: var(--display-transform);
   }
   .eyebrow {
     font-size: 0.7rem;

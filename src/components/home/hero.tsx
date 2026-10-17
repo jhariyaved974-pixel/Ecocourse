@@ -77,7 +77,7 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
               {section.eyebrow}
             </motion.p>
           ) : null}
-          <h1 id="hero-heading" className="font-display text-[clamp(3rem,8vw,7rem)] leading-[0.95]">
+          <h1 id="hero-heading" className="font-display text-[clamp(2.5rem,6vw,5.25rem)] leading-[0.95]">
             {/* Real spaces between the animated words keep the heading's text
                 (and what screen readers announce) intact. */}
             {words.map((w, i) => (

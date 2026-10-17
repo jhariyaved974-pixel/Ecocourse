@@ -154,7 +154,7 @@ function PromoBanner({ section }: { section: HomeSection }) {
             <div className={cn('relative flex flex-col justify-end p-6 sm:p-8 md:min-h-[520px] md:p-14 lg:items-end lg:justify-center lg:text-right', !section.image && 'min-h-[320px]', dark && 'md:bg-gradient-to-t md:from-black/75 md:via-black/25 md:to-transparent lg:bg-gradient-to-l lg:from-black/85 lg:via-black/35')}>
               <div className="max-w-md lg:max-w-sm">
                 {section.eyebrow ? <p className="eyebrow mb-4 opacity-75">{section.eyebrow}</p> : null}
-                <h2 className="font-display text-4xl leading-[1.05] md:text-6xl">{section.heading}</h2>
+                <h2 className="font-display text-4xl leading-[1.05] md:text-5xl">{section.heading}</h2>
                 {section.subheading ? <p className="mt-4 text-sm leading-relaxed opacity-80 md:text-base">{section.subheading}</p> : null}
                 {section.ctaLabel && section.ctaHref ? (
                   <Button asChild size="lg" variant={dark ? 'primary' : 'primary'} className="mt-8">
@@ -181,7 +181,7 @@ function EditorialStory({ section }: { section: HomeSection }) {
         </Reveal>
         <Reveal delay={0.1} className="max-w-lg">
           {section.eyebrow ? <p className="eyebrow mb-4 text-muted">{section.eyebrow}</p> : null}
-          <h2 className="font-display text-4xl leading-[1.05] md:text-6xl">{section.heading}</h2>
+          <h2 className="font-display text-4xl leading-[1.05] md:text-5xl">{section.heading}</h2>
           {section.body ? <p className="mt-6 text-base leading-relaxed text-ink-2">{section.body}</p> : null}
           {section.ctaLabel && section.ctaHref ? (
             <Button asChild variant="outline" size="lg" className="mt-8">

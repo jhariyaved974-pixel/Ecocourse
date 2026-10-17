@@ -40,7 +40,7 @@ export function ProductCard({ product, priority, className }: { product: Product
             <span
               className={cn(
                 'absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] uppercase',
-                badge === 'Sale' ? 'bg-accent text-accent-ink' : badge === 'Sold out' ? 'bg-ink/80 text-paper' : 'bg-white/90 text-ink',
+                badge === 'Sale' ? 'bg-sale text-white' : badge === 'Sold out' ? 'bg-ink/80 text-paper' : 'bg-white/90 text-ink',
               )}
             >
               {badge}

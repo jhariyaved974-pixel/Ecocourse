@@ -44,6 +44,22 @@ export const fraunces = localFont({
   preload: false,
 });
 
-export const fontVariables = [interTight, interTightExt, instrumentSerif, instrumentSerifExt, fraunces]
+// Display face of the Save The Money look (headings in capitals).
+export const archivo = localFont({
+  src: './fonts/archivo-latin-wght-normal.woff2',
+  weight: '100 900',
+  variable: '--font-archivo',
+  display: 'swap',
+});
+
+export const archivoExt = localFont({
+  src: './fonts/archivo-latin-ext-wght-normal.woff2',
+  weight: '100 900',
+  variable: '--font-archivo-ext',
+  display: 'swap',
+  preload: false,
+});
+
+export const fontVariables = [interTight, interTightExt, instrumentSerif, instrumentSerifExt, fraunces, archivo, archivoExt]
   .map((f) => f.variable)
   .join(' ');
