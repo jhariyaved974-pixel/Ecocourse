@@ -495,10 +495,11 @@ async function ShowcaseHeroSection({ section }: { section: HomeSection }) {
     getCategoryTree(),
     getStoreSettings(),
   ]);
-  // Featured products lead; the biggest in-stock savings fill the deal board.
+  // Featured products lead, then the biggest savings; items in stock come before sold-out ones.
   const bySaving = [...deals].sort((a, b) => b.price - b.finalPrice - (a.price - a.finalPrice));
   const seen = new Set<string>();
-  const board = [...featured, ...bySaving, ...bestsellers].filter((p) => p.inStock && !seen.has(p.id) && seen.add(p.id)).slice(0, 3);
+  const unique = [...featured, ...bySaving, ...bestsellers].filter((p) => !seen.has(p.id) && seen.add(p.id));
+  const board = [...unique.filter((p) => p.inStock), ...unique.filter((p) => !p.inStock)].slice(0, 3);
   return (
     <ShowcaseHero
       section={section}
