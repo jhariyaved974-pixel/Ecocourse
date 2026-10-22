@@ -19,18 +19,16 @@ stylesheet, two small scripts. There is no build step: what is in this folder is
 
 ## Deploy
 
-The Vercel project is not connected to Git; deployments are uploaded with the Vercel CLI.
+Since 22 October 2026, deployments are built from this repository on GitHub. The settings are
+**Root Directory** `autowebly`, **Framework Preset** *Other*, no build command and no output
+directory. The project does not deploy automatically on push.
 
-```bash
-cd autowebly
-npx vercel link            # first time only: choose the existing "autowebly" project
-npx vercel                 # preview deployment, check it
-npx vercel --prod          # publish to autowebly.vercel.app
-```
-
-To deploy on every push instead, connect this repository to the project in Vercel
-(Settings → Git) and set **Root Directory** to `autowebly`, **Framework Preset** to *Other*, with no
-build command and no output directory.
+- **Deploy on every push:** connect this repository under Vercel → autowebly → Settings → Git,
+  keeping Root Directory `autowebly`.
+- **Deploy with the CLI:** first check Settings → Build and Deployment → Root Directory. If it is
+  `autowebly`, run `npx vercel` (preview) and `npx vercel --prod` from the **repository root**. If
+  it is empty, run them from **inside `autowebly/`**. Running from the wrong folder either fails or
+  deploys the store in the repository root instead of this site.
 
 After deploying, check: `/`, `/b2b-lead-generation/`, `/robots.txt`, `/sitemap.xml`, a missing page
 returning 404, and the quote form on both pages (a test lead should appear in `autowebly_leads`).
@@ -47,3 +45,6 @@ returning 404, and the quote form on both pages (a test lead should appear in `a
 - **Share images**: edit `_dev/og-image.html`, then from the repository root run
   `npm install && npx playwright install chromium && node autowebly/_dev/render-images.mjs`.
 - **Form options**: values sent in `services` are free text; the table allows at most 6 per lead.
+- **IndexNow** (tells Bing, Yandex and others about changed pages; Google doesn't use it): keep
+  `3c3f1e55cf0e40dba5f00dbe925b7727.txt` at the site root. After publishing new or changed pages,
+  submit their URLs through the OpenSEO project.

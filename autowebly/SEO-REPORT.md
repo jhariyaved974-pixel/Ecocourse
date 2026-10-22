@@ -1,7 +1,9 @@
 # Autowebly SEO audit and implementation — 22 October 2026
 
 Site: https://autowebly.vercel.app/ (Vercel project `autowebly`, static HTML, no build step).
-Nothing has been deployed: every change below is in this folder, waiting for your approval.
+**Live since 22 October 2026**, published with your approval as Vercel deployment
+`dpl_8Rjug3pwz9CGJ4MzC9BH7X2vGGbb` (commit `956fb4d`). Every live file was checked byte-for-byte
+against this folder.
 
 ## 1. What the site is
 
@@ -142,11 +144,14 @@ Report data, so **no Core Web Vitals pass can be claimed**.
   Payloads match the table and its constraints (`services` holds at most 6 items).
 - **ESLint** with the repository's config: 0 errors. One warning (unused `err` in `form.js`) was
   already in the live code.
-- **Not checked:** the live deployment (nothing deployed), real-device testing, Google's own tools.
+- **Live site:** all 14 published files match this folder exactly (Vercel's ETag is the file's MD5).
+  `autowebly.vercel.app` sends no `noindex` header, missing pages return 404, and `README.md` and
+  this report are not published.
+- **Not checked:** real-device testing, Google's own tools (Rich Results Test, URL Inspection).
 
 ## 6. Needs your input
 
-1. **Approve deployment** (section 8).
+1. **Search Console property** (section 7).
 2. **Information buyers need before contacting you:** do prices include GST? Is there a minimum
    term or notice period? Which CRMs do you support? What are the "defined service levels"? Is
    there USD pricing for international clients? Once answered, these belong in the B2B FAQ.
@@ -160,12 +165,17 @@ Report data, so **no Core Web Vitals pass can be claimed**.
 
 ## 7. Google Search Console setup
 
+Status (22 Oct): a **Domain** property was started and gave the DNS code
+`google-site-verification=1jc3zbak5nbFtC7MzoTiEy__hRkcdTUK8Kg8XKRQkwU`. That can never verify:
+it needs a TXT record on `autowebly.vercel.app`, and nobody can add DNS records to Vercel's
+`vercel.app` domain. The same code is now live as a meta tag on the home page, in case Google
+issues the same code for the URL-prefix property.
+
 1. Open https://search.google.com/search-console → **Add property** → **URL prefix** →
-   `https://autowebly.vercel.app/`. A Domain property isn't possible, because you don't control
-   `vercel.app`'s DNS.
-2. Verify with **HTML tag**. Send me the `<meta name="google-site-verification" …>` tag, or paste it
-   into the `<head>` of `index.html`, then deploy and click Verify. The **HTML file** method also
-   works: put Google's `google….html` file in `autowebly/` and deploy.
+   `https://autowebly.vercel.app/`.
+2. Choose **HTML tag**. If its `content` value is `1jc3zbak5nbFtC7MzoTiEy__hRkcdTUK8Kg8XKRQkwU`,
+   click **Verify** now. If it's different, send it over; it has to be added to `index.html` and
+   deployed before you click Verify.
 3. **Sitemaps** → submit `https://autowebly.vercel.app/sitemap.xml`.
 4. **URL Inspection** → inspect `https://autowebly.vercel.app/` and
    `https://autowebly.vercel.app/b2b-lead-generation/` → **Test live URL** → **Request indexing**.
@@ -181,10 +191,10 @@ Report data, so **no Core Web Vitals pass can be claimed**.
 
 ## 8. Deploying to Vercel
 
-See `README.md`. In short, from `autowebly/`: `npx vercel link` (choose the existing `autowebly`
-project), then `npx vercel` for a preview, check it, then `npx vercel --prod`. Or connect this
-repository in Vercel with Root Directory `autowebly` and Framework Preset *Other*. The site needs no
-paid plan, custom domain or DNS change. A custom domain is still worth considering later for
+See `README.md`. Deployments are built from this repository on GitHub with Root Directory
+`autowebly`. The README explains which folder the CLI must be run from. Rollback: in Vercel →
+autowebly → Deployments, the previous production deployment (`dpl_BwgbGdH8SVx1id1PxVg6Cyk1fWm4`) can
+be promoted back instantly. The site needs no paid plan, custom domain or DNS change. A custom domain is still worth considering later for
 brand trust; if you add one, update the canonical, sitemap and Open Graph URLs to match.
 
 ## 9. Next 30 days
