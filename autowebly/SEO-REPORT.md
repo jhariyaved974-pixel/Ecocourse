@@ -1,9 +1,10 @@
 # Autowebly SEO audit and implementation — 22 October 2026
 
 Site: https://autowebly.vercel.app/ (Vercel project `autowebly`, static HTML, no build step).
-**Live since 22 October 2026**, published with your approval as Vercel deployment
-`dpl_8Rjug3pwz9CGJ4MzC9BH7X2vGGbb` (commit `956fb4d`). Every live file was checked byte-for-byte
-against this folder.
+**Live since 22 October 2026**, published with your approval. The current production deployment
+is `dpl_CJddECLmqyZgVbTBMHGKZUne1Cni` (commit `c80e8c0`: the URL-prefix verification tag and the
+IndexNow key file on top of the SEO update in `dpl_8Rjug3pwz9CGJ4MzC9BH7X2vGGbb`). Live files were
+checked byte-for-byte against this folder.
 
 ## 1. What the site is
 
@@ -165,17 +166,14 @@ Report data, so **no Core Web Vitals pass can be claimed**.
 
 ## 7. Google Search Console setup
 
-Status (22 Oct): a **Domain** property was started and gave the DNS code
-`google-site-verification=1jc3zbak5nbFtC7MzoTiEy__hRkcdTUK8Kg8XKRQkwU`. That can never verify:
-it needs a TXT record on `autowebly.vercel.app`, and nobody can add DNS records to Vercel's
-`vercel.app` domain. The same code is now live as a meta tag on the home page, in case Google
-issues the same code for the URL-prefix property.
+Status (22 Oct): the **Domain** property failed DNS verification, as expected. It needs a TXT
+record on `autowebly.vercel.app`, and nobody can add DNS records to Vercel's `vercel.app` domain.
+The **URL-prefix** property's HTML tag (`o4iSrUTBkEeX6mm1kwATsZUXJ3bBH64pvSfA6ZN_RCQ`) is live on
+the home page. Keep that tag in `index.html` permanently, or the property loses its verification.
 
 1. Open https://search.google.com/search-console → **Add property** → **URL prefix** →
    `https://autowebly.vercel.app/`.
-2. Choose **HTML tag**. If its `content` value is `1jc3zbak5nbFtC7MzoTiEy__hRkcdTUK8Kg8XKRQkwU`,
-   click **Verify** now. If it's different, send it over; it has to be added to `index.html` and
-   deployed before you click Verify.
+2. Choose **HTML tag** and click **Verify**.
 3. **Sitemaps** → submit `https://autowebly.vercel.app/sitemap.xml`.
 4. **URL Inspection** → inspect `https://autowebly.vercel.app/` and
    `https://autowebly.vercel.app/b2b-lead-generation/` → **Test live URL** → **Request indexing**.
