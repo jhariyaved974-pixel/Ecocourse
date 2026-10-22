@@ -171,20 +171,21 @@ record on `autowebly.vercel.app`, and nobody can add DNS records to Vercel's `ve
 The **URL-prefix** property's HTML tag (`o4iSrUTBkEeX6mm1kwATsZUXJ3bBH64pvSfA6ZN_RCQ`) is live on
 the home page. Keep that tag in `index.html` permanently, or the property loses its verification.
 
-1. Open https://search.google.com/search-console → **Add property** → **URL prefix** →
-   `https://autowebly.vercel.app/`.
-2. Choose **HTML tag** and click **Verify**.
-3. **Sitemaps** → submit `https://autowebly.vercel.app/sitemap.xml`.
-4. **URL Inspection** → inspect `https://autowebly.vercel.app/` and
+Done on 22 Oct: the URL-prefix property is verified under rekhajhariya77@gmail.com, which is also
+the Google account Markifact uses. `sitemap.xml` was submitted the same day. Google downloaded it
+two seconds later and reported 4 URLs, 0 errors, 0 warnings. Before that, URL Inspection reported
+all four URLs as "unknown to Google", meaning never crawled. Remaining steps:
+
+1. **URL Inspection** → inspect `https://autowebly.vercel.app/` and
    `https://autowebly.vercel.app/b2b-lead-generation/` → **Test live URL** → **Request indexing**.
-5. Monitor **Pages** (which URLs are indexed and why others aren't) and **Performance → Search
+2. Monitor **Pages** (which URLs are indexed and why others aren't) and **Performance → Search
    results** (clicks, impressions, CTR and average position; filter by page or query, compare
    28-day periods). Being live is not the same as being indexed. Check the report rather than
    assuming.
-6. Optional: in Bing Webmaster Tools, import the property from Search Console (free).
-7. Connect the Google account to OpenSEO (project → Integrations) so I can read Search Console data
-   directly next time.
-8. After deploying, run https://search.google.com/test/rich-results on both pages and share-preview
+3. Optional: in Bing Webmaster Tools, import the property from Search Console (free).
+4. Optional: connect the same Google account to OpenSEO (project → Integrations) for its
+   striking-distance and opportunity reports.
+5. Run https://search.google.com/test/rich-results on both pages and share-preview
    a link in WhatsApp or LinkedIn to see the new images.
 
 ## 8. Deploying to Vercel
