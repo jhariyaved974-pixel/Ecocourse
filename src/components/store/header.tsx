@@ -117,7 +117,7 @@ function DesktopNav({ entries, extraDepartments }: { entries: MenuEntry[]; extra
           {entries.map((l) =>
             l.department ? (
               <NM.Item key={l.id} value={l.id}>
-                <NM.Trigger className={cn('group', itemCls, l.highlight && 'text-accent-text')} onClick={triggerClick(l.id, l.href)}>
+                <NM.Trigger className={cn('group', itemCls, l.highlight && 'font-semibold text-sale')} onClick={triggerClick(l.id, l.href)}>
                   {l.label}
                   <ChevronDown className="size-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" aria-hidden />
                 </NM.Trigger>
@@ -128,7 +128,7 @@ function DesktopNav({ entries, extraDepartments }: { entries: MenuEntry[]; extra
             ) : (
               <NM.Item key={l.id}>
                 <NM.Link asChild>
-                  <Link href={l.href} {...linkProps(l)} className={cn(itemCls, l.highlight && 'text-accent-text')}>
+                  <Link href={l.href} {...linkProps(l)} className={cn(itemCls, l.highlight && 'font-semibold text-sale')}>
                     {l.label}
                   </Link>
                 </NM.Link>
@@ -191,11 +191,11 @@ function MobileNav({ entries, extraDepartments, onNavigate }: { entries: MenuEnt
           <li key={l.id}>
             {l.department ? (
               <AccordionItem value={l.id} className="border-0">
-                <AccordionTrigger className={cn(rowCls, 'justify-between py-3 text-lg hover:text-ink', l.highlight && 'text-accent')}>{l.label}</AccordionTrigger>
+                <AccordionTrigger className={cn(rowCls, 'justify-between py-3 text-lg hover:text-ink', l.highlight && 'font-semibold text-sale')}>{l.label}</AccordionTrigger>
                 <AccordionContent className="pb-0 text-ink">{subLinks(l.department)}</AccordionContent>
               </AccordionItem>
             ) : (
-              <Link href={l.href} onClick={onNavigate} {...linkProps(l)} className={cn(rowCls, l.highlight && 'text-accent')}>
+              <Link href={l.href} onClick={onNavigate} {...linkProps(l)} className={cn(rowCls, l.highlight && 'font-semibold text-sale')}>
                 {l.label}
               </Link>
             )}

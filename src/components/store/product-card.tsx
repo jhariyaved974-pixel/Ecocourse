@@ -1,16 +1,27 @@
+'use client';
+
+import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ProductCardData } from '@/lib/catalog/types';
-import { cn } from '@/lib/utils';
+import { cn, discountPercent } from '@/lib/utils';
 import { Price, Stars, WishlistButton } from './product-bits';
+import { ShoeArt, shoeTint, shoeTypeFor } from './shoe-art';
 
 export function ProductCard({ product, priority, className }: { product: ProductCardData; priority?: boolean; className?: string }) {
-  const onSale = product.finalPrice < product.price;
-  const badge = !product.inStock ? 'Sold out' : onSale ? 'Sale' : product.isNew ? 'New' : product.isBestseller ? 'Bestseller' : null;
+  const off = discountPercent(product.price, product.finalPrice);
+  const tag = product.isBestseller ? 'Bestseller' : product.isNew ? 'New' : null;
+  // Products without photos are drawn (original Save The Money look); the colour dots switch the drawing.
+  const art = product.image ? null : shoeTypeFor({ name: product.name, categorySlug: product.categorySlug });
+  const [colorIndex, setColorIndex] = React.useState(0);
+  const color = product.colors[colorIndex]?.hex ?? '#1d2a4a';
   return (
-    <article className={cn('group relative', className)}>
+    <article className={cn('group relative flex flex-col', className)}>
       <Link href={`/products/${product.slug}`} className="block" aria-label={product.name}>
-        <div className="relative aspect-square overflow-hidden rounded-[var(--radius)] bg-surface-2">
+        <div
+          className="relative aspect-square overflow-hidden rounded-[var(--radius)] bg-surface-2 transition-shadow duration-300 group-hover:shadow-[0_18px_40px_-24px_rgba(17,17,17,0.45)]"
+          style={art ? { background: shoeTint(color) } : undefined}
+        >
           {product.image ? (
             <Image
               src={product.image}
@@ -24,6 +35,17 @@ export function ProductCard({ product, priority, className }: { product: Product
                 !product.inStock && 'opacity-70',
               )}
             />
+          ) : art ? (
+            <div className="absolute inset-0 grid place-items-center px-[9%] pt-[6%]">
+              <ShoeArt
+                type={art}
+                color={color}
+                className={cn(
+                  'drop-shadow-sm transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:-translate-y-2 group-hover:-rotate-3',
+                  !product.inStock && 'opacity-60',
+                )}
+              />
+            </div>
           ) : (
             <div className="grid h-full place-items-center text-xs text-muted">No image</div>
           )}
@@ -36,38 +58,60 @@ export function ProductCard({ product, priority, className }: { product: Product
               className="object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100"
             />
           ) : null}
-          {badge ? (
-            <span
-              className={cn(
-                'absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] uppercase',
-                badge === 'Sale' ? 'bg-sale text-white' : badge === 'Sold out' ? 'bg-ink/80 text-paper' : 'bg-white/90 text-ink',
-              )}
-            >
-              {badge}
-            </span>
-          ) : null}
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+            {!product.inStock ? (
+              <span className="rounded-full bg-ink/85 px-2.5 py-1 text-[10px] font-bold tracking-[0.1em] text-paper uppercase">Sold out</span>
+            ) : off ? (
+              <span className="rounded-full bg-sale px-2.5 py-1 text-[11px] font-bold text-white">−{off}%</span>
+            ) : null}
+            {tag ? (
+              <span
+                className={cn(
+                  'rounded-full px-2.5 py-1 text-[10px] font-bold tracking-[0.1em] uppercase',
+                  tag === 'Bestseller' ? 'bg-highlight text-highlight-ink' : 'bg-accent text-accent-ink',
+                )}
+              >
+                {tag}
+              </span>
+            ) : null}
+          </div>
         </div>
       </Link>
       <WishlistButton productId={product.id} productName={product.name} className="absolute top-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100" />
-      <div className="mt-3 space-y-1.5 px-0.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="truncate text-[15px] font-medium">
-              <Link href={`/products/${product.slug}`} className="after:absolute after:inset-0 after:content-['']" tabIndex={-1}>
-                {product.name}
-              </Link>
-            </h3>
-            {product.categoryName ? <p className="text-xs text-muted">{product.categoryName}</p> : null}
-          </div>
-          {product.colors.length ? (
-            <div className="flex shrink-0 -space-x-1 pt-1" aria-label={`${product.colors.length} colours`}>
-              {product.colors.slice(0, 4).map((c) => (
-                <span key={c.name} title={c.name} className="size-3.5 rounded-full border border-white shadow-[0_0_0_1px_var(--line-strong)]" style={{ backgroundColor: c.hex }} />
-              ))}
-            </div>
-          ) : null}
-        </div>
+      <div className="mt-3 flex flex-1 flex-col gap-1.5 px-0.5">
+        {product.categoryName ? <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">{product.categoryName}</p> : null}
+        <h3 className="line-clamp-1 text-[15px] font-semibold">
+          <Link href={`/products/${product.slug}`} className="hover:underline">
+            {product.name}
+          </Link>
+        </h3>
         <Price price={product.price} finalPrice={product.finalPrice} />
+        {product.colors.length ? (
+          <div className="flex items-center gap-1.5 pt-0.5" role={art ? 'radiogroup' : undefined} aria-label={`${product.colors.length} colours`}>
+            {product.colors.slice(0, 5).map((c, i) =>
+              art ? (
+                <button
+                  key={c.name}
+                  type="button"
+                  role="radio"
+                  aria-checked={i === colorIndex}
+                  aria-label={c.name}
+                  title={c.name}
+                  onClick={() => setColorIndex(i)}
+                  onMouseEnter={() => setColorIndex(i)}
+                  className={cn(
+                    'size-[18px] rounded-full border-2 border-paper shadow-[0_0_0_1px_var(--line-strong)] transition-shadow',
+                    i === colorIndex && 'shadow-[0_0_0_2px_var(--ink)]',
+                  )}
+                  style={{ backgroundColor: c.hex }}
+                />
+              ) : (
+                <span key={c.name} title={c.name} className="size-3.5 rounded-full border border-white shadow-[0_0_0_1px_var(--line-strong)]" style={{ backgroundColor: c.hex }} />
+              ),
+            )}
+            {product.colors.length > 5 ? <span className="text-xs text-muted">+{product.colors.length - 5}</span> : null}
+          </div>
+        ) : null}
         {product.ratingCount > 0 ? <Stars rating={product.ratingAvg} count={product.ratingCount} /> : null}
       </div>
     </article>

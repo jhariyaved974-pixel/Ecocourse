@@ -7,6 +7,7 @@ import { Box, ChevronLeft, ChevronRight, Expand, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { StageErrorBoundary, useCanRender3D } from "@/components/three/capability";
 import type { ProductMediaData } from "@/lib/catalog/types";
+import { ShoeArt, shoeTint, type ShoeType } from "@/components/store/shoe-art";
 import { cn } from "@/lib/utils";
 
 const ProductStage = dynamic(
@@ -120,12 +121,15 @@ export function ProductGallery({
   tint,
   productName,
   activeColorId,
+  artType = null,
 }: {
   media: ProductMediaData[];
   modelUrl: string | null;
   tint: string | null;
   productName: string;
   activeColorId: string | null;
+  /** Drawn shoe shown while a product has no photos. */
+  artType?: ShoeType | null;
 }) {
   // Images for the selected colour first, then shared media, then other colours.
   const ordered = React.useMemo(() => {
@@ -160,6 +164,27 @@ export function ProductGallery({
 
   const go = (dir: 1 | -1) =>
     setIndex((i) => (i + dir + slides.length) % slides.length);
+
+  if (!slides.length && artType) {
+    const color = tint ?? "#1d2a4a";
+    return (
+      <div
+        className="relative grid aspect-square place-items-center overflow-hidden rounded-[var(--radius)] px-[8%]"
+        style={{ background: shoeTint(color) }}
+      >
+        <div
+          className="pointer-events-none absolute top-1/2 left-1/2 size-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/45"
+          aria-hidden
+        />
+        <ShoeArt
+          type={artType}
+          color={color}
+          title={productName}
+          className="relative drop-shadow-md transition-transform duration-500 hover:-rotate-3"
+        />
+      </div>
+    );
+  }
 
   if (!slides.length) {
     return (

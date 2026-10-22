@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
+import { ShoeArt, shoeTint } from '@/components/store/shoe-art';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { HandCoins, Lock, QrCode, ShieldCheck, Truck, Wallet } from 'lucide-react';
@@ -392,7 +393,13 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
             return (
               <li key={l.variantId} className="flex gap-3">
                 <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
-                  {l.image ? <Image src={l.image} alt="" fill sizes="64px" className="object-cover" /> : null}
+                  {l.image ? (
+                    <Image src={l.image} alt="" fill sizes="64px" className="object-cover" />
+                  ) : l.art ? (
+                    <div className="grid h-full place-items-center px-1" style={{ background: shoeTint(l.art.color) }}>
+                      <ShoeArt type={l.art.type} color={l.art.color} />
+                    </div>
+                  ) : null}
                   <span className="absolute -top-0 -right-0 grid min-w-5 place-items-center rounded-bl-lg bg-ink px-1 text-[10px] font-semibold text-paper">{l.quantity}</span>
                 </div>
                 <div className="min-w-0 flex-1 text-sm">

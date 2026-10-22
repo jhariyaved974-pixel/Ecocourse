@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import type { ShoeType } from '@/components/store/shoe-art';
 
 // Guest cart persisted in localStorage. It only stores what the shopper picked
 // (variant + quantity) plus display hints; prices, stock and totals are always
@@ -12,6 +13,8 @@ export interface CartLine {
   slug: string;
   name: string;
   image: string | null;
+  /** Drawn shoe for products without photos (display hint). */
+  art?: { type: ShoeType; color: string } | null;
   colorName: string | null;
   /** Option value ("UK 8", "S/M", "Standard" when the product has no options). */
   sizeLabel: string;

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
+import { ShoeArt, shoeTint } from './shoe-art';
 import Link from 'next/link';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { Dialog, SheetContent } from '@/components/ui/dialog';
@@ -70,7 +71,13 @@ export function CartLineRow({ line, quoteLine, onNavigate }: { line: CartLine; q
   return (
     <li className="flex gap-4 py-5">
       <Link href={`/products/${line.slug}`} onClick={onNavigate} className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-        {line.image ? <Image src={line.image} alt="" fill sizes="96px" className="object-cover" /> : null}
+        {line.image ? (
+          <Image src={line.image} alt="" fill sizes="96px" className="object-cover" />
+        ) : line.art ? (
+          <div className="grid h-full place-items-center px-1.5" style={{ background: shoeTint(line.art.color) }}>
+            <ShoeArt type={line.art.type} color={line.art.color} />
+          </div>
+        ) : null}
       </Link>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-3">

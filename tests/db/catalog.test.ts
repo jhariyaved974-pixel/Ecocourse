@@ -342,3 +342,38 @@ describe('store settings', () => {
     });
   });
 });
+
+describe('publishing without photos', () => {
+  /** A draft product with one colour and one active size, and no media. */
+  async function photoless(tags: string[]) {
+    const tag = uid();
+    const client = await admin.connect();
+    try {
+      const { rows: [p] } = await client.query(
+        `insert into public.products (name, slug, sku, price, status, category_id, tags)
+         values ($1, $2, $3, 150000, 'draft', (select id from public.categories where slug = 'running'), $4) returning id`,
+        [`Drawn ${tag}`, `drawn-${tag}`, `DRAWN-${tag}`.toUpperCase(), tags],
+      );
+      const { rows: [c] } = await client.query(
+        `insert into public.product_colors (product_id, name, hex, family) values ($1, 'Navy', '#1d2a4a', 'blue') returning id`, [p.id]);
+      await client.query(
+        `insert into public.product_variants (product_id, color_id, size_label, size_sort, sku) values ($1, $2, 'UK 8', 1, $3)`,
+        [p.id, c.id, `DRAWN-${tag}-8`.toUpperCase()]);
+      return p.id as string;
+    } finally {
+      client.release();
+    }
+  }
+
+  it('allows a drawn shoe (shoe type tag + colour) to be published without an image', async () => {
+    const id = await photoless(['runner']);
+    await admin.query(`update public.products set status = 'published' where id = $1`, [id]);
+    const { rows } = await admin.query(`select status from public.products where id = $1`, [id]);
+    expect(rows[0].status).toBe('published');
+  });
+
+  it('still requires an image for every other product', async () => {
+    const id = await photoless(['gift']);
+    await expectDbError(admin.query(`update public.products set status = 'published' where id = $1`, [id]), { hint: 'publish_requires_image' });
+  });
+});

@@ -8,6 +8,7 @@ import { Check, Ruler, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
 import type { ProductDetailData, SizeGuideData } from '@/lib/catalog/types';
 import { hasNoOptions, optionText, shortOptionValue, ukSizes, withArticle } from '@/lib/catalog/variants';
 import { ProductGallery } from './gallery';
+import { shoeTypeFor } from '@/components/store/shoe-art';
 import { SizeGuideTable } from './size-guide-table';
 import { Price, Stars, WishlistButton } from '@/components/store/product-bits';
 import { QuantityStepper } from '@/components/store/cart-drawer';
@@ -92,6 +93,7 @@ export function ProductExperience({
   };
 
   const cover = product.media.find((m) => m.kind === 'image' && (m.colorId === colorId || m.colorId === null)) ?? product.media.find((m) => m.kind === 'image');
+  const artType = product.media.length ? null : shoeTypeFor({ name: product.name, categorySlug: product.category?.slug, tags: product.tags });
 
   const add = (buyNow: boolean) => {
     if (!selected) {
@@ -110,6 +112,7 @@ export function ProductExperience({
         slug: product.slug,
         name: product.name,
         image: cover?.url ?? null,
+        art: !cover && artType ? { type: artType, color: color?.hex ?? '#1d2a4a' } : null,
         colorName: color?.name ?? null,
         sizeLabel: selected.sizeLabel,
         variantLabel: label,
@@ -136,7 +139,7 @@ export function ProductExperience({
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-14">
-      <ProductGallery media={product.media} modelUrl={product.modelUrl} tint={color?.hex ?? null} productName={product.name} activeColorId={colorId} />
+      <ProductGallery media={product.media} modelUrl={product.modelUrl} tint={color?.hex ?? null} productName={product.name} activeColorId={colorId} artType={artType} />
 
       <div className="lg:sticky lg:top-24 lg:self-start">
         {product.category ? (
