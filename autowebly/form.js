@@ -2,6 +2,9 @@
   var y=document.getElementById("yr"); if(y) y.textContent=new Date().getFullYear();
   var form=document.getElementById("quote-form"); if(!form) return;
   var status=document.getElementById("q-status"), btn=document.getElementById("q-submit");
+  // Plan buttons on the B2B page preselect that plan in the form's plan select.
+  var plan=document.getElementById("q-plan");
+  if(plan) document.querySelectorAll("[data-plan]").forEach(function(a){ a.addEventListener("click",function(){ plan.value=a.getAttribute("data-plan"); }); });
   function say(msg,cls){status.textContent=msg;status.className="status "+(cls||"");}
   form.addEventListener("submit",async function(e){
     e.preventDefault();
