@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 // Automated WCAG 2.1 A/AA checks for the main storefront pages. (Automated
 // checks catch only part of accessibility issues; keyboard and screen-reader
 // passes are still needed.)
-const PAGES = ['/', '/shop', '/products/velocity-runner-x', '/cart', '/checkout', '/faq', '/size-guide', '/orders/track', '/login', '/signup', '/pages/returns-and-exchanges'];
+const PAGES = ['/', '/shop', '/products/classic-silk-elbow-sleeve-blouse', '/cart', '/checkout', '/faq', '/size-guide', '/orders/track', '/login', '/signup', '/pages/returns-and-exchanges'];
 
 for (const path of PAGES) {
   test(`has no detectable WCAG A/AA violations: ${path} @mobile`, async ({ page }) => {

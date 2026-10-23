@@ -7,12 +7,12 @@ test.beforeEach(async ({ context }) => {
 });
 
 test('inventory changes are recorded and cannot drop below reserved stock', async ({ page, browser }) => {
-  const sku = 'STM-VRX-GLACIE-10';
+  const sku = 'ANV-CSE-ANTIQU-40';
   await topUpStock(sku, 30);
   // A guest's unpaid order reserves one unit.
   const shopper = await browser.newContext();
   const shop = await shopper.newPage();
-  await addToCart(shop, 'velocity-runner-x', { color: 'Glacier', size: '10' });
+  await addToCart(shop, 'classic-silk-elbow-sleeve-blouse', { color: 'Antique Gold', size: '40' });
   await placeUpiOrder(shop, { email: `e2e+inv${Date.now()}@example.com` });
   await shopper.close();
   const before = await variantStock(sku);
@@ -54,7 +54,7 @@ test('a coupon created in the admin is validated and applied in the cart', async
 
   const shopper = await browser.newContext();
   const shop = await shopper.newPage();
-  await addToCart(shop, 'cloudstep-everyday', { color: 'Oat', size: '5' });
+  await addToCart(shop, 'everyday-cotton-blouse', { color: 'White', size: '32' });
   await shop.goto('/cart');
   const summary = shop.getByRole('complementary', { name: 'Order summary' });
   await summary.getByLabel('Coupon code').fill(code);
@@ -71,17 +71,17 @@ test('a coupon created in the admin is validated and applied in the cart', async
 
 test('approving a review publishes it on the product page', async ({ page, browser }) => {
   const customer = await ensureUser(`e2e-rev-${Date.now()}@example.com`);
-  const body = `Great grip on wet roads and very light. (${Date.now()})`;
+  const body = `Soft, light and the zari border is beautiful. (${Date.now()})`;
   const { rows } = await db.query(
     `insert into reviews (product_id, user_id, author_name, rating, title, body, status)
-     select id, $1, 'Kabir', 5, 'Light and grippy', $2, 'pending' from products where slug = 'aeroflex-sport' returning id`,
+     select id, $1, 'Kavya', 5, 'Lovely for Onam', $2, 'pending' from products where slug = 'kasavu-tissue' returning id`,
     [customer.id, body],
   );
   const id = rows[0].id;
   try {
     const visitor = await browser.newContext();
     const pub = await visitor.newPage();
-    await pub.goto('/products/aeroflex-sport');
+    await pub.goto('/products/kasavu-tissue');
     await expect(pub.getByText(body)).toHaveCount(0);
 
     await page.goto('/admin/reviews');
@@ -89,7 +89,7 @@ test('approving a review publishes it on the product page', async ({ page, brows
     await card.getByRole('button', { name: 'Approve' }).click();
     await expect(page.getByText('Review approved and published').first()).toBeVisible();
 
-    await pub.goto('/products/aeroflex-sport');
+    await pub.goto('/products/kasavu-tissue');
     await expect(pub.getByText(body)).toBeVisible();
     await visitor.close();
   } finally {

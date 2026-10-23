@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { addToCart, db, MERCHANT_UPI_ID, orderByNumber, placeUpiOrder, PNG_1PX, randomUtr, SUPABASE_URL, topUpStock, variantStock } from './support';
 
-const SKU = 'STM-CSE-OAT-5';
+const SKU = 'ANV-ECB-WHITE-32';
 
 test.beforeAll(async () => {
   await topUpStock(SKU, 30);
@@ -9,7 +9,7 @@ test.beforeAll(async () => {
 
 test('places a UPI order showing the configured UPI ID, exact amount and QR @mobile', async ({ page }) => {
   const before = await variantStock(SKU);
-  await addToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '5' });
+  await addToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '32' });
   const orderNumber = await placeUpiOrder(page, { email: `e2e+${Date.now()}@example.com` });
   const order = await orderByNumber(orderNumber);
   expect(order.payment_method).toBe('upi_manual');
@@ -37,7 +37,7 @@ test('places a UPI order showing the configured UPI ID, exact amount and QR @mob
 });
 
 test('accepts a payment proof only from the order owner and stores it privately', async ({ page, browser }) => {
-  await addToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '5' });
+  await addToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '32' });
   const orderNumber = await placeUpiOrder(page, { email: `e2e+${Date.now()}@example.com` });
 
   // Another visitor (no order cookie, not signed in) can neither see the order nor upload a proof.
@@ -88,7 +88,7 @@ test('accepts a payment proof only from the order owner and stores it privately'
 
 test('a double-clicked checkout creates exactly one order', async ({ page }) => {
   const email = `e2e+double${Date.now()}@example.com`;
-  await addToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '5' });
+  await addToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '32' });
   await page.goto('/checkout');
   await page.fill('#email', email);
   await page.fill('#fullName', 'Ravi Kumar');

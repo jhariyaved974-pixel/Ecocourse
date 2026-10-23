@@ -10,7 +10,7 @@ import { ShoeArt, shoeTint, shoeTypeFor } from './shoe-art';
 
 export function ProductCard({ product, priority, className }: { product: ProductCardData; priority?: boolean; className?: string }) {
   const tag = product.isNew ? 'New' : null;
-  // Products without photos are drawn (original Save The Money look); the colour dots switch the drawing.
+  // Shoes without photos are drawn; the colour dots switch the drawing.
   const art = product.image ? null : shoeTypeFor({ name: product.name, categorySlug: product.categorySlug });
   const [colorIndex, setColorIndex] = React.useState(0);
   const color = product.colors[colorIndex]?.hex ?? '#1d2a4a';

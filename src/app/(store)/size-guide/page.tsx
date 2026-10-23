@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/ui/misc';
 
 export const metadata: Metadata = {
   title: 'Size guides',
-  description: 'Size charts for clothing, footwear and other products with sizes, plus tips on measuring.',
+  description: 'Blouse size chart by bust measurement, with tips on measuring and alterations.',
   alternates: { canonical: '/size-guide' },
 };
 

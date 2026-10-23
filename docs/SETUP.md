@@ -83,10 +83,11 @@ rejection/resubmission, reservation expiry, late payments, UTR reuse and order/p
 
 ## 7. Regenerating assets
 
-Product renders, site imagery and GLB models are generated procedurally (no third-party assets):
+Sari and blouse photographs and site imagery are woven procedurally (no third-party assets):
 
 ```bash
-npm run render:assets            # everything (slow)
-node scripts/render/run.mjs --only velocity-runner-x --photos
+npm run render:assets            # everything (about a minute)
+node scripts/render/run.mjs --only=kasavu-tissue --photos
+node scripts/render/run.mjs --site=hero,category-banarasi
 npm run seed:generate            # rebuild supabase/seed.sql from scripts/render/catalog.ts
 ```

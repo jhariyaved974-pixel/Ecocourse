@@ -102,7 +102,7 @@ describe('products.variant_label', () => {
   });
 
   it('is snapshotted on order lines and shown in quotes', async () => {
-    const { variants } = await createProduct({ stock: [3], options: ['2 × 3 kg'], variantLabel: 'Weight', categorySlug: 'fitness' });
+    const { variants } = await createProduct({ stock: [3], options: ['2 × 3 kg'], variantLabel: 'Weight', categorySlug: 'occasion-blouses' });
     const quote = await rpc<{ lines: { variant_label: string; size_label: string }[]; priced_lines: { variant_label: string }[] }>(
       service, 'compute_quote', { p_lines: [{ variant_id: variants[0].variantId, quantity: 1 }] });
     expect(quote.lines[0]).toMatchObject({ variant_label: 'Weight', size_label: '2 × 3 kg' });
@@ -111,26 +111,24 @@ describe('products.variant_label', () => {
 });
 
 describe('generic size guides', () => {
-  it('seeds the footwear and clothing guides and links them through categories', async () => {
+  it('seeds the blouse guide and links it through the blouse categories', async () => {
     const { rows: guides } = await admin.query(
       `select name, columns, is_default, (select count(*)::int from public.size_guide_rows r where r.size_guide_id = g.id) as rows
-       from public.size_guides g where name in ('Footwear (UK/India)', 'Clothing (unisex)') order by name`);
+       from public.size_guides g where name not like 'Test%' order by name`);
     expect(guides).toEqual([
-      { name: 'Clothing (unisex)', columns: ['Size', 'Chest (in)', 'Length (in)'], is_default: false, rows: 5 },
-      { name: 'Footwear (UK/India)', columns: ['UK', 'US', 'EU', 'Foot length (cm)'], is_default: false, rows: 10 },
+      { name: 'Blouse', columns: ['Size', 'Bust (in)', 'Under-bust (in)', 'Shoulder (in)', 'Length (in)'], is_default: false, rows: 6 },
     ]);
     const { rows: links } = await admin.query(
       `select c.slug, g.name as guide from public.categories c left join public.size_guides g on g.id = c.size_guide_id
-       where c.slug in ('footwear', 'sneakers', 'sandals', 'clothing', 'electronics', 'audio') order by c.slug`);
+       where c.slug in ('saris', 'kanjivaram', 'blouses', 'classic-blouses', 'occasion-blouses') order by c.slug`);
     expect(Object.fromEntries(links.map((l) => [l.slug, l.guide]))).toEqual({
-      audio: null, clothing: 'Clothing (unisex)', electronics: null, footwear: 'Footwear (UK/India)',
-      sandals: 'Footwear (UK/India)', sneakers: 'Footwear (UK/India)',
+      blouses: 'Blouse', 'classic-blouses': 'Blouse', kanjivaram: null, 'occasion-blouses': 'Blouse', saris: null,
     });
     // Rows are anonymous-readable (product pages) and keep the column order.
     const rows = await as<{ cells: string[] }>(anon,
       `select r.cells from public.size_guide_rows r join public.size_guides g on g.id = r.size_guide_id
-       where g.name = 'Clothing (unisex)' order by r.sort_order limit 1`);
-    expect(rows[0].cells).toEqual(['S', '36–38', '27']);
+       where g.name = 'Blouse' order by r.sort_order limit 1`);
+    expect(rows[0].cells).toEqual(['32', '32', '27', '13.5', '14']);
   });
 
   it('saves a guide with its rows and lets the number of columns change in one save', async () => {
@@ -224,12 +222,12 @@ describe('category tree', () => {
   it('seeds the departments and sub-categories of the sample catalogue', async () => {
     const { rows } = await admin.query(
       `select p.slug as parent, c.slug from public.categories c left join public.categories p on p.id = c.parent_id
-       where c.slug in ('electronics', 'footwear', 'audio', 'clothing', 'sneakers', 'sandals', 'outdoor') order by c.slug`);
+       where c.slug in ('saris', 'blouses', 'kanjivaram', 'banarasi', 'cotton-linen', 'classic-blouses', 'occasion-blouses') order by c.slug`);
     expect(Object.fromEntries(rows.map((r) => [r.slug, r.parent]))).toEqual({
-      audio: 'electronics', clothing: 'fashion', electronics: null, footwear: null, outdoor: 'sports-fitness', sandals: 'footwear', sneakers: 'footwear',
+      banarasi: 'saris', blouses: null, 'classic-blouses': 'blouses', 'cotton-linen': 'saris', kanjivaram: 'saris', 'occasion-blouses': 'blouses', saris: null,
     });
     const { rows: depts } = await admin.query(`select slug from public.categories where parent_id is null and slug not like 'dept-%' order by sort_order`);
-    expect(depts.map((d) => d.slug)).toEqual(['electronics', 'fashion', 'footwear', 'home-kitchen', 'beauty', 'sports-fitness', 'toys-kids', 'books-stationery']);
+    expect(depts.map((d) => d.slug)).toEqual(['saris', 'blouses']);
   });
 });
 
@@ -258,15 +256,14 @@ describe('department listings include sub-categories', () => {
     expect(visible.map((r) => r.slug).sort()).toEqual([a.slug, c.slug].sort());
   });
 
-  it('works for the seeded footwear and electronics departments', async () => {
-    const shoes = await as<{ slug: string }>(anon, `select slug from public.search_products(p_category_slug => 'footwear', p_limit => 60)`);
-    expect(shoes.map((r) => r.slug)).toEqual(expect.arrayContaining(['velocity-runner-x', 'coastline-slide', 'midnight-leather-classic']));
-    expect(shoes.map((r) => r.slug)).not.toContain('pulse-wireless-earbuds');
-    const tech = await as<{ slug: string; category_slug: string }>(anon,
-      `select slug, category_slug from public.search_products(p_category_slug => 'electronics', p_limit => 60)`);
-    expect(tech.map((r) => r.slug).sort()).toEqual(
-      ['boom-mini-speaker', 'orbit-over-ear-headphones', 'pulse-wireless-earbuds', 'stride-smartwatch-2', 'volt-20000-power-bank']);
-    expect(new Set(tech.map((r) => r.category_slug))).toEqual(new Set(['audio', 'wearables', 'tech-accessories']));
+  it('works for the seeded sari and blouse departments', async () => {
+    const saris = await as<{ slug: string; category_slug: string }>(anon,
+      `select slug, category_slug from public.search_products(p_category_slug => 'saris', p_limit => 60)`);
+    expect(saris.map((r) => r.slug)).toEqual(expect.arrayContaining(['meenakshi-temple-border-kanjivaram', 'jangla-banarasi-katan', 'kota-doria-checks']));
+    expect(saris.map((r) => r.slug)).not.toContain('classic-silk-elbow-sleeve-blouse');
+    expect(new Set(saris.map((r) => r.category_slug))).toEqual(new Set(['kanjivaram', 'banarasi', 'chanderi-maheshwari', 'cotton-linen', 'organza-tissue']));
+    const banarasi = await as<{ slug: string }>(anon, `select slug from public.search_products(p_category_slug => 'banarasi', p_limit => 60)`);
+    expect(banarasi.map((r) => r.slug).sort()).toEqual(['jangla-banarasi-katan', 'kadhua-butidar-banarasi', 'tanchoi-banarasi']);
   });
 
   it('catalog_facets is scoped to the department and leaves out "Standard"', async () => {
@@ -291,19 +288,18 @@ describe('department listings include sub-categories', () => {
     expect(noOptions.variant_labels).toEqual([]);
 
     const everything = await rpc<Facets>(anon, 'catalog_facets', {});
-    expect(everything.sizes).toEqual(expect.arrayContaining(['UK 8', 'S', 'XXL', 'S/M']));
+    expect(everything.sizes).toEqual(expect.arrayContaining(['32', '42', 'S/M']));
     expect(everything.sizes).not.toContain('Standard');
   });
 
   it('orders option values naturally across products', async () => {
-    // Seeded footwear: CloudStep runs UK 3-8, the other shoes UK 6-11 (size_sort is a per-product position).
-    const shoes = await rpc<{ sizes: string[]; variant_labels: string[] }>(anon, 'catalog_facets', { p_category_slug: 'footwear' });
-    expect(shoes.sizes.filter((s) => s.startsWith('UK '))).toEqual(['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11']);
-    expect(shoes.variant_labels).toEqual(['Size']);
-    const fitness = await rpc<{ sizes: string[] }>(anon, 'catalog_facets', { p_category_slug: 'fitness' });
-    expect(fitness.sizes.filter((s) => s.includes('kg'))).toEqual(['2 × 2 kg', '2 × 3 kg', '2 × 5 kg']);
-    const clothing = await rpc<{ sizes: string[] }>(anon, 'catalog_facets', { p_category_slug: 'clothing' });
-    expect(clothing.sizes).toEqual(['S', 'M', 'L', 'XL', 'XXL']);
+    // Seeded blouses run 32-42 (size_sort is a per-product position); numeric sizes sort as numbers.
+    const blouses = await rpc<{ sizes: string[]; variant_labels: string[] }>(anon, 'catalog_facets', { p_category_slug: 'blouses' });
+    expect(blouses.sizes.filter((s) => /^\d+$/.test(s))).toEqual(['32', '34', '36', '38', '40', '42']);
+    expect(blouses.variant_labels).toContain('Size');
+    // Saris have no options.
+    const saris = await rpc<{ sizes: string[] }>(anon, 'catalog_facets', { p_category_slug: 'saris' });
+    expect(saris.sizes).toEqual([]);
   });
 
   it('a coupon for a department applies to products in its sub-categories', async () => {
@@ -329,16 +325,16 @@ describe('department listings include sub-categories', () => {
 });
 
 describe('store settings', () => {
-  it('uses the Save The Money brand defaults', async () => {
+  it('uses the Anvaya brand defaults', async () => {
     const rows = await as<Record<string, string>>(anon,
       `select store_name, tagline, seo_title, seo_title_template, order_number_prefix, accent_color from public.store_settings`);
     expect(rows[0]).toEqual({
-      store_name: 'Save The Money',
-      tagline: 'Everything you need, for less.',
-      seo_title: 'Save The Money — Everyday products at honest prices',
-      seo_title_template: '%s · Save The Money',
-      order_number_prefix: 'STM',
-      accent_color: '#15803D',
+      store_name: 'Anvaya',
+      tagline: 'Handwoven saris, and blouses cut to wear with them.',
+      seo_title: 'Anvaya — Handwoven saris and blouses',
+      seo_title_template: '%s · Anvaya',
+      order_number_prefix: 'ANV',
+      accent_color: '#7A2232',
     });
   });
 });
@@ -351,7 +347,7 @@ describe('publishing without photos', () => {
     try {
       const { rows: [p] } = await client.query(
         `insert into public.products (name, slug, sku, price, status, category_id, tags)
-         values ($1, $2, $3, 150000, 'draft', (select id from public.categories where slug = 'running'), $4) returning id`,
+         values ($1, $2, $3, 150000, 'draft', (select id from public.categories where slug = 'classic-blouses'), $4) returning id`,
         [`Drawn ${tag}`, `drawn-${tag}`, `DRAWN-${tag}`.toUpperCase(), tags],
       );
       const { rows: [c] } = await client.query(

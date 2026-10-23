@@ -1,7 +1,7 @@
 import { expect, test, type Browser } from '@playwright/test';
 import { addToCart, db, ensureUser, orderByNumber, placeUpiOrder, PNG_1PX, randomUtr, signInContext, topUpStock, variantStock } from './support';
 
-const SKU = 'STM-CSE-OAT-6';
+const SKU = 'ANV-ECB-WHITE-34';
 // A dedicated owner: other specs (and their global setup) reset the shared
 // OWNER_EMAIL password, which signs that account out mid-test.
 const PAYMENTS_OWNER_EMAIL = 'e2e-owner-payments@auren.test';
@@ -19,7 +19,7 @@ async function adminPage(browser: Browser) {
 
 test('an approved UPI payment confirms the order once, deducts stock once and is audited', async ({ page, browser }) => {
   const start = await variantStock(SKU);
-  await addToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '6' });
+  await addToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '34' });
   const orderNumber = await placeUpiOrder(page, { email: `e2e+approve${Date.now()}@example.com` });
   const utr = randomUtr();
   await page.setInputFiles('#proof-file', { name: 'payment.png', mimeType: 'image/png', buffer: PNG_1PX });
@@ -68,7 +68,7 @@ test('an approved UPI payment confirms the order once, deducts stock once and is
 });
 
 test('a rejected payment stays unpaid and the customer is asked to resubmit', async ({ page, browser }) => {
-  await addToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '6' });
+  await addToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '34' });
   const orderNumber = await placeUpiOrder(page, { email: `e2e+reject${Date.now()}@example.com` });
   await page.setInputFiles('#proof-file', { name: 'payment.png', mimeType: 'image/png', buffer: PNG_1PX });
   await page.fill('#utr', randomUtr());

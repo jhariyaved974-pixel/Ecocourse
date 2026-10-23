@@ -4,7 +4,7 @@ import { addToCart, db, ensureUser, MERCHANT_UPI_ID, orderByNumber, OWNER_EMAIL,
 // Half prepaid: the advance is paid at checkout (manual UPI + proof + staff
 // verification), the balance online before dispatch with the note "<order>-BAL".
 // A size no other spec buys, so stock assertions are not disturbed by specs running alongside.
-const SKU = 'STM-CSE-OAT-8';
+const SKU = 'ANV-ECB-WHITE-38';
 
 test.beforeAll(async () => {
   await topUpStock(SKU, 30);
@@ -24,14 +24,14 @@ function rupees(paise: number) {
 async function addOneToCart(page: Page, slug: string, opts: { color?: string; size: string }) {
   await addToCart(page, slug, opts);
   // The cart drawer opens on success and hides the header from the accessibility tree, so match the attribute.
-  const cart = page.locator('button[aria-label^="Open cart"]').first();
+  const cart = page.locator('button[aria-label^="Open bag"]').first();
   let first = true;
   await expect(async () => {
-    if (!first && (await cart.getAttribute('aria-label')) === 'Open cart, empty') {
+    if (!first && (await cart.getAttribute('aria-label')) === 'Open bag, empty') {
       await page.getByRole('button', { name: 'Add to cart' }).click();
     }
     first = false;
-    await expect(cart).not.toHaveAttribute('aria-label', 'Open cart, empty', { timeout: 5_000 });
+    await expect(cart).not.toHaveAttribute('aria-label', 'Open bag, empty', { timeout: 5_000 });
   }).toPass({ timeout: 60_000 });
 }
 
@@ -85,7 +85,7 @@ async function submitProof(page: Page, utr: string) {
 
 test('half prepaid: advance at checkout, then the balance by UPI before dispatch', async ({ page }) => {
   const start = await variantStock(SKU);
-  await addOneToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '8' });
+  await addOneToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '38' });
   await fillCheckout(page, `e2e+half${Date.now()}@example.com`);
 
   // Both plans are offered with the exact amounts from the server quote.
@@ -175,7 +175,7 @@ test('half prepaid: advance at checkout, then the balance by UPI before dispatch
 });
 
 test('prepaid stays the default and pays the full amount', async ({ page }) => {
-  await addOneToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '8' });
+  await addOneToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '38' });
   await fillCheckout(page, `e2e+prepaid${Date.now()}@example.com`);
   await expect(page.getByTestId('due-now')).not.toContainText('advance');
   await page.getByRole('button', { name: /Place order · ₹/ }).click();

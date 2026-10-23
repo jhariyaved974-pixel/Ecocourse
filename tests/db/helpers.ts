@@ -76,7 +76,7 @@ export interface TestVariant {
 
 /**
  * Creates a published product with one colour and one variant per entry in
- * `stock`. Option values default to UK shoe sizes ("UK 6", "UK 7", ...); pass
+ * `stock`. Option values default to blouse sizes ("32", "34", ...); pass
  * `options` (same length as `stock`) and `variantLabel` for other products.
  */
 export async function createProduct(opts: {
@@ -101,7 +101,7 @@ export async function createProduct(opts: {
     const { rows: [product] } = await client.query(
       `insert into public.products (name, slug, sku, price, sale_price, status, category_id, variant_label, gender)
        values ($1, $2, $3, $4, $5, 'draft', (select id from public.categories where slug = $6), $7, $8) returning id`,
-      [`Test Shoe ${slug.slice(-4)}`, slug, sku, opts.price ?? 250000, opts.salePrice ?? null, opts.categorySlug ?? 'running',
+      [`Test Shoe ${slug.slice(-4)}`, slug, sku, opts.price ?? 250000, opts.salePrice ?? null, opts.categorySlug ?? 'classic-blouses',
         opts.variantLabel ?? 'Size', opts.gender ?? 'unisex'],
     );
     await client.query(`insert into public.product_media (product_id, asset_id, is_cover) values ($1, $2, true)`, [product.id, asset.id]);
@@ -114,7 +114,7 @@ export async function createProduct(opts: {
       const vsku = `${sku}-${i}`;
       const { rows: [v] } = await client.query(
         `insert into public.product_variants (product_id, color_id, size_label, size_sort, sku, stock_on_hand) values ($1, $2, $3, $4, $5, $6) returning id`,
-        [product.id, color.id, opts.options?.[i] ?? `UK ${6 + i}`, i + 1, vsku, stock],
+        [product.id, color.id, opts.options?.[i] ?? `${32 + 2 * i}`, i + 1, vsku, stock],
       );
       variants.push({ productId: product.id, variantId: v.id, sku: vsku });
     }

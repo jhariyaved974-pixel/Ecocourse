@@ -111,12 +111,12 @@ export async function addToCart(page: Page, slug: string, opts: { color?: string
   await page.getByRole('radiogroup', { name: 'Size' }).getByRole('radio', { name: new RegExp(`^${opts.size}\\b`) }).click();
   await page.getByRole('button', { name: 'Add to cart' }).click();
   // On a cold dev server the click can land before hydration; retry once if the cart is still empty.
-  const cart = page.locator('button[aria-label^="Open cart"]').first();
+  const cart = page.locator('button[aria-label^="Open bag"]').first();
   try {
-    await expect(cart).not.toHaveAttribute('aria-label', 'Open cart, empty', { timeout: 5_000 });
+    await expect(cart).not.toHaveAttribute('aria-label', 'Open bag, empty', { timeout: 5_000 });
   } catch {
     await page.getByRole('button', { name: 'Add to cart' }).click();
-    await expect(cart).not.toHaveAttribute('aria-label', 'Open cart, empty', { timeout: 10_000 });
+    await expect(cart).not.toHaveAttribute('aria-label', 'Open bag, empty', { timeout: 10_000 });
   }
 }
 

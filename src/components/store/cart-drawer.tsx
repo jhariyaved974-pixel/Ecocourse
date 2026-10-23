@@ -144,14 +144,14 @@ export function CartDrawer() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <SheetContent title={`Your cart${count ? ` (${count})` : ''}`} aria-describedby={undefined}>
+      <SheetContent title={`Your bag${count ? ` (${count})` : ''}`} aria-describedby={undefined}>
         {lines.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
             <div className="grid size-16 place-items-center rounded-full bg-surface-2">
               <ShoppingBag className="size-6 text-muted" />
             </div>
             <div>
-              <p className="font-medium">Your cart is empty</p>
+              <p className="font-medium">Your bag is empty</p>
               <p className="mt-1 text-sm text-muted">Discover new arrivals, deals and bestsellers.</p>
             </div>
             <Button asChild onClick={() => setOpen(false)}>

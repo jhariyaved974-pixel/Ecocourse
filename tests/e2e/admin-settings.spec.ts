@@ -12,7 +12,7 @@ test.beforeEach(async ({ context }) => {
 
 test('changing the merchant UPI ID needs confirmation and updates new order pages', async ({ page, browser }) => {
   const newId = 'auren.e2e@okaxis';
-  await topUpStock('STM-CSE-OAT-5', 30);
+  await topUpStock('ANV-ECB-WHITE-32', 30);
   await page.goto('/admin/settings/payments');
   const staffEmail = page.getByLabel('Staff alert email');
   if (await staffEmail.isVisible()) await staffEmail.fill('alerts@example.com');
@@ -26,7 +26,7 @@ test('changing the merchant UPI ID needs confirmation and updates new order page
   try {
     const shopper = await browser.newContext();
     const shop = await shopper.newPage();
-    await addToCart(shop, 'cloudstep-everyday', { color: 'Oat', size: '5' });
+    await addToCart(shop, 'everyday-cotton-blouse', { color: 'White', size: '32' });
     await placeUpiOrder(shop, { email: `e2e+upi${Date.now()}@example.com` });
     await expect(shop.getByText(newId, { exact: true }).first()).toBeVisible();
     const href = (await shop.locator('a[href^="upi://pay"]').getAttribute('href'))!;

@@ -1,9 +1,10 @@
-# Save The Money — everyday products at honest prices
+# Anvaya — handwoven saris and blouses
 
-A full-stack, multi-category e-commerce store for the Indian market: electronics, fashion,
-footwear, home & kitchen, beauty, sports & fitness, toys and stationery. Editorial storefront
-with an interactive 3D hero, department/sub-category navigation, product pages with
-colour-aware galleries, generic variant options (size, strap size, weight…) and 3D models, a
+A full-stack e-commerce store for the Indian market, selling handwoven saris (Kanjivaram,
+Banarasi, Chanderi & Maheshwari, cotton & linen, organza & tissue) and ready-to-wear blouses.
+Editorial storefront set in Cormorant Garamond on unbleached-paper tones, with a photographic
+hero, a numbered "weaves" index, collection spotlights, product pages with colour-aware
+galleries, blouse sizes by bust measurement with a size guide, a
 real cart and checkout with **two payment plans — Prepaid and Half prepaid (advance now,
 balance online before dispatch; no cash on delivery)** — **manual UPI payments verified by
 staff against bank records**, optional Razorpay, transactional email, and a complete admin
@@ -24,7 +25,7 @@ shopper picked.
 | --- | --- |
 | Framework | Next.js 16 (App Router, Cache Components, Server Actions, Route Handlers), React 19, TypeScript (strict) |
 | Styling | Tailwind CSS v4, Radix primitives, shadcn-style components, Motion |
-| 3D | React Three Fiber, Drei, Three.js (meshopt-compressed GLB models generated in `scripts/render`) |
+| Imagery | Procedural textile renders (`scripts/render/textiles`, Canvas 2D in headless Chromium); optional 3D models via React Three Fiber |
 | Data | Supabase Postgres with Row Level Security, Supabase Auth (email + TOTP MFA for staff), Supabase Storage |
 | Validation | Zod on every server boundary; database check constraints and SQL functions as the last line |
 | Payments | Payment plans Prepaid / Half prepaid (no COD); manual UPI (QR + deep link + proof upload + staff verification); Razorpay (optional, webhook-confirmed) |
@@ -60,7 +61,7 @@ Full instructions, including how to get local keys and create the first admin:
 | `npm run stack:up` / `stack:reset` / `stack:down` | Local Supabase-compatible stack |
 | `npm run db:types` | Regenerate `src/lib/database.types.ts` from the local database |
 | `npm run seed:generate` | Regenerate `supabase/seed.sql` from `scripts/render/catalog.ts` |
-| `npm run render:assets` | Re-render product photos, site imagery and GLB models (headless Chromium) |
+| `npm run render:assets` | Re-render the sari and blouse photographs and site imagery (headless Chromium) |
 | `node scripts/create-admin.mjs <email>` | Secure bootstrap of the first store owner (see docs/ADMIN.md) |
 
 ## Documentation
@@ -90,9 +91,14 @@ tests/                  unit/, db/ (integration), e2e/
 
 ## Sample catalogue
 
-The seed creates 33 original sample products across 8 departments (for example Pulse Wireless
-Earbuds, Stride Smartwatch 2, Everyday Cotton Crew Tee, ThermoSteel Insulated Bottle, HydraGlow
-Face Serum, FlexGrip Yoga Mat, Build & Play Blocks and nine sample shoes under Footwear), with
-procedurally generated product renders and 3D models (`scripts/render`). They are fictional;
-no third-party brands, endorsements or reviews are implied. Replace them with your real
-catalogue from the admin panel.
+The seed creates 19 original sample products: 13 saris across five weave families (for example
+the Meenakshi Temple-Border Kanjivaram, Jangla Banarasi Katan, Chanderi Zari Buti, Kota Doria
+Checks and Kasavu Tissue) and 6 blouses in bust sizes 32–42. Their photographs (folded,
+draped and close-up for saris; front, back and detail for blouses) are woven procedurally by
+`scripts/render/textiles`: zari borders, buttas, pallus and weave texture drawn on canvas.
+They are placeholders for real photography; no third-party brands, endorsements or reviews
+are implied. Replace them with your real catalogue from the admin panel.
+
+The migration `20261023100000_anvaya_saris_and_blouses.sql` rebrands a fresh store (settings,
+categories, size guide, navigation, pages, FAQ, homepage). It skips any store that already
+has orders, its own products or a changed store name, so existing data is never overwritten.

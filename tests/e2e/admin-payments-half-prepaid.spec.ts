@@ -20,7 +20,7 @@ import {
 import { halfPrepaidAdvance } from '../../src/lib/admin/payment-plans';
 import { formatMoney, paiseToRupeeString } from '../../src/lib/utils';
 
-const SKU = 'STM-CSE-OAT-7';
+const SKU = 'ANV-ECB-WHITE-36';
 // A dedicated owner: other specs (and their global setup) reset the shared
 // OWNER_EMAIL password, which signs that account out mid-test.
 const PLANS_OWNER_EMAIL = 'e2e-owner-plans@auren.test';
@@ -60,8 +60,8 @@ async function addOneToCart(page: Page, slug: string, opts: { color?: string; si
   // Adding opens the cart drawer (which hides the header from assistive tech); either signal means the item is in.
   const added = page
     .getByRole('dialog')
-    .getByText(/^Your cart \([1-9]\d*\)$/)
-    .or(page.getByRole('button', { name: /^Open cart, [1-9]/ }));
+    .getByText(/^Your bag \([1-9]\d*\)$/)
+    .or(page.getByRole('button', { name: /^Open bag, [1-9]/ }));
   let first = true;
   await expect(async () => {
     if (!first && !(await added.count())) await page.getByRole('button', { name: 'Add to cart' }).click();
@@ -98,7 +98,7 @@ test('the settings preview rounds the advance exactly like the database', async 
 
 test('staff verify the advance, pack the order, verify the balance and only then ship', async ({ page, browser }) => {
   // Shopper: a half-prepaid manual UPI order through the checkout, then the advance proof.
-  await addOneToCart(page, 'cloudstep-everyday', { color: 'Oat', size: '7' });
+  await addOneToCart(page, 'everyday-cotton-blouse', { color: 'White', size: '36' });
   const orderNumber = await placeHalfPrepaidUpiOrder(page, { email: `e2e+halfadmin${Date.now()}@example.com` });
   const placed = await orderByNumber(orderNumber);
   expect(placed).toMatchObject({ payment_plan: 'half_prepaid', payment_method: 'upi_manual', amount_paid: 0, payment_status: 'unpaid' });

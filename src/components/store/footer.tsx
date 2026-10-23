@@ -100,9 +100,12 @@ export function Footer({ settings, groups }: { settings: StoreSettings; groups: 
       </div>
       <div className="container-x" aria-hidden>
         <div className="ornament text-zari/80"><BrandMark className="size-4" /></div>
-        <p className="font-display mt-6 overflow-hidden text-center text-[clamp(3.5rem,17vw,15rem)] leading-[0.82] font-normal tracking-[0.16em] whitespace-nowrap text-dark-ink/[0.07] uppercase [margin-right:-0.16em] select-none">
-          {settings.store_name}
-        </p>
+        {/* Decorative: the name drawn across the full width (an SVG so it scales to fit exactly). */}
+        <svg viewBox="0 0 1000 150" className="mt-8 block w-full text-dark-ink/[0.07] select-none" role="presentation" focusable="false">
+          <text x="500" y="128" textAnchor="middle" textLength="980" lengthAdjust="spacing" fill="currentColor" className="font-display uppercase" style={{ fontSize: 150 }}>
+            {settings.store_name}
+          </text>
+        </svg>
       </div>
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col gap-4 py-6 text-xs text-dark-muted sm:flex-row sm:items-center sm:justify-between">

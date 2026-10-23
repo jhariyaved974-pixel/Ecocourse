@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       amount,
       purpose,
       currency: 'INR',
-      name: store?.store_name ?? 'Save The Money',
+      name: store?.store_name ?? 'Anvaya',
       description: `${DESCRIPTION[purpose]} ${order.orderNumber}`,
       prefill: { name: order.customerName, email: order.email, contact: order.phone },
     },

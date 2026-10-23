@@ -21,7 +21,7 @@ unused.
 
 ## Bundled static assets
 
-`public/images/**` and `public/models/**` contain the generated sample imagery and GLB models.
+`public/images/**` contains the generated sample imagery.
 They are referenced from the database as `external_url` paths (e.g. `/images/products/...`), so
 you can replace them with uploaded media without code changes.
 

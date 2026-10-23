@@ -11,7 +11,7 @@ import { formatMoney } from '@/lib/utils';
 
 type Suggestion = Awaited<ReturnType<typeof searchSuggestions>>[number];
 
-const POPULAR = ['Earbuds', 'Smartwatch', 'Running shoes', 'Water bottle', 'Backpack', 'T-shirt'];
+const POPULAR = ['Kanjivaram', 'Banarasi', 'Chanderi', 'Linen', 'Organza', 'Silk blouse'];
 
 /** Search dialog. `hotkey` (Ctrl/⌘ K) should be enabled on one instance per page only. */
 export function SearchDialog({ trigger, hotkey = true }: { trigger: React.ReactNode; hotkey?: boolean }) {

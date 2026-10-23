@@ -34,7 +34,9 @@ test('homepage changes go draft → preview → live, and can be restored', asyn
     await expect(page.getByText('Draft matches live')).toBeVisible();
   }
   const original = (await heroHeading()).published;
-  const marker = `Made for every mile ${Date.now().toString().slice(-5)}.`;
+  // *Asterisks* in a heading mark italics; the page shows the words without them.
+  const shown = original.replace(/\*([^*]+)\*/g, '$1');
+  const marker = `Woven for every occasion ${Date.now().toString().slice(-5)}.`;
 
   // Edit the hero heading in the draft.
   await page.getByRole('button', { name: /1\. Hero/ }).first().click();
@@ -52,13 +54,16 @@ test('homepage changes go draft → preview → live, and can be restored', asyn
   const visitor = await browser.newContext();
   const pub = await visitor.newPage();
   await pub.goto('/');
-  await expect(pub.locator('#hero-heading')).toHaveText(original);
+  await expect(pub.locator('#hero-heading')).toHaveText(shown);
 
   // Publish: live without a redeploy.
   await publish(page, 'E2E: hero heading change');
   await expect(page.getByText('Draft matches live')).toBeVisible();
-  await pub.goto('/');
-  await expect(pub.locator('#hero-heading')).toHaveText(marker);
+  // Visitors may get one stale render while the cache refreshes in the background.
+  await expect(async () => {
+    await pub.goto('/');
+    await expect(pub.locator('#hero-heading')).toHaveText(marker, { timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
 
   // Roll back: restore the previous version into the draft and publish it.
   const history = page.getByRole('region', { name: 'Publish history' }).or(page.locator('section', { hasText: 'Publish history' }).last());
@@ -67,8 +72,10 @@ test('homepage changes go draft → preview → live, and can be restored', asyn
   await expect(page.getByText(/Revision restored into the draft/).first()).toBeVisible();
   expect((await heroHeading()).draft).toBe(original);
   await publish(page, 'E2E: restore previous homepage');
-  await pub.goto('/');
-  await expect(pub.locator('#hero-heading')).toHaveText(original);
+  await expect(async () => {
+    await pub.goto('/');
+    await expect(pub.locator('#hero-heading')).toHaveText(shown, { timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
   await visitor.close();
 });
 

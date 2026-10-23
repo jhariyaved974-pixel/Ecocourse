@@ -9,7 +9,7 @@ test('a customer review requires sign-in and is held for moderation', async ({ p
   // Guests are asked to sign in.
   const guest = await browser.newContext();
   const guestPage = await guest.newPage();
-  await guestPage.goto('/products/cloudstep-everyday');
+  await guestPage.goto('/products/everyday-cotton-blouse');
   await guestPage.getByRole('button', { name: 'Write a review' }).click();
   await guestPage.getByRole('button', { name: '5 stars' }).click();
   await guestPage.fill('#authorName', 'Guest');
@@ -19,7 +19,7 @@ test('a customer review requires sign-in and is held for moderation', async ({ p
   await guest.close();
 
   await signInContext(context, customer.email, customer.password);
-  await page.goto('/products/cloudstep-everyday');
+  await page.goto('/products/everyday-cotton-blouse');
   await page.getByRole('button', { name: 'Write a review' }).click();
   await page.getByRole('button', { name: '4 stars' }).click();
   await page.fill('#authorName', 'Meera');
@@ -35,7 +35,7 @@ test('a customer review requires sign-in and is held for moderation', async ({ p
   // Not public while pending.
   const publicView = await browser.newContext();
   const publicPage = await publicView.newPage();
-  await publicPage.goto('/products/cloudstep-everyday');
+  await publicPage.goto('/products/everyday-cotton-blouse');
   await expect(publicPage.getByText(body)).toHaveCount(0);
 
   // Approval from the admin moderation queue is covered by the admin tests; clean up this test review.

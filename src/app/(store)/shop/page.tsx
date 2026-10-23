@@ -6,7 +6,7 @@ import { Breadcrumbs } from '@/components/store/breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Shop all products',
-  description: 'Browse electronics, fashion, footwear, home & kitchen, beauty, sports, toys and stationery at honest prices.',
+  description: 'Handwoven Kanjivaram, Banarasi, Chanderi, Maheshwari, linen and organza saris, and ready-to-wear blouses.',
   alternates: { canonical: '/shop' },
 };
 

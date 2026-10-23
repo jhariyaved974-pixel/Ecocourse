@@ -16,8 +16,7 @@
     "stack:down": "bash scripts/local-stack/stack.sh down",
     "db:types": "node scripts/gen-db-types.mjs",
     "render:assets": "node scripts/render/run.mjs",
-    "seed:generate": "tsx scripts/generate-seed.ts",
-    "models:optimize": "node scripts/render/optimize-models.mjs"
+    "seed:generate": "tsx scripts/generate-seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

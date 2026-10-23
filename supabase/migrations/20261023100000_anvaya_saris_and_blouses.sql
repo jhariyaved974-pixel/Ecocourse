@@ -3,8 +3,9 @@
 --
 -- 1. Column defaults carry the new brand (always).
 -- 2. Store content is rewritten only while it is still the untouched
---    "Save The Money" baseline and no order has been placed: a store that has
---    already been customised or has trading history keeps everything it has.
+--    "Save The Money" baseline: no order placed and no products other than the
+--    sample catalogue. A store that has been customised, has its own (or
+--    imported legacy) products, or has trading history keeps everything it has.
 --    In that case use Admin > Settings and Admin > Content to rebrand by hand.
 --
 -- Categories mirror CATEGORIES in scripts/render/catalog.ts. GST on textiles
@@ -32,7 +33,8 @@ declare
   v_usp uuid;
 begin
   if not exists (select 1 from public.store_settings where store_name = 'Save The Money')
-     or exists (select 1 from public.orders) then
+     or exists (select 1 from public.orders)
+     or exists (select 1 from public.products where sku not like 'STM-%') then
     raise notice 'Store already customised or trading: Anvaya content not applied.';
     return;
   end if;
@@ -165,7 +167,7 @@ begin
   on conflict (slug) do nothing;
 
   -- Shipping & tax ---------------------------------------------------------------
-  update public.shipping_methods set description = 'Tracked delivery across India, packed flat in a cotton bag.', free_over = 499900
+  update public.shipping_methods set description = 'Tracked delivery across India, packed flat in a cotton bag.'
   where code = 'standard';
   update public.shipping_methods set description = 'Priority dispatch for metro cities.' where code = 'express';
   update public.tax_rules set name = 'GST — textiles (placeholder, review)', rate_bps = 500
@@ -199,9 +201,9 @@ begin
   delete from public.announcements;
   insert into public.announcements (message, href, sort_order)
   values
-    ('Complimentary delivery across India on orders over {free_shipping_over}', '/pages/shipping-policy', 1),
-    ('The Wedding Edit: Kanjivaram, Banarasi and tissue silks', '/collections/wedding-edit', 2),
-    ('Blouse exchanges for size within {return_days} days', '/pages/returns-and-exchanges', 3);
+    ('Complimentary delivery over {free_shipping_over}', '/pages/shipping-policy', 1),
+    ('The Wedding Edit is here', '/collections/wedding-edit', 2),
+    ('Blouse size exchanges within {return_days} days', '/pages/returns-and-exchanges', 3);
 
   -- Pages ------------------------------------------------------------------------
   update public.pages set title = 'Our story', seo_description = 'Who we are, and how we choose the saris we sell.', body_markdown =

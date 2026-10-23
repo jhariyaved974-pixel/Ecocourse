@@ -65,7 +65,7 @@ build a preview for every PR. Protect the production branch and never commit `.e
 ## 3. Email (Resend)
 
 1. Verify your sending domain in Resend (SPF/DKIM DNS records).
-2. Set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `Save The Money <orders@yourdomain.in>`) in Vercel.
+2. Set `RESEND_API_KEY` and `EMAIL_FROM` (e.g. `Anvaya <orders@yourdomain.in>`) in Vercel.
 3. Emails are queued in `email_outbox` by the database (order placed, proof received, payment
    verified or rejected, shipped, delivered, cancelled, refunds, staff proof alerts) and sent
    right after the request that queued them. Failed sends retry with exponential backoff (up to

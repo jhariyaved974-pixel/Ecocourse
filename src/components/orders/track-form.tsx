@@ -21,7 +21,7 @@ export function TrackOrderForm() {
     <form action={action} className="space-y-5">
       {state?.error ? <Notice tone="danger">{state.error}</Notice> : null}
       <Field label="Order number" htmlFor="orderNumber" hint="Find it in your order confirmation email.">
-        <Input id="orderNumber" name="orderNumber" required maxLength={20} placeholder="STM-261014-7K2QD" className="font-mono uppercase" autoComplete="off" />
+        <Input id="orderNumber" name="orderNumber" required maxLength={20} placeholder="ANV-261014-7K2QD" className="font-mono uppercase" autoComplete="off" />
       </Field>
       <Field label="Email used for the order" htmlFor="email">
         <Input id="email" name="email" type="email" required maxLength={254} autoComplete="email" />
