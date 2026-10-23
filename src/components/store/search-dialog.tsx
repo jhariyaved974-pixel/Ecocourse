@@ -94,9 +94,9 @@ export function SearchDialog({ trigger, hotkey = true }: { trigger: React.ReactN
                   <Link
                     href={`/products/${r.slug}`}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-4 rounded-xl p-2.5 transition-colors hover:bg-surface-2"
+                    className="flex items-center gap-4 rounded-[var(--radius)] p-2.5 transition-colors hover:bg-surface-2"
                   >
-                    <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
+                    <div className="relative size-16 shrink-0 overflow-hidden rounded-[var(--radius)] bg-surface-2">
                       {r.image ? <Image src={r.image} alt="" fill sizes="64px" className="object-cover" /> : null}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -109,7 +109,7 @@ export function SearchDialog({ trigger, hotkey = true }: { trigger: React.ReactN
               ))}
               {results.length ? (
                 <li>
-                  <button type="button" onClick={submit} className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium hover:bg-surface-2">
+                  <button type="button" onClick={submit} className="mt-1 flex w-full items-center justify-center gap-2 rounded-[var(--radius)] p-3 text-sm font-medium hover:bg-surface-2">
                     See all results <ArrowRight className="size-4" />
                   </button>
                 </li>

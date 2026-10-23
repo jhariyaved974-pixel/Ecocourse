@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { ContactShadows, Float, PresentationControls } from '@react-three/drei';
 import { FitCamera, ModelBoundary, StudioLights, useFittedModel, useInView } from './scene-kit';
-import { DEFAULT_HERO_MODELS, type HeroModel } from './hero-models';
+import type { HeroModel } from './hero-models';
 
 /**
  * Half-size of the square that holds the arrangement (each model stays within
@@ -70,7 +70,7 @@ function Composition({ models, motion, scrollRef, onSettled }: { models: HeroMod
 }
 
 export interface HeroStageProps {
-  models?: HeroModel[];
+  models: HeroModel[];
   /** Floating, spinning and scroll-linked movement (off for reduced motion). */
   motion?: boolean;
   /** 0..1 scroll progress through the hero. */
@@ -83,7 +83,7 @@ export interface HeroStageProps {
 }
 
 /** Homepage 3D composition: several product models floating together. */
-export function HeroStage({ models = DEFAULT_HERO_MODELS, motion = true, scrollRef, onReady, onFail, className }: HeroStageProps) {
+export function HeroStage({ models, motion = true, scrollRef, onReady, onFail, className }: HeroStageProps) {
   const wrapper = React.useRef<HTMLDivElement>(null);
   const visible = useInView(wrapper);
   const radius = React.useMemo(() => compositionRadius(models), [models]);

@@ -7,47 +7,48 @@
    applied as data attributes on <html>; the accent colour is a CSS variable.
    ------------------------------------------------------------------------- */
 :root {
-  /* Save The Money look: warm paper, white cards, money green, deal yellow, sale red. */
-  --paper: #f4f2ee;
-  --surface: #ffffff;
-  --surface-2: #ebe8e1;
-  --ink: #111111;
-  --ink-2: #262624;
-  --muted: #66625b;
-  --line: #dcd8d0;
-  --line-strong: #c6c1b7;
-  --dark: #111111;
-  --dark-2: #1d1d1c;
-  --dark-ink: #f4f2ee;
-  --dark-muted: #a29d95;
-  /* Default accent: "money green" (white text on it is 6.6:1). Admins can change it. */
-  --accent: #0b6b47;
+  /* Anvaya look: unbleached cotton paper, ink brown-black, madder red, old zari gold. */
+  --paper: #f6f1e8;
+  --surface: #fbf8f2;
+  --surface-2: #eee6d8;
+  --ink: #1f1915;
+  --ink-2: #3b332d;
+  --muted: #71665b;
+  --line: #e2d9c9;
+  --line-strong: #cbbea8;
+  --dark: #1d1613;
+  --dark-2: #2b221d;
+  --dark-ink: #f3ece0;
+  --dark-muted: #b3a693;
+  /* Default accent: madder red (white text on it is 10:1). Admins can change it. */
+  --accent: #7a2232;
   --accent-ink: #ffffff;
   /* Accent used as text; lightened on dark surfaces (see below) so small text stays readable. */
   --accent-text: var(--accent);
-  /* Deal highlight (always with dark text) and sale price red. */
-  --highlight: #f2c230;
-  --highlight-ink: #111111;
-  --sale: #c0352b;
-  --success: #0b6b47;
-  --warning: #b45309;
-  --danger: #c0352b;
-  --info: #1d4ed8;
-  --radius: 16px;
-  --font-display-stack: var(--font-archivo), var(--font-archivo-ext), ui-sans-serif, system-ui, sans-serif;
-  --display-tracking: -0.02em;
-  --display-weight: 800;
-  --display-transform: uppercase;
+  /* Zari gold: hairlines, small ornaments and quiet highlights (always with dark text). */
+  --zari: #a88447;
+  --highlight: #ece0c4;
+  --highlight-ink: #1f1915;
+  --sale: #8f2f22;
+  --success: #3f6b47;
+  --warning: #9a5b12;
+  --danger: #a3302a;
+  --info: #2c4f7c;
+  --radius: 2px;
+  --font-display-stack: var(--font-cormorant), var(--font-cormorant-ext), 'Cormorant Garamond', ui-serif, Georgia, serif;
+  --display-tracking: -0.01em;
+  --display-weight: 500;
+  --display-transform: none;
 }
 
 [data-theme="bone"] {
-  --paper: #efe9df;
-  --surface: #f8f5ef;
-  --surface-2: #e6dfd3;
+  --paper: #f2efe9;
+  --surface: #faf8f4;
+  --surface-2: #e7e3db;
   --ink: #1b1a17;
   --muted: #6f685c;
-  --line: #ddd4c5;
-  --line-strong: #c6bba8;
+  --line: #ddd8ce;
+  --line-strong: #c6bfb2;
   --dark: #1d1b18;
   --dark-2: #2a2723;
 }
@@ -101,6 +102,7 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-text: var(--accent-text);
+  --color-zari: var(--zari);
   --color-highlight: var(--highlight);
   --color-highlight-ink: var(--highlight-ink);
   --color-sale: var(--sale);
@@ -146,6 +148,10 @@
 }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hero-zoom {
+  from { opacity: 0; transform: scale(1.06); }
   to { opacity: 1; transform: none; }
 }
 @keyframes float {
@@ -199,10 +205,58 @@
     text-transform: var(--display-transform);
   }
   .eyebrow {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
+  }
+  /* Small caps label for buttons and navigation. */
+  .label-caps {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  /* Display italics read better a touch lighter. */
+  .font-display em, .font-display i {
+    font-style: italic;
+    font-weight: calc(var(--display-weight) - 100);
+  }
+  /* Text link with an underline that draws in from the left. */
+  .link-draw {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.45s var(--ease-out-expo);
+    padding-bottom: 2px;
+  }
+  .link-draw:hover, .link-draw:focus-visible, .group:hover .link-draw {
+    background-size: 100% 1px;
+  }
+  /* Always-underlined text link (calls to action written as text). */
+  .link-rule {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 100% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    padding-bottom: 3px;
+    transition: opacity 0.2s;
+  }
+  .link-rule:hover { opacity: 0.7; }
+  /* A zari hairline with a small lozenge in the middle, used between sections. */
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--zari);
+  }
+  .ornament::before, .ornament::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: currentColor;
+    opacity: 0.55;
   }
   .container-x {
     margin-inline: auto;
@@ -229,7 +283,8 @@
     font-family: var(--font-display);
     letter-spacing: var(--display-tracking);
     font-weight: var(--display-weight);
-    font-size: 1.6rem;
+    font-size: 1.9rem;
+    line-height: 1.15;
     color: var(--ink);
     margin: 2rem 0 0.75rem;
   }

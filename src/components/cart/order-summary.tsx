@@ -50,7 +50,7 @@ export function OrderTotals({ quote, loading, shippingPending, plan }: { quote: 
 function DueNow({ quote, plan }: { quote: Quote; plan: PaymentPlan }) {
   const half = plan === 'half_prepaid' && quote.halfPrepaidAvailable;
   return (
-    <div className="space-y-2 rounded-xl bg-surface-2 px-4 py-3" data-testid="due-now">
+    <div className="space-y-2 rounded-[var(--radius)] bg-surface-2 px-4 py-3" data-testid="due-now">
       <SummaryRow label={half ? `Due now (${quote.advancePercent}% advance)` : 'Due now'} value={formatMoney(half ? quote.halfPrepaidAdvance : quote.total)} strong />
       {half ? (
         <>

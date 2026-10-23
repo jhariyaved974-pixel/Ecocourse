@@ -66,7 +66,7 @@ function getIdempotencyKey(): string {
 
 function PlanOption({ value, selected, icon, title, children }: { value: PaymentPlan; selected: boolean; icon: React.ReactNode; title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm transition-colors', selected ? 'border-ink' : 'border-line hover:border-line-strong')}>
+    <label className={cn('flex cursor-pointer items-start gap-4 rounded-[var(--radius)] border p-4 text-sm transition-colors', selected ? 'border-ink' : 'border-line hover:border-line-strong')}>
       <RadioItem value={value} className="mt-0.5" />
       {icon}
       <span className="flex-1">
@@ -260,7 +260,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
               aria-label="Saved addresses"
             >
               {addresses.map((a) => (
-                <label key={a.id} className={cn('flex cursor-pointer items-start gap-3 rounded-xl border p-4 text-sm transition-colors', addressId === a.id ? 'border-ink' : 'border-line hover:border-line-strong')}>
+                <label key={a.id} className={cn('flex cursor-pointer items-start gap-3 rounded-[var(--radius)] border p-4 text-sm transition-colors', addressId === a.id ? 'border-ink' : 'border-line hover:border-line-strong')}>
                   <RadioItem value={a.id} className="mt-0.5" />
                   <span>
                     <span className="font-medium">{a.label}</span> · {a.full_name}
@@ -270,7 +270,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
                   </span>
                 </label>
               ))}
-              <label className={cn('flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-sm', addressId === 'new' ? 'border-ink' : 'border-line hover:border-line-strong')}>
+              <label className={cn('flex cursor-pointer items-center gap-3 rounded-[var(--radius)] border p-4 text-sm', addressId === 'new' ? 'border-ink' : 'border-line hover:border-line-strong')}>
                 <RadioItem value="new" />
                 Use a new address
               </label>
@@ -319,7 +319,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
           {quote?.shippingOptions.length ? (
             <RadioGroup value={activeShipping} onValueChange={setShippingMethod} aria-label="Delivery method">
               {quote.shippingOptions.map((o) => (
-                <label key={o.code} className={cn('flex cursor-pointer items-center gap-4 rounded-xl border p-4 text-sm transition-colors', activeShipping === o.code ? 'border-ink' : 'border-line hover:border-line-strong')}>
+                <label key={o.code} className={cn('flex cursor-pointer items-center gap-4 rounded-[var(--radius)] border p-4 text-sm transition-colors', activeShipping === o.code ? 'border-ink' : 'border-line hover:border-line-strong')}>
                   <RadioItem value={o.code} />
                   <Truck className="size-5 shrink-0 text-muted" />
                   <span className="flex-1">
@@ -348,7 +348,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
                 <h3 id="method-heading" className="mb-3 text-sm font-semibold">Payment method</h3>
                 <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as typeof paymentMethod)} aria-labelledby="method-heading">
                   {upi?.enabled ? (
-                    <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm', paymentMethod === 'upi_manual' ? 'border-ink' : 'border-line')}>
+                    <label className={cn('flex cursor-pointer items-start gap-4 rounded-[var(--radius)] border p-4 text-sm', paymentMethod === 'upi_manual' ? 'border-ink' : 'border-line')}>
                       <RadioItem value="upi_manual" className="mt-0.5" />
                       <QrCode className="size-5 shrink-0 text-muted" />
                       <span className="flex-1">
@@ -363,7 +363,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
                     </label>
                   ) : null}
                   {razorpayEnabled ? (
-                    <label className={cn('flex cursor-pointer items-start gap-4 rounded-xl border p-4 text-sm', paymentMethod === 'razorpay' ? 'border-ink' : 'border-line')}>
+                    <label className={cn('flex cursor-pointer items-start gap-4 rounded-[var(--radius)] border p-4 text-sm', paymentMethod === 'razorpay' ? 'border-ink' : 'border-line')}>
                       <RadioItem value="razorpay" className="mt-0.5" />
                       <Lock className="size-5 shrink-0 text-muted" />
                       <span className="flex-1">
@@ -392,7 +392,7 @@ export function CheckoutForm({ userEmail, addresses, upi, razorpayEnabled }: Pro
             const msg = q ? lineStatusMessage(q) : null;
             return (
               <li key={l.variantId} className="flex gap-3">
-                <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
+                <div className="relative size-16 shrink-0 overflow-hidden rounded-[var(--radius)] bg-surface-2">
                   {l.image ? (
                     <Image src={l.image} alt="" fill sizes="64px" className="object-cover" />
                   ) : l.art ? (

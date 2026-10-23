@@ -23,7 +23,7 @@ export function Badge({ className, tone, ...props }: React.HTMLAttributes<HTMLSp
 }
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('rounded-2xl border border-line bg-surface', className)} {...props} />;
+  return <div className={cn('rounded-[var(--radius)] border border-line bg-surface', className)} {...props} />;
 }
 
 export function CardHeader({ className, title, description, action }: { className?: string; title: React.ReactNode; description?: React.ReactNode; action?: React.ReactNode }) {
@@ -60,7 +60,7 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn('flex flex-col items-center justify-center rounded-2xl border border-dashed border-line-strong px-6 py-14 text-center', className)}>
+    <div className={cn('flex flex-col items-center justify-center rounded-[var(--radius)] border border-dashed border-line-strong px-6 py-14 text-center', className)}>
       {icon ? <div className="mb-4 grid size-12 place-items-center rounded-full bg-surface-2 text-muted">{icon}</div> : null}
       <h3 className="text-base font-semibold">{title}</h3>
       {description ? <p className="mt-1.5 max-w-sm text-sm text-muted">{description}</p> : null}
@@ -89,7 +89,7 @@ export function Notice({
   } as const;
   const bar = { info: 'bg-info', warning: 'bg-warning', danger: 'bg-danger', success: 'bg-success', neutral: 'bg-muted' } as const;
   return (
-    <div role={tone === 'danger' ? 'alert' : 'status'} className={cn('relative overflow-hidden rounded-xl border px-4 py-3 pl-5 text-sm', tones[tone], className)}>
+    <div role={tone === 'danger' ? 'alert' : 'status'} className={cn('relative overflow-hidden rounded-[var(--radius)] border px-4 py-3 pl-5 text-sm', tones[tone], className)}>
       <span className={cn('absolute inset-y-0 left-0 w-1', bar[tone])} aria-hidden />
       {title ? <p className="font-semibold">{title}</p> : null}
       {children ? <div className={cn('text-ink-2', title && 'mt-0.5')}>{children}</div> : null}

@@ -9,21 +9,19 @@ import { useWishlist, wishlistStore } from '@/lib/wishlist/store';
 export function Price({ price, finalPrice, size = 'sm', className }: { price: number; finalPrice: number; size?: 'sm' | 'lg'; className?: string }) {
   const off = discountPercent(price, finalPrice);
   return (
-    <div className={cn('flex flex-wrap items-baseline gap-x-2 gap-y-1', className)}>
-      <span className={cn('font-bold tabular-nums', off && 'text-sale', size === 'lg' ? 'text-2xl' : 'text-sm')}>
+    <div className={cn('flex flex-wrap items-baseline gap-x-2.5 gap-y-1', className)}>
+      <span className={cn('tabular-nums', size === 'lg' ? 'font-display text-[1.9rem] leading-none font-medium' : 'text-[13px] tracking-wide')}>
         <span className="sr-only">{off ? 'Sale price ' : 'Price '}</span>
         {formatMoney(finalPrice)}
       </span>
       {off ? (
         <>
-          <span className={cn('text-muted tabular-nums', size === 'lg' ? 'text-base' : 'text-xs')}>
+          <span className={cn('text-muted tabular-nums', size === 'lg' ? 'text-sm' : 'text-xs')}>
             <span className="sr-only">Regular price </span>
             <span aria-hidden>MRP </span>
             <span className="line-through">{formatMoney(price)}</span>
           </span>
-          <span className={cn('rounded-full bg-highlight px-2 py-0.5 font-bold text-highlight-ink', size === 'lg' ? 'text-sm' : 'text-[11px]')}>
-            Save {formatMoney(price - finalPrice)} ({off}%)
-          </span>
+          <span className={cn('text-accent-text', size === 'lg' ? 'text-sm' : 'text-xs')}>{off}% off</span>
         </>
       ) : null}
     </div>
@@ -63,7 +61,7 @@ export function WishlistButton({ productId, productName, className, variant = 'f
         type="button"
         onClick={onClick}
         aria-pressed={active}
-        className={cn('inline-flex h-12 items-center justify-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-ink', className)}
+        className={cn('label-caps inline-flex h-12 items-center justify-center gap-2 border border-line-strong px-5 transition-colors hover:border-ink', className)}
       >
         <Heart className={cn('size-4', active && 'fill-accent text-accent')} aria-hidden />
         {active ? 'Saved' : 'Save'}
@@ -77,11 +75,11 @@ export function WishlistButton({ productId, productName, className, variant = 'f
       aria-pressed={active}
       aria-label={active ? `Remove ${productName} from wishlist` : `Save ${productName} to wishlist`}
       className={cn(
-        'grid size-9 place-items-center rounded-full bg-white/85 text-ink shadow-sm backdrop-blur transition-all hover:scale-105 hover:bg-white',
+        'grid size-9 place-items-center text-ink transition-transform hover:scale-110',
         className,
       )}
     >
-      <Heart className={cn('size-4 transition-colors', active && 'fill-accent text-accent')} aria-hidden />
+      <Heart className={cn('size-[18px] transition-colors', active && 'fill-accent text-accent')} strokeWidth={1.5} aria-hidden />
     </button>
   );
 }

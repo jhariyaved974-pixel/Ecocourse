@@ -137,12 +137,12 @@ export function ProofForm({
         {error ? <Notice tone="danger">{error}</Notice> : null}
         <Field label={`Payment screenshot or receipt${requireProof ? '' : ' (recommended)'}`} htmlFor="proof-file" error={fieldErrors.file} required={requireProof} hint="JPG, PNG, WebP or PDF up to 4 MB. Make sure the amount, date and UTR are visible.">
           {file ? (
-            <div className="flex items-center gap-4 rounded-xl border border-line p-3">
+            <div className="flex items-center gap-4 rounded-[var(--radius)] border border-line p-3">
               {preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={preview} alt="Selected payment screenshot" className="size-16 rounded-lg object-cover" />
+                <img src={preview} alt="Selected payment screenshot" className="size-16 rounded-[var(--radius)] object-cover" />
               ) : (
-                <div className="grid size-16 place-items-center rounded-lg bg-surface-2"><FileText className="size-6 text-muted" /></div>
+                <div className="grid size-16 place-items-center rounded-[var(--radius)] bg-surface-2"><FileText className="size-6 text-muted" /></div>
               )}
               <div className="min-w-0 flex-1 text-sm">
                 <p className="truncate font-medium">{file.name}</p>
@@ -153,7 +153,7 @@ export function ProofForm({
               </button>
             </div>
           ) : (
-            <label htmlFor="proof-file" className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line-strong px-6 py-8 text-center text-sm transition-colors hover:border-ink">
+            <label htmlFor="proof-file" className="flex cursor-pointer flex-col items-center gap-2 rounded-[var(--radius)] border border-dashed border-line-strong px-6 py-8 text-center text-sm transition-colors hover:border-ink">
               <ImageUp className="size-6 text-muted" />
               <span className="font-medium">Choose a file</span>
               <span className="text-xs text-muted">or take a screenshot in your UPI app’s payment history</span>

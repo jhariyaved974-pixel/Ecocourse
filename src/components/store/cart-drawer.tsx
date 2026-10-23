@@ -52,12 +52,12 @@ export function useServerQuote(lines: CartLine[], opts: { enabled: boolean; coup
 
 export function QuantityStepper({ value, max, onChange, label }: { value: number; max: number; onChange: (n: number) => void; label: string }) {
   return (
-    <div className="inline-flex h-9 items-center rounded-full border border-line-strong" role="group" aria-label={`Quantity for ${label}`}>
-      <button type="button" className="grid size-9 place-items-center rounded-full hover:bg-surface-2 disabled:opacity-40" onClick={() => onChange(value - 1)} disabled={value <= 1} aria-label="Decrease quantity">
+    <div className="inline-flex h-10 items-center border border-line-strong" role="group" aria-label={`Quantity for ${label}`}>
+      <button type="button" className="grid size-10 place-items-center hover:bg-surface-2 disabled:opacity-40" onClick={() => onChange(value - 1)} disabled={value <= 1} aria-label="Decrease quantity">
         <Minus className="size-3.5" />
       </button>
       <span className="w-7 text-center text-sm tabular-nums" aria-live="polite">{value}</span>
-      <button type="button" className="grid size-9 place-items-center rounded-full hover:bg-surface-2 disabled:opacity-40" onClick={() => onChange(value + 1)} disabled={value >= max} aria-label="Increase quantity">
+      <button type="button" className="grid size-10 place-items-center hover:bg-surface-2 disabled:opacity-40" onClick={() => onChange(value + 1)} disabled={value >= max} aria-label="Increase quantity">
         <Plus className="size-3.5" />
       </button>
     </div>
@@ -70,7 +70,7 @@ export function CartLineRow({ line, quoteLine, onNavigate }: { line: CartLine; q
   const max = Math.max(1, Math.min(10, quoteLine ? Math.max(quoteLine.available, 1) : 10));
   return (
     <li className="flex gap-4 py-5">
-      <Link href={`/products/${line.slug}`} onClick={onNavigate} className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
+      <Link href={`/products/${line.slug}`} onClick={onNavigate} className="relative h-[120px] w-24 shrink-0 overflow-hidden bg-surface-2">
         {line.image ? (
           <Image src={line.image} alt="" fill sizes="96px" className="object-cover" />
         ) : line.art ? (
@@ -114,7 +114,7 @@ export function FreeShippingMeter({ quote }: { quote: Quote | null }) {
   const remaining = Math.max(threshold - merch, 0);
   const pct = Math.min(100, Math.round((merch / threshold) * 100));
   return (
-    <div className="rounded-xl bg-surface-2 px-4 py-3">
+    <div className="rounded-[var(--radius)] bg-surface-2 px-4 py-3">
       <p className="text-xs font-medium">
         {remaining > 0 ? (
           <>

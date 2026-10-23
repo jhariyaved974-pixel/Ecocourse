@@ -52,7 +52,7 @@ function steps(o: Order): Step[] {
 export function OrderProgress({ order }: { order: Order }) {
   if (order.orderStatus === 'cancelled') {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm">
+      <div className="flex items-center gap-3 rounded-[var(--radius)] border border-danger/30 bg-danger/5 px-4 py-3 text-sm">
         <CircleX className="size-5 text-danger" />
         <span>{order.expired ? 'This order expired because payment was not received in time.' : 'This order was cancelled.'}</span>
       </div>

@@ -141,7 +141,7 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
           </ul>
         </FilterGroup>
       ) : null}
-      {facets.audiences.length ? (
+      {facets.audiences.length > 1 ? (
         <FilterGroup title="For">
           <div className="flex flex-wrap gap-2">
             {facets.audiences.map((g) => (
@@ -150,7 +150,7 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
                 type="button"
                 aria-pressed={gender === g}
                 onClick={() => update((sp) => (gender === g ? sp.delete('gender') : sp.set('gender', g)))}
-                className={cn('rounded-full border px-3.5 py-1.5 text-sm transition-colors', gender === g ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink')}
+                className={cn('border px-3.5 py-1.5 text-sm transition-colors', gender === g ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink')}
               >
                 {AUDIENCE_LABEL[g] ?? titleCase(g)}
               </button>
@@ -168,7 +168,7 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
                 aria-pressed={sizes.includes(s)}
                 onClick={() => update((sp) => toggleMulti(sp, 'size', s))}
                 className={cn(
-                  'h-10 rounded-lg border px-3 text-sm transition-colors',
+                  'h-10 rounded-[var(--radius)] border px-3 text-sm transition-colors',
                   sizes.includes(s) ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink',
                 )}
               >
@@ -204,7 +204,7 @@ function FilterPanel({ facets, showCategories }: { facets: FilterFacets; showCat
                 aria-label={titleCase(c)}
                 title={titleCase(c)}
                 onClick={() => update((sp) => toggleMulti(sp, 'color', c))}
-                className={cn('size-8 rounded-full border-2 transition-transform hover:scale-110', colors.includes(c) ? 'border-ink ring-2 ring-ink ring-offset-2 ring-offset-paper' : 'border-white shadow-[0_0_0_1px_var(--line-strong)]')}
+                className={cn('size-7 rounded-full transition-transform hover:scale-110', colors.includes(c) ? 'ring-1 ring-ink ring-offset-[3px] ring-offset-paper' : 'ring-1 ring-black/10')}
                 style={{ background: COLOR_SWATCHES[c] ?? '#ccc' }}
               />
             ))}
@@ -335,7 +335,7 @@ export function CatalogToolbar({ total, facets, showCategories }: { total: numbe
           <select
             value={sort}
             onChange={(e) => update((sp) => sp.set('sort', e.target.value))}
-            className="h-10 rounded-full border border-line-strong bg-surface px-4 pr-8 text-sm"
+            className="h-10 border-0 border-b border-ink/40 bg-transparent px-1 pr-8 text-sm"
             aria-label="Sort products"
           >
             {searchParams.get('q') ? <option value="relevance">Relevance</option> : null}
@@ -350,7 +350,7 @@ export function CatalogToolbar({ total, facets, showCategories }: { total: numbe
       {chips.length ? (
         <div className="flex flex-wrap items-center gap-2">
           {chips.map((c) => (
-            <button key={c.key} type="button" onClick={() => update(c.remove)} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 py-1.5 pr-2.5 pl-3.5 text-xs font-medium hover:bg-line">
+            <button key={c.key} type="button" onClick={() => update(c.remove)} className="inline-flex items-center gap-1.5 border border-line-strong py-1.5 pr-2.5 pl-3.5 text-xs hover:border-ink">
               {c.label} <X className="size-3" aria-label="Remove filter" />
             </button>
           ))}

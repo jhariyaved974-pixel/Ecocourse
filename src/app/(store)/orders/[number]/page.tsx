@@ -347,7 +347,7 @@ async function OrderContent({ params }: { params: PageProps<'/orders/[number]'>[
         <ul className="space-y-4">
           {order.items.map((item, i) => (
             <li key={i} className="flex gap-3">
-              <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded-[var(--radius)] bg-surface-2">
                 {item.image ? <Image src={item.image} alt="" fill sizes="64px" className="object-cover" /> : null}
               </div>
               <div className="min-w-0 flex-1 text-sm">

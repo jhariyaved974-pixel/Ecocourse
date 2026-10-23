@@ -44,22 +44,24 @@ export const fraunces = localFont({
   preload: false,
 });
 
-// Display face of the Save The Money look (headings in capitals).
-export const archivo = localFont({
-  src: './fonts/archivo-latin-wght-normal.woff2',
-  weight: '100 900',
-  variable: '--font-archivo',
+// Display face of the Anvaya look: a high-contrast Garamond for headings and prices.
+export const cormorant = localFont({
+  src: [
+    { path: './fonts/cormorant-garamond-latin-wght-normal.woff2', weight: '300 700', style: 'normal' },
+    { path: './fonts/cormorant-garamond-latin-wght-italic.woff2', weight: '300 700', style: 'italic' },
+  ],
+  variable: '--font-cormorant',
   display: 'swap',
 });
 
-export const archivoExt = localFont({
-  src: './fonts/archivo-latin-ext-wght-normal.woff2',
-  weight: '100 900',
-  variable: '--font-archivo-ext',
+export const cormorantExt = localFont({
+  src: './fonts/cormorant-garamond-latin-ext-wght-normal.woff2',
+  weight: '300 700',
+  variable: '--font-cormorant-ext',
   display: 'swap',
   preload: false,
 });
 
-export const fontVariables = [interTight, interTightExt, instrumentSerif, instrumentSerifExt, fraunces, archivo, archivoExt]
+export const fontVariables = [interTight, interTightExt, instrumentSerif, instrumentSerifExt, fraunces, cormorant, cormorantExt]
   .map((f) => f.variable)
   .join(' ');

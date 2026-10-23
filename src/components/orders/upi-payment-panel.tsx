@@ -142,7 +142,7 @@ export function UpiPaymentPanel({
         </div>
         {qrDataUrl ? (
           <figure className="flex flex-col items-center gap-2">
-            <div className="rounded-2xl border border-line bg-white p-3">
+            <div className="rounded-[var(--radius)] border border-line bg-white p-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={qrDataUrl}
@@ -158,7 +158,7 @@ export function UpiPaymentPanel({
       </div>
       <div className="space-y-3 border-t border-line px-6 py-5 text-sm">
         <p className="whitespace-pre-line text-ink-2">{instructions}</p>
-        <div className="flex gap-3 rounded-xl bg-warning/8 p-4 text-ink-2">
+        <div className="flex gap-3 rounded-[var(--radius)] bg-warning/8 p-4 text-ink-2">
           <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" />
           <ul className="space-y-1.5 text-[13px]">
             <li>Pay the exact amount in one payment. Different amounts delay verification.</li>

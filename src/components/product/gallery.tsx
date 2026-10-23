@@ -59,7 +59,7 @@ function ZoomImage({
         className="object-cover transition-transform duration-300 ease-out"
         style={{
           transformOrigin: origin,
-          transform: zoom ? "scale(1.9)" : "scale(1)",
+          transform: zoom ? "scale(2.2)" : "scale(1)",
         }}
       />
       <span
@@ -199,7 +199,7 @@ export function ProductGallery({
   return (
     <div className="flex flex-col-reverse gap-3 lg:flex-row lg:items-start">
       <ul
-        className="scrollbar-none relative flex gap-2 overflow-x-auto lg:max-h-[calc(100vh-10rem)] lg:w-20 lg:flex-col lg:overflow-y-auto"
+        className="scrollbar-none relative flex gap-3 overflow-x-auto lg:max-h-[calc(100vh-10rem)] lg:w-20 lg:flex-col lg:overflow-y-auto"
         aria-label="Product media"
       >
         {slides.map((s, i) => (
@@ -216,10 +216,10 @@ export function ProductGallery({
                     : `Image ${i + 1}`
               }
               className={cn(
-                "relative block size-16 overflow-hidden rounded-lg border-2 bg-surface-2 transition-colors lg:size-20",
+                "relative block h-20 w-16 overflow-hidden border bg-surface-2 transition-colors lg:h-[100px] lg:w-20",
                 i === index
                   ? "border-ink"
-                  : "border-transparent hover:border-line-strong",
+                  : "border-transparent opacity-70 hover:opacity-100",
               )}
             >
               {s.type === "3d" ? (
@@ -256,7 +256,7 @@ export function ProductGallery({
         ))}
       </ul>
       <div className="min-w-0 flex-1">
-        <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius)] bg-surface-2">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-2">
           {current.type === "3d" ? (
             <StageErrorBoundary onError={() => setFailed3D(true)}>
               <ProductStage
@@ -322,7 +322,7 @@ export function ProductGallery({
         >
           <DialogTitle className="sr-only">{productName} images</DialogTitle>
           {lightbox !== null && images[lightbox] ? (
-            <div className="relative aspect-square w-full bg-surface-2 md:aspect-[4/3]">
+            <div className="relative aspect-[4/5] max-h-[90vh] w-full bg-surface-2 md:aspect-[4/3]">
               <Image
                 src={images[lightbox].url}
                 alt={images[lightbox].alt}

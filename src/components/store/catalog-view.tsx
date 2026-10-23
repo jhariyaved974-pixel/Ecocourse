@@ -118,7 +118,7 @@ export async function CatalogView({
 }
 
 function PageLink({ basePath, params, page, current, disabled, label, children }: { basePath: string; params: Raw; page: number; current?: boolean; disabled?: boolean; label: string; children: React.ReactNode }) {
-  const cls = cn('grid size-10 place-items-center rounded-full text-sm transition-colors', current ? 'bg-ink text-paper' : 'hover:bg-surface-2', disabled && 'pointer-events-none opacity-30');
+  const cls = cn('grid size-10 place-items-center text-sm tabular-nums transition-colors', current ? 'border-b border-ink' : 'text-muted hover:text-ink', disabled && 'pointer-events-none opacity-30');
   if (disabled) return <span className={cls} aria-hidden>{children}</span>;
   return (
     <Link href={`${basePath}${catalogQueryString(params, { page: page === 1 ? null : String(page) })}`} className={cls} aria-label={label} aria-current={current ? 'page' : undefined}>

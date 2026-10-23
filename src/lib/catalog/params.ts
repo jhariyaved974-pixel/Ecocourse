@@ -67,7 +67,7 @@ export function catalogQueryString(params: RawParams, overrides: Record<string, 
 }
 
 export const COLOR_SWATCHES: Record<string, string> = {
-  black: '#151515', white: '#f5f5f4', grey: '#9ca3af', beige: '#d6c7a8', brown: '#7c4a2a', blue: '#2563eb', green: '#3f6b3a',
-  red: '#b91c1c', pink: '#ec8fa6', purple: '#7c3aed', yellow: '#eab308', orange: '#ea580c',
-  multi: 'conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444)',
+  black: '#1d1917', white: '#f3eee4', grey: '#99938a', beige: '#d6c3a1', brown: '#7a4a2c', blue: '#2b4372', green: '#3f6b47',
+  red: '#8f1d2c', pink: '#d88f9f', purple: '#5e3766', yellow: '#d1a238', orange: '#b5602b',
+  multi: 'conic-gradient(#8f1d2c, #d1a238, #3f6b47, #2b4372, #5e3766, #8f1d2c)',
 };

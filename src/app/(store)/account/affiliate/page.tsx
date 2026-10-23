@@ -70,7 +70,7 @@ export default async function AffiliatePage() {
             ['Earned (to be paid)', formatMoney(sum('approved'))],
             ['Paid', formatMoney(sum('paid'))],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-line bg-surface p-4">
+            <div key={label} className="rounded-[var(--radius)] border border-line bg-surface p-4">
               <p className="text-xs text-muted">{label}</p>
               <p className="mt-1 text-lg font-semibold">{value}</p>
             </div>

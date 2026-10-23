@@ -138,24 +138,24 @@ export function ProductExperience({
   const standard = shipping[0];
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-14">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-20">
       <ProductGallery media={product.media} modelUrl={product.modelUrl} tint={color?.hex ?? null} productName={product.name} activeColorId={colorId} artType={artType} />
 
-      <div className="lg:sticky lg:top-24 lg:self-start">
+      <div className="lg:sticky lg:top-44 lg:self-start">
         {product.category ? (
           <Link href={`/category/${product.category.slug}`} className="eyebrow text-muted hover:text-ink">
             {product.category.name}
           </Link>
         ) : null}
-        <h1 className="font-display mt-3 text-4xl leading-[1.05] md:text-5xl">{product.name}</h1>
+        <h1 className="font-display mt-4 text-[2.6rem] leading-[1.02] text-balance md:text-[3.3rem]">{product.name}</h1>
         {product.ratingCount > 0 ? (
           <a href="#reviews" className="mt-3 inline-flex">
             <Stars rating={product.ratingAvg} count={product.ratingCount} />
           </a>
         ) : null}
-        <Price price={product.price} finalPrice={product.finalPrice} size="lg" className="mt-5" />
-        <p className="mt-1 text-xs text-muted">Inclusive of all taxes</p>
-        {product.shortDescription ? <p className="mt-5 text-sm leading-relaxed text-ink-2">{product.shortDescription}</p> : null}
+        <Price price={product.price} finalPrice={product.finalPrice} size="lg" className="mt-6" />
+        <p className="mt-2 text-xs text-muted">Inclusive of all taxes</p>
+        {product.shortDescription ? <p className="mt-6 border-t border-line pt-6 text-[15px] leading-relaxed text-ink-2">{product.shortDescription}</p> : null}
 
         {product.colors.length ? (
           <div className="mt-8">
@@ -174,7 +174,7 @@ export function ProductExperience({
                     aria-label={c.name}
                     title={c.name}
                     onClick={() => selectColor(c.id)}
-                    className={cn('size-10 rounded-full border-2 border-white transition-transform hover:scale-105', c.id === colorId ? 'ring-2 ring-ink ring-offset-2 ring-offset-paper' : 'shadow-[0_0_0_1px_var(--line-strong)]')}
+                    className={cn('size-9 rounded-full transition-transform hover:scale-105', c.id === colorId ? 'ring-1 ring-ink ring-offset-[3px] ring-offset-paper' : 'ring-1 ring-black/10')}
                     style={{ backgroundColor: c.hex }}
                   />
                 ))}
@@ -229,7 +229,7 @@ export function ProductExperience({
                       setSizeError(false);
                     }}
                     className={cn(
-                      'relative h-12 rounded-xl border px-4 text-sm font-medium transition-colors',
+                      'relative h-12 border px-4 text-sm tabular-nums transition-colors',
                       !stripUk && 'min-w-16',
                       v.id === variantId ? 'border-ink bg-ink text-paper' : 'border-line-strong hover:border-ink',
                       out && 'cursor-not-allowed border-dashed text-muted line-through decoration-1 opacity-60 hover:border-line-strong',
@@ -273,10 +273,10 @@ export function ProductExperience({
           </Button>
         </div>
 
-        <ul className="mt-8 space-y-3 rounded-2xl border border-line bg-surface p-5 text-sm">
+        <ul className="mt-10 divide-y divide-line border-y border-line text-[13px] text-ink-2 [&>li]:py-3.5">
           {standard ? (
             <li className="flex gap-3">
-              <Truck className="mt-0.5 size-4 shrink-0" aria-hidden />
+              <Truck className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} aria-hidden />
               <span>
                 {standard.name}: {standard.minDays}–{standard.maxDays} business days
                 {freeOver !== null ? <> · free over {formatMoney(freeOver)}</> : null}
@@ -285,19 +285,19 @@ export function ProductExperience({
             </li>
           ) : null}
           <li className="flex gap-3">
-            <RefreshCw className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <RefreshCw className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} aria-hidden />
             <span>
               Returns within {returnDays} days on eligible items{sizeGuide ? ', and size exchanges on unworn items' : ''}.{' '}
               <Link href="/pages/returns-and-exchanges" className="underline underline-offset-2">Details</Link>
             </span>
           </li>
           <li className="flex gap-3">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>Pay by UPI. Every payment is verified by our team before dispatch.</span>
+            <ShieldCheck className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} aria-hidden />
+            <span>Pay by UPI. Every payment is checked by a person before dispatch.</span>
           </li>
         </ul>
 
-        <Accordion type="multiple" defaultValue={['description']} className="mt-8">
+        <Accordion type="multiple" defaultValue={['description', 'specs']} className="mt-8">
           <AccordionItem value="description">
             <AccordionTrigger>Description</AccordionTrigger>
             <AccordionContent className="text-ink-2">
@@ -306,16 +306,16 @@ export function ProductExperience({
           </AccordionItem>
           {product.attributes.length ? (
             <AccordionItem value="specs">
-              <AccordionTrigger>Specifications</AccordionTrigger>
+              <AccordionTrigger>The details</AccordionTrigger>
               <AccordionContent>
-                <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+                <dl className="grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-8 gap-y-3 text-sm">
                   {product.attributes.map((a) => (
                     <React.Fragment key={a.label}>
-                      <dt className="text-muted">{a.label}</dt>
+                      <dt className="text-[11px] tracking-[0.16em] text-muted uppercase">{a.label}</dt>
                       <dd className="text-ink">{a.value}</dd>
                     </React.Fragment>
                   ))}
-                  <dt className="text-muted">Item code</dt>
+                  <dt className="text-[11px] tracking-[0.16em] text-muted uppercase">Item code</dt>
                   <dd className="text-ink">{product.sku}</dd>
                 </dl>
               </AccordionContent>

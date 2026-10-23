@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import type { StoreSettings } from '@/lib/content/queries';
 import { NewsletterForm } from './chrome';
-import { Wordmark } from './wordmark';
+import { BrandMark } from './wordmark';
 
 function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -47,27 +47,23 @@ export function Footer({ settings, groups }: { settings: StoreSettings; groups: 
   ].filter((s) => s.href);
 
   return (
-    <footer data-surface="dark" className="mt-24">
-      <div className="container-x grid gap-12 py-16 lg:grid-cols-12 lg:py-20">
-        <div className="space-y-6 lg:col-span-5">
-          <p>
-            <Wordmark name={settings.store_name} className="gap-3 text-3xl" markClassName="size-9" />
-          </p>
-          {settings.tagline ? <p className="-mt-3 text-sm text-dark-ink/85">{settings.tagline}</p> : null}
-          <p className="max-w-sm text-sm leading-relaxed text-dark-muted">{settings.footer_about}</p>
-          <div>
-            <p className="eyebrow mb-3 text-dark-muted">Newsletter</p>
+    <footer data-surface="dark" className="mt-28">
+      <div className="container-x grid gap-14 pt-20 pb-14 lg:grid-cols-12 lg:gap-10 lg:pt-24">
+        <div className="lg:col-span-5 lg:pr-10">
+          <p className="eyebrow text-zari">Letters from the loom</p>
+          <p className="font-display mt-4 max-w-sm text-[2.1rem] leading-[1.1]">New weaves and the stories behind them, a few times a season.</p>
+          <div className="mt-8">
             <NewsletterForm dark />
           </div>
         </div>
-        <nav className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-7" aria-label="Footer">
+        <nav className="grid grid-cols-2 gap-10 sm:grid-cols-4 lg:col-span-7" aria-label="Footer">
           {groups.map((g) => (
             <div key={g.title}>
-              <p className="eyebrow mb-4 text-dark-muted">{g.title}</p>
-              <ul className="space-y-2.5 text-sm">
+              <p className="eyebrow mb-5 text-dark-muted">{g.title}</p>
+              <ul className="space-y-3 text-[14px]">
                 {g.links.map((l) => (
                   <li key={l.id}>
-                    <Link href={l.href} className="text-dark-ink/85 transition-colors hover:text-white" target={l.newTab ? '_blank' : undefined} rel={l.newTab ? 'noopener noreferrer' : undefined}>
+                    <Link href={l.href} className="link-draw text-dark-ink/85 transition-colors hover:text-white" target={l.newTab ? '_blank' : undefined} rel={l.newTab ? 'noopener noreferrer' : undefined}>
                       {l.label}
                     </Link>
                   </li>
@@ -77,23 +73,23 @@ export function Footer({ settings, groups }: { settings: StoreSettings; groups: 
           ))}
           {settings.support_email || settings.support_phone || settings.address ? (
             <div>
-              <p className="eyebrow mb-4 text-dark-muted">Contact</p>
-              <ul className="space-y-2.5 text-sm text-dark-ink/85">
+              <p className="eyebrow mb-5 text-dark-muted">Write to us</p>
+              <ul className="space-y-3 text-[14px] text-dark-ink/85">
                 {settings.support_email ? (
                   <li className="flex items-center gap-2">
-                    <Mail className="size-3.5 shrink-0" aria-hidden />
-                    <a href={`mailto:${settings.support_email}`} className="hover:text-white">{settings.support_email}</a>
+                    <Mail className="size-3.5 shrink-0 opacity-70" aria-hidden />
+                    <a href={`mailto:${settings.support_email}`} className="link-draw hover:text-white">{settings.support_email}</a>
                   </li>
                 ) : null}
                 {settings.support_phone ? (
                   <li className="flex items-center gap-2">
-                    <Phone className="size-3.5 shrink-0" aria-hidden />
-                    <a href={`tel:${settings.support_phone.replace(/\s/g, '')}`} className="hover:text-white">{settings.support_phone}</a>
+                    <Phone className="size-3.5 shrink-0 opacity-70" aria-hidden />
+                    <a href={`tel:${settings.support_phone.replace(/\s/g, '')}`} className="link-draw hover:text-white">{settings.support_phone}</a>
                   </li>
                 ) : null}
                 {settings.address ? (
                   <li className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                    <MapPin className="mt-0.5 size-3.5 shrink-0 opacity-70" aria-hidden />
                     <span>{settings.address}</span>
                   </li>
                 ) : null}
@@ -102,16 +98,23 @@ export function Footer({ settings, groups }: { settings: StoreSettings; groups: 
           ) : null}
         </nav>
       </div>
+      <div className="container-x" aria-hidden>
+        <div className="ornament text-zari/80"><BrandMark className="size-4" /></div>
+        <p className="font-display mt-6 overflow-hidden text-center text-[clamp(3.5rem,17vw,15rem)] leading-[0.82] font-normal tracking-[0.16em] whitespace-nowrap text-dark-ink/[0.07] uppercase [margin-right:-0.16em] select-none">
+          {settings.store_name}
+        </p>
+      </div>
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col gap-4 py-6 text-xs text-dark-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {settings.legal_name ?? settings.store_name}. {settings.footer_note}
           </p>
+          {settings.tagline ? <p className="font-display hidden text-sm italic lg:block">{settings.tagline}</p> : null}
           {socials.length ? (
             <ul className="flex items-center gap-1">
               {socials.map(({ href, label, Icon }) => (
                 <li key={label}>
-                  <a href={href!} target="_blank" rel="noopener noreferrer" aria-label={label} className="grid size-9 place-items-center rounded-full transition-colors hover:bg-white/10 hover:text-white">
+                  <a href={href!} target="_blank" rel="noopener noreferrer" aria-label={label} className="grid size-9 place-items-center transition-colors hover:text-white">
                     <Icon className="size-4" />
                   </a>
                 </li>

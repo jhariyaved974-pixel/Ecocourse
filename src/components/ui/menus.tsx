@@ -14,7 +14,7 @@ export function DropdownMenuContent({ className, align = 'end', sideOffset = 6, 
       <DM.Content
         align={align}
         sideOffset={sideOffset}
-        className={cn('z-50 min-w-48 rounded-xl border border-line bg-surface p-1.5 text-ink shadow-xl data-[state=open]:animate-fade-in', className)}
+        className={cn('z-50 min-w-48 rounded-[var(--radius)] border border-line bg-surface p-1.5 text-ink shadow-xl data-[state=open]:animate-fade-in', className)}
         {...props}
       />
     </DM.Portal>
@@ -25,7 +25,7 @@ export function DropdownMenuItem({ className, destructive, ...props }: React.Com
   return (
     <DM.Item
       className={cn(
-        'flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted',
+        'flex cursor-pointer items-center gap-2 rounded-[var(--radius)] px-2.5 py-2 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted',
         destructive && 'text-danger data-[highlighted]:bg-danger/5 [&_svg]:text-danger',
         className,
       )}
@@ -96,7 +96,7 @@ export function Tooltip({ content, children }: { content: React.ReactNode; child
       <TooltipPrimitive.Root>
         <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
         <TooltipPrimitive.Portal>
-          <TooltipPrimitive.Content sideOffset={6} className="z-50 max-w-xs rounded-lg bg-ink px-2.5 py-1.5 text-xs text-paper shadow-lg data-[state=delayed-open]:animate-fade-in">
+          <TooltipPrimitive.Content sideOffset={6} className="z-50 max-w-xs rounded-[var(--radius)] bg-ink px-2.5 py-1.5 text-xs text-paper shadow-lg data-[state=delayed-open]:animate-fade-in">
             {content}
           </TooltipPrimitive.Content>
         </TooltipPrimitive.Portal>

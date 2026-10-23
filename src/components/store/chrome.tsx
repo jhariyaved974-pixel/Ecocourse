@@ -26,7 +26,7 @@ export function AnnouncementBar({ items }: { items: { id: string; message: strin
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="container-x flex h-9 items-center justify-center gap-3 text-[12px] tracking-wide">
+      <div className="container-x flex h-9 items-center justify-center gap-3 text-[10.5px] font-medium tracking-[0.18em] uppercase">
         {items.length > 1 ? (
           <button type="button" className="rounded-full p-1 opacity-60 hover:opacity-100" aria-label="Previous announcement" onClick={() => setIndex((i) => (i - 1 + items.length) % items.length)}>
             <ChevronLeft className="size-3.5" />
@@ -65,7 +65,7 @@ export function NewsletterForm({ source = 'footer', dark = false }: { source?: s
         </label>
       </div>
       <label htmlFor={`${id}-email`} className="sr-only">Email address</label>
-      <div className={cn('flex items-center gap-2 rounded-full border p-1.5 pl-5', dark ? 'border-white/20 bg-white/5' : 'border-line-strong bg-surface')}>
+      <div className={cn('flex items-center gap-2 border-b pb-1', dark ? 'border-white/40' : 'border-ink/60')}>
         <input
           id={`${id}-email`}
           name="email"
@@ -73,15 +73,15 @@ export function NewsletterForm({ source = 'footer', dark = false }: { source?: s
           required
           autoComplete="email"
           placeholder="Your email address"
-          className={cn('h-10 min-w-0 flex-1 bg-transparent text-sm outline-none', dark ? 'placeholder:text-white/50' : 'placeholder:text-muted')}
+          className={cn('h-11 min-w-0 flex-1 bg-transparent text-[15px] outline-none', dark ? 'placeholder:text-white/45' : 'placeholder:text-muted')}
         />
         <button
           type="submit"
           disabled={pending}
-          className={cn('inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-medium transition-colors', dark ? 'bg-white text-ink hover:bg-white/90' : 'bg-ink text-paper hover:bg-ink-2')}
+          className={cn('label-caps inline-flex h-10 items-center gap-2 px-1 transition-opacity hover:opacity-70', dark ? 'text-dark-ink' : 'text-ink')}
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-          Subscribe
+          Subscribe <ArrowRight className="size-3.5" aria-hidden />
         </button>
       </div>
       <label className={cn('mt-3 flex items-start gap-2.5 text-xs', dark ? 'text-white/65' : 'text-muted')}>

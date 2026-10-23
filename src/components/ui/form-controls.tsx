@@ -6,7 +6,7 @@ import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const fieldBase =
-  'w-full rounded-lg border border-line-strong bg-surface px-3.5 text-sm text-ink shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-colors placeholder:text-muted/70 hover:border-ink/40 focus-visible:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger aria-[invalid=true]:ring-danger/20';
+  'w-full rounded-[var(--radius)] border border-line-strong bg-surface px-3.5 text-sm text-ink shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-colors placeholder:text-muted/70 hover:border-ink/40 focus-visible:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/25 disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger aria-[invalid=true]:ring-danger/20';
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, type = 'text', ...props }, ref) => (

@@ -9,7 +9,7 @@ import { ArrowRight, Move3d } from 'lucide-react';
 import type { HomeSection } from '@/lib/content/queries';
 import { Button } from '@/components/ui/button';
 import { canRender3D, StageErrorBoundary } from '@/components/three/capability';
-import { DEFAULT_HERO_MODELS, type HeroModel } from '@/components/three/hero-models';
+import { heroModelsFor, type HeroModel } from '@/components/three/hero-models';
 import { cn } from '@/lib/utils';
 
 const HeroStage = dynamic(() => import('@/components/three/hero-stage').then((m) => m.HeroStage), { ssr: false });
@@ -21,12 +21,8 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
   const scrollValue = React.useRef(0);
   const [mount3D, setMount3D] = React.useState(false);
   const [ready, setReady] = React.useState(false);
-  // Several product models float together (see hero-stage.tsx). A model chosen
-  // in the CMS takes the centre spot; the others stay as supporting products.
-  const models = React.useMemo<HeroModel[]>(
-    () => (section.model ? DEFAULT_HERO_MODELS.map((m, i) => (i === 0 ? { ...m, url: section.model! } : m)) : DEFAULT_HERO_MODELS),
-    [section.model],
-  );
+  // The model chosen in the CMS, centred (see hero-stage.tsx).
+  const models = React.useMemo<HeroModel[]>(() => (section.model ? heroModelsFor(section.model) : []), [section.model]);
   const onReady = React.useCallback(() => setReady(true), []);
   const onFail = React.useCallback(() => {
     setReady(false);
@@ -38,14 +34,14 @@ export function Hero({ section, priority }: { section: HomeSection; priority?: b
   });
 
   React.useEffect(() => {
-    if (!section.show3d || !canRender3D()) return;
+    if (!section.show3d || !section.model || !canRender3D()) return;
     // Defer the 3D bundle until the browser is idle so it never delays shopping.
     const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
     const handle = idle ? idle(() => setMount3D(true), { timeout: 2500 }) : window.setTimeout(() => setMount3D(true), 1200);
     return () => {
       if (!idle) window.clearTimeout(handle);
     };
-  }, [section.show3d]);
+  }, [section.show3d, section.model]);
 
   React.useEffect(() => {
     if (!priority) return;

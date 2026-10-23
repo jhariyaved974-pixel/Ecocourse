@@ -4,7 +4,7 @@ export function MaintenancePage({ storeName, message, email }: { storeName: stri
   return (
     <main id="main" className="flex min-h-svh flex-col items-center justify-center bg-paper px-6 text-center text-ink">
       <p>
-        <Wordmark name={storeName} className="gap-3 text-3xl" markClassName="size-9" />
+        <Wordmark name={storeName} className="text-3xl" mark markClassName="size-6" />
       </p>
       <h1 className="mt-10 font-display text-5xl md:text-6xl">Back shortly</h1>
       <p className="mt-4 max-w-md text-muted">{message}</p>

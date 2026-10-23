@@ -4,7 +4,7 @@ import type { SizeGuideData } from '@/lib/catalog/types';
 export function SizeGuideTable({ columns, rows, caption }: Pick<SizeGuideData, 'columns' | 'rows'> & { caption?: string }) {
   if (!columns.length || !rows.length) return null;
   return (
-    <div className="relative overflow-x-auto rounded-xl border border-line">
+    <div className="relative overflow-x-auto rounded-[var(--radius)] border border-line">
       <table className="w-full text-sm">
         <caption className="sr-only">{caption ?? 'Size chart'}</caption>
         <thead className="bg-surface-2 text-left text-xs text-muted">

@@ -28,7 +28,7 @@ export function AffiliateForm({ upi, note, submitLabel }: { upi?: string; note?:
 export function CopyLink({ value }: { value: string }) {
   const [copied, setCopied] = React.useState(false);
   return (
-    <div className="flex max-w-xl items-center gap-2 rounded-xl border border-line bg-surface p-2 pl-4">
+    <div className="flex max-w-xl items-center gap-2 rounded-[var(--radius)] border border-line bg-surface p-2 pl-4">
       <code className="min-w-0 flex-1 truncate text-sm">{value}</code>
       <Button
         type="button"
