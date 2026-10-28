@@ -62,4 +62,10 @@ a role. Deactivate rather than delete when someone leaves; the last owner cannot
   revision you can restore. Content is plain text/Markdown — HTML and scripts are not rendered.
 - **Reviews**: new reviews are hidden until approved.
 - **Customer requests**: data-export and account-deletion requests appear here.
+- **International leads** (`/admin/international`): shoppers outside India who asked for
+  delivery to their country via `/international` (visitors whose connection is outside India see
+  a banner linking there; it is also in the footer). Each new lead emails `LEAD_ALERT_EMAIL`
+  (fallback: the admin notification email, then the support email) — reply to that email to
+  reach the shopper. Mark leads contacted / converted / closed; "Top countries" shows where
+  demand is coming from.
 - **Audit log**: who changed what and when (payments, settings, staff, catalogue, inventory).

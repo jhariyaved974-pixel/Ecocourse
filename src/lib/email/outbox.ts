@@ -19,6 +19,7 @@ export interface DeliveryReport {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER_NUMBER = /^[A-Z0-9-]{4,40}$/;
+const EMAIL = /^[^\s@<>,;]{1,64}@[^\s@<>,;]+\.[a-z]{2,}$/i;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
@@ -50,6 +51,7 @@ export async function deliverQueuedEmails(limit = 20): Promise<DeliveryReport> {
     const payload = (row.payload ?? {}) as Record<string, unknown>;
     const ctx: EmailContext = { ...base };
     const headers: Record<string, string> = {};
+    let replyTo = base.supportEmail;
 
     const orderId = typeof payload.order_id === 'string' && UUID.test(payload.order_id) ? payload.order_id : null;
     const orderNumber = typeof payload.order_number === 'string' && ORDER_NUMBER.test(payload.order_number) ? payload.order_number : null;
@@ -58,6 +60,11 @@ export async function deliverQueuedEmails(limit = 20): Promise<DeliveryReport> {
     }
     if (row.template === 'admin_proof_submitted' && orderId) {
       ctx.adminLink = `${(process.env.ADMIN_URL || publicEnv.siteUrl).replace(/\/$/, '')}/admin/payments/${orderId}`;
+    }
+    if (row.template === 'admin_international_lead') {
+      ctx.adminLink = `${(process.env.ADMIN_URL || publicEnv.siteUrl).replace(/\/$/, '')}/admin/international`;
+      // "Reply" in the owner's inbox goes straight to the interested shopper.
+      if (typeof payload.email === 'string' && EMAIL.test(payload.email)) replyTo = payload.email;
     }
     if (row.template === 'cart_reminder') {
       const optOut = typeof payload.user_id === 'string' && UUID.test(payload.user_id) ? cartReminderOptOut(payload.user_id) : null;
@@ -90,7 +97,7 @@ export async function deliverQueuedEmails(limit = 20): Promise<DeliveryReport> {
       continue;
     }
     const result = await sendWithResend(
-      { to: row.to_email, subject: rendered.subject, html: rendered.html, text: rendered.text, idempotencyKey: `auren-outbox-${row.id}`, replyTo: base.supportEmail, headers },
+      { to: row.to_email, subject: rendered.subject, html: rendered.html, text: rendered.text, idempotencyKey: `auren-outbox-${row.id}`, replyTo, headers },
       { apiKey: serverEnv.resendApiKey, from: serverEnv.emailFrom },
     );
     if (result.ok) {

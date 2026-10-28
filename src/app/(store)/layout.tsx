@@ -5,6 +5,16 @@ import { CartDrawer } from '@/components/store/cart-drawer';
 import { getAnnouncements, getNavigation, getStoreSettings } from '@/lib/content/queries';
 import { getCategoryTree } from '@/lib/catalog/queries';
 import { MaintenancePage } from '@/components/store/maintenance';
+import { Suspense } from 'react';
+import { headers } from 'next/headers';
+import { InternationalBanner } from '@/components/store/international';
+import { countryFromHeaders } from '@/lib/international';
+
+/** Shown only when the hosting platform reports a visitor country other than India. */
+async function OverseasVisitorBanner() {
+  const country = countryFromHeaders(await headers());
+  return country && country !== 'IN' ? <InternationalBanner country={country} /> : null;
+}
 
 export default async function StoreLayout({ children }: LayoutProps<'/'>) {
   const [settings, nav, announcements, departments] = await Promise.all([
@@ -23,6 +33,9 @@ export default async function StoreLayout({ children }: LayoutProps<'/'>) {
         Skip to content
       </a>
       <AnnouncementBar items={announcements} />
+      <Suspense fallback={null}>
+        <OverseasVisitorBanner />
+      </Suspense>
       <Header
         storeName={settings.store_name}
         logoUrl={settings.logoUrl}

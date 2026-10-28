@@ -390,6 +390,22 @@ function body(template: string, payload: Payload, ctx: EmailContext): Block[] | 
         button('Review payment', ctx.adminLink),
       ];
     }
+    case 'admin_international_lead':
+      return [
+        p(`Someone from ${str(payload, 'country_name') || 'outside India'} is interested in buying from ${ctx.storeName}.`),
+        facts([
+          ['Name', str(payload, 'full_name')],
+          ['Email', str(payload, 'email')],
+          ['Phone', str(payload, 'phone')],
+          ['Country', str(payload, 'country_name')],
+          ['Detected location', str(payload, 'detected_country_name')],
+          ['Buying', str(payload, 'buyer_type_label')],
+          ['Interested in', str(payload, 'interest')],
+        ]),
+        p(str(payload, 'message')),
+        p('Reply to them directly from your inbox, then mark the lead as contacted in the admin panel.', true),
+        button('Open international leads', ctx.adminLink),
+      ];
     case 'cart_reminder': {
       const items = Array.isArray(payload.items) ? (payload.items as Payload[]).slice(0, 10) : [];
       if (items.length === 0) return null;
@@ -469,7 +485,7 @@ export const EMAIL_TEMPLATES = [
   'order_placed', 'proof_received', 'order_confirmed', 'order_expired', 'payment_rejected', 'payment_resubmit',
   'advance_received', 'balance_received', 'balance_reminder',
   'refund_initiated', 'refund_processed', 'order_cancelled', 'order_shipped', 'order_delivered',
-  'admin_proof_submitted', 'cart_reminder', 'newsletter_welcome',
+  'admin_proof_submitted', 'admin_international_lead', 'cart_reminder', 'newsletter_welcome',
 ] as const;
 
 /** Renders a queued email. Returns null for unknown templates or empty content. */

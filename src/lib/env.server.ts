@@ -12,6 +12,7 @@ const schema = z.object({
   RAZORPAY_KEY_SECRET: z.string().min(5).optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().min(5).optional(),
   IP_HASH_SALT: z.string().min(8).optional(),
+  LEAD_ALERT_EMAIL: z.email().optional(),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -31,6 +32,7 @@ export const serverEnv = {
   razorpayKeySecret: env.RAZORPAY_KEY_SECRET ?? '',
   razorpayWebhookSecret: env.RAZORPAY_WEBHOOK_SECRET ?? '',
   ipHashSalt: env.IP_HASH_SALT ?? env.ORDER_ACCESS_SECRET ?? 'local-dev-salt',
+  leadAlertEmail: env.LEAD_ALERT_EMAIL ?? '',
 };
 
 export const integrations = {

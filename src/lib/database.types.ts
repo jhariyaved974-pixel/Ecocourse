@@ -1051,6 +1051,62 @@ export type Database = {
           },
         ]
       }
+      international_leads: {
+        Row: {
+          id: string
+          full_name: string
+          email: string
+          phone: string | null
+          country_code: string
+          detected_country: string | null
+          buyer_type: string
+          interest: string
+          message: string
+          source_path: string
+          status: string
+          admin_note: string | null
+          ip_hash: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          full_name: string
+          email: string
+          phone?: string | null
+          country_code: string
+          detected_country?: string | null
+          buyer_type?: string
+          interest?: string
+          message?: string
+          source_path?: string
+          status?: string
+          admin_note?: string | null
+          ip_hash?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          email?: string
+          phone?: string | null
+          country_code?: string
+          detected_country?: string | null
+          buyer_type?: string
+          interest?: string
+          message?: string
+          source_path?: string
+          status?: string
+          admin_note?: string | null
+          ip_hash?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+
+        ]
+      }
       inventory_movements: {
         Row: {
           id: number
