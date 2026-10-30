@@ -24,4 +24,4 @@ Or retrain from the live site: `harvey train https://autowebly.vercel.app`.
 ## Before sending anything
 
 - `compliance.postal_address` is empty. Cold email must include one.
-- `channels.email.booking_url` is empty; add a calendar link so prospects can book a call.
+- Harvey asks prospects when suits them for a call (`booking_method: ask_preference`). Once you have a calendar link, put it in `booking_url` and set `booking_method: calendar_link`.

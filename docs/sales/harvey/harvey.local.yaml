@@ -98,10 +98,10 @@ product:
     primary: ''
     entry: ''
     goal: book_call
-    booking_method: calendar_link
+    booking_method: ask_preference
     booking_url: ''
     meeting_duration: 15 minutes
-    meeting_owner: ''
+    meeting_owner: Ved Jhariya
 icp:
   industries:
   - Professional services and B2B service providers (agencies, consultancies, IT services)
