@@ -1,5 +1,5 @@
 persona:
-  name: Harvey
+  name: Ved Jhariya
   company: Autowebly
   role: Business Development
   email: vedjhariya009@gmail.com
@@ -174,7 +174,7 @@ usage:
   quiet_hours:
     start: '22:00'
     end: 07:00
-    timezone: America/New_York
+    timezone: Asia/Kolkata
 compliance:
   postal_address: ''
   opt_out_line: Not interested? Reply "no thanks" and I won't email again.

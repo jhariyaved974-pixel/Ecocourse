@@ -23,7 +23,5 @@ Or retrain from the live site: `harvey train https://autowebly.vercel.app`.
 
 ## Before sending anything
 
-- `persona.name` is still `Harvey`; set the name emails should be signed with.
 - `compliance.postal_address` is empty. Cold email must include one.
-- `usage.quiet_hours.timezone` is `America/New_York`; change it to `Asia/Kolkata` if that suits you.
 - `channels.email.booking_url` is empty; add a calendar link so prospects can book a call.
