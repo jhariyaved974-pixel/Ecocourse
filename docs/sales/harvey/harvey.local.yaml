@@ -104,7 +104,11 @@ product:
     meeting_owner: Ved Jhariya
 icp:
   industries:
-  - manufacturing company
+  - packaging manufacturer
+  - auto parts manufacturer
+  - plastic products manufacturer
+  - furniture manufacturer
+  - textile manufacturer
   - export company
   - IT services company
   - logistics company
