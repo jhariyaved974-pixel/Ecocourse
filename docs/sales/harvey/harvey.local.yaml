@@ -141,12 +141,6 @@ icp:
   - Agency Owner
   geography:
   - India
-  - United States
-  - United Kingdom
-  - Canada
-  - Australia
-  - United Arab Emirates
-  - Europe
   hiring_signals: []
 channels:
   email:
