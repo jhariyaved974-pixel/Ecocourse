@@ -104,12 +104,13 @@ product:
     meeting_owner: Ved Jhariya
 icp:
   industries:
-  - digital marketing agency
-  - IT services company
-  - export company
   - manufacturing company
-  - SaaS startup
-  - ecommerce brand
+  - export company
+  - IT services company
+  - logistics company
+  - real estate developer
+  - multispeciality clinic
+  - coaching institute
   company_size: "1-200 employees (core: 2-50 employee small teams for automation/web/SEO;\
     \ 20-200+ employees for managed B2B pipeline plans at \u20B91-5 lakh/month)"
   titles:
@@ -138,7 +139,6 @@ icp:
   - Head of Business Development
   - Chief Revenue Officer
   - Export Manager
-  - Agency Owner
   geography:
   - Mumbai, India
   - Delhi, India
