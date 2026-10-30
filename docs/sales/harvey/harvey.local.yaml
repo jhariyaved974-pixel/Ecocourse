@@ -1,0 +1,188 @@
+persona:
+  name: Harvey
+  company: Autowebly
+  role: Business Development
+  email: harvey@autowebly.vercel.app
+  linkedin: linkedin.com/in/harvey-autowebly-vercel-app
+  tone: Plain, honest, practical, reassuring
+product:
+  name: Business Automation, Website Development, SEO and AI-Powered B2B Lead Generation
+    services
+  description: Autowebly is a service company that builds business automations, fast
+    mobile-first websites, and SEO/AI-search groundwork so small teams can run like
+    bigger ones. It also offers a managed, AI-powered B2B lead generation and sales
+    pipeline service for high-value businesses, covering prospect research, qualification,
+    personalised outreach, follow-ups and CRM management. It serves small businesses
+    across India and international founders and agencies worldwide.
+  pricing: "Automation, website and SEO projects: custom written quote after a free\
+    \ discovery call (quotes in INR for India, USD for international clients). Managed\
+    \ B2B lead generation: B2B Pipeline Accelerator \u20B91,00,000/month + setup fee\
+    \ \u20B950,000\u2013\u20B91,00,000; B2B Revenue Pipeline \u20B92,00,000/month\
+    \ + setup fee \u20B91,00,000\u2013\u20B91,50,000; Enterprise Solutions \u20B9\
+    3,00,000\u2013\u20B95,00,000/month + setup fee from \u20B92,00,000 (depending\
+    \ on scope). Free consultation."
+  key_benefits:
+  - Removes repetitive manual work so a small team can operate like a bigger one
+  - Full ownership of accounts, code, workflows and websites, with documentation and
+    a walkthrough at handover
+  - Transparent fixed-scope written proposals; nothing starts until you approve
+  - Honest, plain-language monthly SEO reporting with no ranking guarantees or risky
+    tactics
+  - No lock-in contracts, plus replies within one working day and post-launch support
+  - Saves sales teams time by automating B2B prospect research, outreach and follow-ups
+  objection_responses:
+    "\u20B91,00,000 a month plus a setup fee is a lot for us \u2014 that's more than a full-time SDR.": That's
+      a fair comparison. An in-house SDR also brings salary, tools like Apollo or
+      Clay, a CRM, training time and ramp-up months, while our Pipeline Accelerator
+      covers research, qualification, outreach, follow-ups and CRM management from
+      the start, with human strategists overseeing the AI. If we mapped out what one
+      closed deal is worth to you, how many meetings a month would make this pay for
+      itself?
+    We can't commit to a big project budget right now.: Completely understandable,
+      and that's why nothing starts until you approve a fixed-scope written proposal,
+      so we can begin with the single automation or website fix that frees up the
+      most time and build from there. Which repetitive task is costing your team the
+      most hours each week right now?
+    "We already use Apollo, Instantly and Clay \u2014 why would we need you?": Those
+      are excellent tools, and many of our clients keep them, because the gap is rarely
+      software; it's the strategy, list quality, personalised messaging and consistent
+      follow-up that someone has to run every day. Who on your team owns that work
+      today, and how much of their week does it take?
+    We're already talking to CIENCE / Belkins / Leadium.: 'They''re strong agencies,
+      and it''s smart to compare. Where we tend to differ is no lock-in contracts,
+      full ownership of your data and workflows, and a pipeline that connects to your
+      website, SEO and automations instead of operating in isolation. What would make
+      one partner the clear winner for you: cost per meeting, lead quality, or flexibility?'
+    Our freelancer already builds our Zapier and Make automations.: If it's working,
+      that's great. The question we usually help with is what happens when that person
+      is unavailable, because we hand over full documentation, a walkthrough and accounts
+      you own, so nothing relies on one individual. How comfortable would you be if
+      a key workflow broke while your freelancer was away?
+    WebFX or Ignite Visibility seem more established for SEO.: 'They''re big names,
+      and they''re well suited to large budgets. We focus on honest, plain-language
+      monthly reporting, no ranking guarantees, no spam links and no lock-in, plus
+      groundwork for AI search where buyers increasingly discover vendors. What has
+      your experience with SEO reporting been so far: clear, or difficult to connect
+      to actual enquiries?'
+    "This isn't a priority right now \u2014 let's revisit next quarter.": That makes
+      sense. One thing worth weighing is that SEO and pipeline building both take
+      time to compound, so starting later usually means seeing results later as well.
+      Would it help to do the free discovery call now so you have a written plan and
+      quote ready when next quarter arrives?
+    We're too busy to take on an implementation project.: That's exactly the situation
+      automation is meant to fix, and our four-step process is designed so your team
+      spends only a little time in discovery and review while we handle the build
+      and testing. If we could take one manual process off your plate within the first
+      few weeks, which one would you choose?
+    "Switching would be painful \u2014 our data and workflows are already set up.": Agreed,
+      nobody wants to rebuild from scratch, so we work with your existing tools wherever
+      we can and migrate only what clearly needs it, with everything documented and
+      owned by you. What's in your current setup that you would most want to protect
+      during any change?
+    How do we know you'll deliver? We've been burned by agencies before.: That's a
+      very common experience, and it's why we use fixed-scope written proposals, reply
+      within one working day, avoid lock-in contracts and make sure you own every
+      account and line of code, so you're never stuck if we fall short. What went
+      wrong last time, so we can show you specifically how we'd handle it differently?
+    Will AI outreach damage our brand or feel spammy to high-value prospects?: That's
+      a valid concern for premium B2B, which is why AI handles the research and scale
+      while human experts own the strategy, the messaging and the quality checks on
+      outreach. Would it reassure you to review and approve the messaging and target
+      list before any campaign goes live?
+    "We're a small team \u2014 we don't think we need automation or a new website yet.": Small
+      teams often gain the most, because every hour saved on manual follow-ups or
+      data entry goes straight back into selling or delivery, and a fast mobile-first
+      site makes sure the enquiries you already earn aren't lost. Roughly how much
+      of your week goes on tasks that feel repetitive?
+  offer:
+    primary: ''
+    entry: ''
+    goal: book_call
+    booking_method: calendar_link
+    booking_url: ''
+    meeting_duration: 15 minutes
+    meeting_owner: ''
+icp:
+  industries:
+  - Professional services and B2B service providers (agencies, consultancies, IT services)
+  - Exporters, manufacturers and B2B suppliers using quote-request sales
+  - Local service businesses and retail shops (India)
+  - Startups and SaaS/tech founders
+  - Ecommerce and online retail stores
+  - Digital and marketing agencies (white-label/outsourced build work)
+  company_size: "1-200 employees (core: 2-50 employee small teams for automation/web/SEO;\
+    \ 20-200+ employees for managed B2B pipeline plans at \u20B91-5 lakh/month)"
+  titles:
+  - Owner
+  - Founder
+  - Co-Founder
+  - CEO
+  - Managing Director
+  - Director
+  - President
+  - Proprietor
+  - Partner
+  - Managing Partner
+  - General Manager
+  - Operations Manager
+  - Head of Operations
+  - COO
+  - Marketing Manager
+  - Head of Marketing
+  - Marketing Director
+  - CMO
+  - Head of Sales
+  - Sales Director
+  - VP of Sales
+  - Business Development Manager
+  - Head of Business Development
+  - Chief Revenue Officer
+  - Export Manager
+  - Agency Owner
+  geography:
+  - India
+  - United States
+  - United Kingdom
+  - Canada
+  - Australia
+  - United Arab Emirates
+  - Europe
+  hiring_signals: []
+channels:
+  email:
+    enabled: true
+    provider: gmail
+    max_daily_sends: 50
+    require_approval: true
+    send_to_risky: false
+    max_bounce_rate: 0.05
+    warmup:
+      start_date: ''
+      min_days: 14
+      start_sends: 5
+      daily_increase: 3
+      dkim_selector: ''
+    link_domains:
+    - autowebly.vercel.app
+  linkedin:
+    enabled: false
+    max_daily_connections: 20
+    max_daily_messages: 10
+usage:
+  max_daily_claude_percent: 80
+  heartbeat_interval_minutes: 15
+  quiet_hours:
+    start: '22:00'
+    end: 07:00
+    timezone: America/New_York
+compliance:
+  postal_address: ''
+  opt_out_line: Not interested? Reply "no thanks" and I won't email again.
+  do_not_contact: []
+  precleared:
+    enabled: false
+    sender_country: ''
+    address_source: unknown
+    prospect_country: ''
+brain:
+  provider: claude
