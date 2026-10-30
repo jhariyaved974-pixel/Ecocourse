@@ -104,12 +104,12 @@ product:
     meeting_owner: Ved Jhariya
 icp:
   industries:
-  - Professional services and B2B service providers (agencies, consultancies, IT services)
-  - Exporters, manufacturers and B2B suppliers using quote-request sales
-  - Local service businesses and retail shops (India)
-  - Startups and SaaS/tech founders
-  - Ecommerce and online retail stores
-  - Digital and marketing agencies (white-label/outsourced build work)
+  - digital marketing agency
+  - IT services company
+  - export company
+  - manufacturing company
+  - SaaS startup
+  - ecommerce brand
   company_size: "1-200 employees (core: 2-50 employee small teams for automation/web/SEO;\
     \ 20-200+ employees for managed B2B pipeline plans at \u20B91-5 lakh/month)"
   titles:
@@ -140,7 +140,29 @@ icp:
   - Export Manager
   - Agency Owner
   geography:
-  - India
+  - Mumbai, India
+  - Delhi, India
+  - Bengaluru, India
+  - Pune, India
+  - Indore, India
+  - Bhopal, India
+  - Gurugram, India
+  - Hyderabad, India
+  - Chennai, India
+  - Ahmedabad, India
+  - Kolkata, India
+  geo_coordinates:
+    Mumbai, India: 19.0760,72.8777,30
+    Delhi, India: 28.6139,77.2090,30
+    Bengaluru, India: 12.9716,77.5946,30
+    Pune, India: 18.5204,73.8567,25
+    Indore, India: 22.7196,75.8577,20
+    Bhopal, India: 23.2599,77.4126,20
+    Gurugram, India: 28.4595,77.0266,20
+    Hyderabad, India: 17.3850,78.4867,30
+    Chennai, India: 13.0827,80.2707,30
+    Ahmedabad, India: 23.0225,72.5714,25
+    Kolkata, India: 22.5726,88.3639,25
   hiring_signals: []
 channels:
   email:
