@@ -9,7 +9,7 @@ generation and blog pages). These files are its output, kept here so they surviv
 | `skills/product_knowledge.md` | What Harvey knows about Autowebly's services |
 | `skills/competitive_intel.md` | Competitors and how to position against them |
 | `train_offline.py` | Trains from local copies of the pages when the live site can't be reached |
-| `discovered_companies.csv` | 47 companies from `harvey discover --provider serper` (2026-10-30). A few are directories (Designrush, Themanifest, Getlatka, Saasboomi, Cutshort), so drop those before outreach |
+| `discovered_companies.csv` | 47 companies from `harvey discover --provider serper` (2026-10-30). 14 rows aren't prospects, so drop them before outreach: directories and lists (Designrush, Themanifest, Getlatka, Saasboomi, Cutshort, GoodFirms, Kompass, Bhopal Online, D&B, Built In), Scribd, a World's Top Exports article, SalezShark (a CRM vendor) and WBREDA (a government agency). That leaves 33 real leads |
 
 ## Use them
 
