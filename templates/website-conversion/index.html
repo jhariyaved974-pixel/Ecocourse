@@ -3,524 +3,467 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Growth Plan Builder</title>
+<title>Your Brand — Engineered to Grow</title>
+<meta name="description" content="Automation, websites and SEO that turn more visitors into customers. Fixed written quotes. You own everything.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a floating 3D island stays on screen for the whole page; the camera flies with the scroll.
-   Visitors pick Automation, Website or SEO, answer four questions, watch the island build their fix,
-   get a personal plan and leave their WhatsApp.
-   Palette (client's five colours): #17252A ink, #2B7A78 deep teal, #3AAFA9 teal, #DEF2F1 mint, #FEFFFF white.
-   Mint is the ground, ink carries text and trust, teal is the action colour, deep teal marks won customers. */
+/* Layout: a dark product-launch page. One studio-lit 3D object (four layers: search glass, website ceramic,
+   automation circuit, business base) stays on screen and is choreographed by the scroll: it assembles,
+   explodes into layers, focuses each layer, then hands over to the plan builder that turns visitors into leads.
+   Palette: #17252A ink ground, #FEFFFF type, #DEF2F1 mint secondary, #3AAFA9 teal action, #2B7A78 deep teal. */
 :root{
-  --ice:#def2f1; --ice-2:#c4e6e3; --surface:#feffff; --ink:#17252a; --soft:#4b6468; --line:rgba(23,37,42,.12);
-  --sky:#3aafa9; --sky-soft:#d3eeec; --saffron:#3aafa9; --saffron-deep:#2b7a78; --teal:#2b7a78; --teal-soft:#def2f1; --rose:#17252a;
-  --sans:"Manrope",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
-  --r:18px;
+  --bg:#17252a; --bg-2:#1c2e33; --card:#203439; --fg:#feffff; --mint:#def2f1; --soft:rgba(222,242,241,.62); --line:rgba(222,242,241,.12);
+  --teal:#3aafa9; --deep:#2b7a78; --ink:#17252a; --paper:#feffff; --paper-soft:#def2f1; --paper-line:rgba(23,37,42,.12); --paper-text:#4b6468;
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--ice);color:var(--ink);font:500 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+html{background:var(--bg)}
+body{margin:0;color:var(--fg);font:400 17px/1.6 var(--sans);-webkit-font-smoothing:antialiased;letter-spacing:-.005em;
+  background:radial-gradient(1200px 800px at 50% 30%,rgba(58,175,169,.16),transparent 60%),var(--bg);background-attachment:fixed;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
-.wrap{max-width:1320px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
-.mono{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;border-radius:14px;padding:15px 22px;font:800 15px var(--sans);transition:transform .2s,box-shadow .2s,background .2s}
-.btn:hover{transform:translateY(-1px)}
-.btn.primary{background:var(--ink);color:#fff;box-shadow:0 10px 24px -12px rgba(23,37,42,.8)}
-.btn.hot{background:var(--saffron);color:var(--ink);box-shadow:0 10px 24px -10px rgba(43,122,120,.75)}
-.btn.hot:hover{background:var(--saffron-deep);color:var(--surface)}
-.btn.ghost{background:rgba(255,255,255,.6);box-shadow:inset 0 0 0 1.5px var(--line)}
+:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px))}
+.eyebrow{font:500 13px var(--sans);letter-spacing:.02em;color:var(--teal)}
+.mono{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.grad,.grad .w{background:linear-gradient(180deg,#feffff 20%,#def2f1 55%,#3aafa9 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;border-radius:999px;padding:14px 24px;font:500 16px var(--sans);transition:transform .4s var(--ease),background .3s,color .3s,box-shadow .3s}
+.btn:hover{transform:scale(1.03)}
+.btn.primary{background:var(--teal);color:var(--ink)}
+.btn.primary:hover{background:var(--mint)}
+.link{color:var(--teal);font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.link::after{content:"›";font-size:1.25em;line-height:1;transition:transform .3s var(--ease)}
+.link:hover::after{transform:translateX(4px)}
 .btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn.ink{background:var(--ink);color:var(--paper)}
+.btn.ink:hover{background:var(--deep)}
 
-header{position:relative;z-index:5}
-header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:20px;gap:16px}
-.brand{font-weight:800;font-size:18px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
-.brand i{width:22px;height:22px;border-radius:7px;background:var(--ink);display:inline-block;box-shadow:inset -7px -7px 0 var(--saffron)}
-nav{display:flex;gap:28px;font-size:14px;color:var(--soft);font-weight:600}
-nav a:hover{color:var(--ink)}
-nav a[aria-current="page"]{color:var(--ink)}
-.menu-btn{display:none}
+/* header */
+.top{position:fixed;top:0;left:0;right:0;z-index:30;padding-top:env(safe-area-inset-top,0px);transition:background .4s}
+.top.solid{background:rgba(23,37,42,.72);backdrop-filter:saturate(1.6) blur(20px);-webkit-backdrop-filter:saturate(1.6) blur(20px)}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;height:56px;gap:16px}
+.brand{font-weight:600;font-size:17px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.brand i{width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#3aafa9,#2b7a78);box-shadow:inset -5px -5px 0 rgba(254,255,255,.9)}
+.nav{display:flex;gap:28px;font-size:13px;color:var(--soft)}
+.nav a:hover,.nav a[aria-current="page"]{color:var(--fg)}
+.top .btn{padding:8px 16px;font-size:13px}
+.menu-btn{display:none;background:rgba(254,255,255,.08);color:var(--fg)}
 
-/* 3D world, fixed behind everything */
-.hero{position:relative;min-height:max(780px,calc(100svh - 70px))}
-#world{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y;z-index:0}
-#world:active{cursor:grabbing}
-.labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
-header{position:relative;z-index:6}
+/* 3D stage */
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none}
+.labels{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;display:flex;align-items:center;gap:10px;opacity:0;transition:opacity .5s var(--ease);white-space:nowrap}
+.lbl i{width:56px;height:1px;background:linear-gradient(90deg,var(--teal),transparent)}
+.lbl b{font:600 15px var(--sans);letter-spacing:-.01em}
+.lbl small{display:block;font:400 12px var(--sans);color:var(--soft)}
 main,footer{position:relative;z-index:2}
-main{pointer-events:none}
-main .hero-grid > *,main .col,main .final{pointer-events:auto}
-.tag3d{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:var(--surface);border-radius:10px;padding:6px 10px;font:700 12px var(--sans);white-space:nowrap;box-shadow:0 6px 18px -8px rgba(23,37,42,.35);opacity:0;transition:opacity .4s}
-.tag3d small{display:block;font:500 10px var(--mono);color:var(--soft);letter-spacing:.04em}
-.tag3d.on{opacity:1}
-.tag3d.src{background:var(--ink);color:#fff}
-.tag3d.src small{color:#9fbcbb}
-.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,470px) minmax(0,1fr);gap:24px;padding-block:24px 40px;pointer-events:none}
-.stats{align-self:start;justify-self:end;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.stat{background:rgba(255,255,255,.78);backdrop-filter:blur(10px);border-radius:14px;padding:10px 14px;min-width:120px}
-.stat b{display:block;font:800 26px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.stat.lost b{color:var(--rose)} .stat.won b{color:var(--teal)}
-.hint{position:absolute;right:max(20px,env(safe-area-inset-right,0px));bottom:20px;pointer-events:none}
 
-/* builder panel */
-.panel{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-radius:24px;padding:28px;box-shadow:0 30px 60px -30px rgba(23,37,42,.35);display:grid;gap:18px}
-h1{font:800 clamp(30px,3.4vw,44px)/1.05 var(--sans);letter-spacing:-.04em;margin:0;text-wrap:balance}
-h1 em{font-style:normal;color:var(--teal)}
-.lede{margin:0;color:var(--soft);font-size:16px}
+/* hero */
+.hero{min-height:100svh;display:grid;align-content:start;justify-items:center;text-align:center;padding-top:calc(120px + env(safe-area-inset-top,0px));position:relative}
+.hero h1{font:600 clamp(46px,7vw,108px)/.95 var(--sans);letter-spacing:-.055em;margin:14px 0 0;max-width:15ch}
+.hero p{font-size:clamp(18px,1.6vw,22px);color:var(--soft);max-width:40ch;margin:22px auto 0;font-weight:400}
+.hero .row{display:flex;gap:22px;align-items:center;justify-content:center;margin-top:30px;flex-wrap:wrap}
+.w{display:inline-block;white-space:pre}
+.anim .w{opacity:0;transform:translateY(.45em);filter:blur(10px);animation:rise 1.2s var(--ease) forwards;animation-delay:calc(var(--i) * 70ms + 150ms)}
+.anim .fade{opacity:0;animation:fadeIn 1.2s var(--ease) forwards;animation-delay:.9s}
+@keyframes rise{to{opacity:1;transform:none;filter:none}}
+@keyframes fadeIn{to{opacity:1}}
+.cue{position:absolute;bottom:calc(26px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:grid;justify-items:center;gap:8px;color:var(--soft);font-size:12px;transition:opacity .4s}
+.cue i{width:22px;height:34px;border-radius:12px;box-shadow:inset 0 0 0 1.5px var(--line);position:relative}
+.cue i::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:7px;border-radius:2px;background:var(--teal);transform:translateX(-50%);animation:wheel 1.8s var(--ease) infinite}
+@keyframes wheel{0%{opacity:0;transform:translate(-50%,0)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
+
+/* sticky story sections */
+.story{position:relative}
+.story .pin{position:sticky;top:0;height:100svh;display:flex;align-items:center}
+.story .pin .wrap{width:100%}
+.steps{position:relative;max-width:440px;min-height:340px}
+.right .steps{margin-left:auto}
+.step{position:absolute;inset:0 auto auto 0;opacity:0;transform:translateY(24px);filter:blur(6px);transition:opacity .7s var(--ease),transform .7s var(--ease),filter .7s var(--ease);pointer-events:none}
+.step.on{opacity:1;transform:none;filter:none;pointer-events:auto}
+.step h2{font:600 clamp(36px,4.4vw,60px)/1.02 var(--sans);letter-spacing:-.045em;margin:10px 0 16px}
+.step p{color:var(--soft);font-size:19px;margin:0;max-width:34ch}
+.dots{display:flex;gap:8px;position:absolute;bottom:-56px;left:0}
+.dots i{width:8px;height:8px;border-radius:4px;background:var(--line);transition:width .5s var(--ease),background .5s}
+.dots i.on{width:28px;background:var(--teal)}
+.stats{display:flex;gap:28px;margin-top:24px;flex-wrap:wrap}
+.stats b{display:block;font:600 34px/1 var(--sans);letter-spacing:-.04em}
+.stats span{font-size:13px;color:var(--soft)}
+
+/* word-scrub statement */
+.statement{min-height:220vh;position:relative}
+.statement .pin{position:sticky;top:0;height:100svh;display:grid;place-items:center;padding-inline:22px}
+.statement p{font:600 clamp(32px,4.6vw,66px)/1.12 var(--sans);letter-spacing:-.045em;max-width:20ch;margin:0;text-align:center}
+.statement .sw{opacity:.14;transition:opacity .25s linear}
+.statement .sw.lit{opacity:1}
+.statement .sw.acc.lit{color:var(--teal)}
+
+/* reveal on scroll */
+.js .rv{opacity:0;transform:translateY(36px);filter:blur(8px);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease),filter 1.1s var(--ease)}
+.js .rv.in{opacity:1;transform:none;filter:none}
+
+/* bento */
+.bento-sec{padding-block:160px 80px;background:linear-gradient(transparent,var(--bg) 18%)}
+.sec-h{font:600 clamp(40px,5.6vw,80px)/1 var(--sans);letter-spacing:-.05em;margin:12px 0 48px;max-width:14ch}
+.bento{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.tile{position:relative;background:var(--card);border-radius:28px;padding:30px;overflow:hidden;min-height:240px;display:grid;align-content:space-between;gap:20px;isolation:isolate}
+.tile::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(58,175,169,.22),transparent 45%);opacity:0;transition:opacity .4s}
+.tile:hover::before{opacity:1}
+.tile::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:radial-gradient(300px circle at var(--mx,50%) var(--my,50%),rgba(58,175,169,.8),transparent 60%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .4s;pointer-events:none}
+.tile:hover::after{opacity:1}
+.tile h3{font:600 26px/1.1 var(--sans);letter-spacing:-.03em;margin:0}
+.tile p{margin:8px 0 0;color:var(--soft);font-size:16px}
+.tile .big{font:600 clamp(56px,6vw,88px)/.9 var(--sans);letter-spacing:-.06em}
+.t-a{grid-column:span 4} .t-b,.t-c,.t-d,.t-e{grid-column:span 2} .t-f{grid-column:span 6;min-height:0}
+.t-b{grid-column:span 2}
+.tools{display:flex;gap:10px;flex-wrap:wrap}
+.tools span{font-size:14px;padding:8px 14px;border-radius:999px;background:rgba(254,255,255,.06);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* plan builder */
+.builder{padding-block:120px;min-height:100svh}
+.builder .grid{display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:40px;align-items:start}
+.builder .head{margin-bottom:28px;max-width:560px}
+.builder .head h2{font:600 clamp(40px,5vw,72px)/1 var(--sans);letter-spacing:-.05em;margin:12px 0 14px}
+.builder .head p{color:var(--soft);margin:0;font-size:19px}
+.panel{background:var(--paper);color:var(--ink);border-radius:28px;padding:28px;display:grid;gap:18px;box-shadow:0 40px 80px -40px rgba(0,0,0,.6)}
+.panel .mono{color:var(--paper-text)}
 .services{display:grid;gap:8px}
-.svc{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);transition:box-shadow .15s,transform .15s}
-.svc:hover{box-shadow:inset 0 0 0 2px var(--ink);transform:translateY(-1px)}
-.svc:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
-.svc .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+.svc{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;background:var(--paper-soft);transition:transform .35s var(--ease),background .3s}
+.svc:hover{transform:translateY(-2px);background:#d2ecea}
+.svc:focus-visible{outline:2px solid var(--deep);outline-offset:2px}
+.svc .ico{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--ink);color:var(--teal)}
 .svc .ico svg{width:22px;height:22px}
-.svc b{display:block;font-size:16px;letter-spacing:-.01em}
-.svc small{color:var(--soft);font-size:13px}
-.svc .go{font-weight:800;color:var(--soft)}
+.svc b{display:block;font-weight:600;font-size:17px;letter-spacing:-.01em}
+.svc small{color:var(--paper-text);font-size:14px}
+.svc .go{color:var(--deep);font-size:22px}
 .flow-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.chip{font:700 12px var(--sans);padding:5px 10px;border-radius:999px;background:var(--ink);color:#fff}
-.switch{all:unset;cursor:pointer;font:600 13px var(--sans);color:var(--soft)}
-.switch:hover{color:var(--ink)}
-.switch:focus-visible{outline:2px solid var(--sky)}
+.chip{font:600 12px var(--sans);padding:5px 11px;border-radius:999px;background:var(--ink);color:var(--paper)}
+.switch,.back{all:unset;cursor:pointer;font:500 14px var(--sans);color:var(--paper-text)}
+.switch:hover,.back:hover{color:var(--ink)}
+.switch:focus-visible,.back:focus-visible{outline:2px solid var(--deep)}
 .progress{display:flex;gap:6px}
-.progress i{flex:1;height:4px;border-radius:2px;background:var(--ice-2);transition:background .3s}
-.progress i.on{background:var(--sky)}
-.q{font:800 20px/1.2 var(--sans);letter-spacing:-.02em;margin:0}
+.progress i{flex:1;height:4px;border-radius:2px;background:var(--paper-soft);transition:background .4s}
+.progress i.on{background:var(--teal)}
+.q{font:600 22px/1.2 var(--sans);letter-spacing:-.025em;margin:0}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .opts.one{grid-template-columns:1fr}
-.opt{all:unset;box-sizing:border-box;cursor:pointer;border-radius:14px;padding:12px 14px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);font:600 14px/1.3 var(--sans);display:grid;gap:2px;transition:box-shadow .15s,background .15s}
-.opt small{font:500 12px var(--sans);color:var(--soft)}
-.opt:hover{box-shadow:inset 0 0 0 1.5px var(--sky)}
-.opt[aria-pressed="true"]{background:var(--sky-soft);box-shadow:inset 0 0 0 2px var(--sky)}
-.opt:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;border-radius:16px;padding:13px 15px;background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--paper-line);font:500 15px/1.3 var(--sans);display:grid;gap:3px;transition:box-shadow .2s,background .2s,transform .3s var(--ease)}
+.opt small{font-size:13px;color:var(--paper-text)}
+.opt:hover{box-shadow:inset 0 0 0 1.5px var(--teal)}
+.opt:active{transform:scale(.98)}
+.opt[aria-pressed="true"]{background:var(--paper-soft);box-shadow:inset 0 0 0 2px var(--deep)}
+.opt:focus-visible{outline:2px solid var(--deep);outline-offset:2px}
 .range-row{display:flex;justify-content:space-between;align-items:baseline}
-.range-row b{font:800 34px var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--sky) var(--p,30%),var(--ice-2) var(--p,30%))}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--sky),0 4px 10px rgba(58,175,169,.4);cursor:grab}
-input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--sky);cursor:grab}
+.range-row b{font:600 40px var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--teal) var(--p,30%),var(--paper-soft) var(--p,30%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(23,37,42,.3),0 0 0 1px rgba(23,37,42,.06);cursor:grab}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:0;box-shadow:0 2px 10px rgba(23,37,42,.3);cursor:grab}
 .nav-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.back{all:unset;cursor:pointer;color:var(--soft);font-weight:600;font-size:14px}
-.back:hover{color:var(--ink)}
-.back:focus-visible{outline:2px solid var(--sky)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-
-/* result + form */
 .result{display:grid;gap:14px}
 .nums{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.num{background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:inset 0 0 0 1.5px var(--line)}
-.num b{display:block;font:800 28px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.num.g b{color:var(--teal)}
-.plan{background:var(--ink);color:#fff;border-radius:16px;padding:16px 18px;display:grid;gap:6px}
+.num{background:var(--paper-soft);border-radius:18px;padding:14px 16px}
+.num b{display:block;font:600 32px/1.1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.num.g b{color:var(--deep)}
+.num .mono{font-size:10px}
+.plan{background:var(--ink);color:var(--paper);border-radius:20px;padding:18px 20px;display:grid;gap:6px}
 .plan .mono{color:#9fbcbb}
-.plan b{font-size:18px;letter-spacing:-.01em}
-.plan b span{color:var(--saffron)}
+.plan b{font-size:19px;font-weight:600;letter-spacing:-.02em}
+.plan b span{color:var(--teal)}
 .plan ul{margin:4px 0 0;padding-left:18px;color:#d6ecea;font-size:14px}
+.fine{font-size:12px;color:var(--paper-text);margin:0}
+.fine a{text-decoration:underline}
 form{display:grid;gap:10px}
 .field{display:grid;gap:4px}
-.field label{font:600 13px var(--sans);color:var(--soft)}
-.field input{font:600 16px var(--sans);padding:13px 14px;border-radius:12px;border:0;box-shadow:inset 0 0 0 1.5px var(--line);background:var(--surface);color:var(--ink)}
-.field input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--sky)}
+.field label{font:500 13px var(--sans);color:var(--paper-text)}
+.field input{font:500 16px var(--sans);padding:14px 15px;border-radius:14px;border:0;box-shadow:inset 0 0 0 1.5px var(--paper-line);background:var(--paper);color:var(--ink)}
+.field input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--teal)}
 .slots{display:flex;gap:6px;flex-wrap:wrap}
-.slot{all:unset;cursor:pointer;font:600 13px var(--sans);padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);background:var(--surface)}
-.slot[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}
-.slot:focus-visible{outline:2px solid var(--sky)}
-.fine{font-size:12px;color:var(--soft);margin:0}
-.err{color:var(--ink);border-left:3px solid var(--sky);padding-left:8px;font-size:13px;margin:0;font-weight:700}
-.done{background:var(--teal-soft);border-radius:16px;padding:18px;display:grid;gap:8px}
-.done b{font-size:18px}
-.done pre{white-space:pre-wrap;font:500 12px/1.6 var(--mono);background:var(--surface);border-radius:10px;padding:12px;margin:0;max-height:200px;overflow:auto}
+.slot{all:unset;cursor:pointer;font:500 13px var(--sans);padding:8px 13px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--paper-line);background:var(--paper);color:var(--ink)}
+.slot[aria-pressed="true"]{background:var(--ink);color:var(--paper);box-shadow:none}
+.slot:focus-visible{outline:2px solid var(--deep)}
+.err{color:var(--ink);font-size:13px;margin:0;font-weight:600;border-left:3px solid var(--teal);padding-left:8px}
+.done{background:var(--paper-soft);border-radius:18px;padding:18px;display:grid;gap:8px}
+.done b{font-size:18px;font-weight:600}
+.done pre{white-space:pre-wrap;font:400 12px/1.6 var(--mono);background:var(--paper);border-radius:12px;padding:12px;margin:0;max-height:200px;overflow:auto}
 .also{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.also .mono{margin-right:4px}
 
-/* scroll scenes */
-.scene{min-height:150vh;display:flex;align-items:center;padding-block:20vh}
-.scene .wrap{width:100%}
-.col{max-width:520px;display:grid;gap:14px}
-.scene.r .col{margin-left:auto}
-.scene.c{min-height:120vh;align-items:flex-end;padding-bottom:12vh}
-h2{font:800 clamp(30px,4vw,52px)/1.05 var(--sans);letter-spacing:-.04em;margin:0;text-wrap:balance}
-.say{margin:0;color:var(--soft);font-size:18px}
-.stack{display:grid;gap:10px;margin-top:10px}
-.card{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:var(--r);padding:22px 24px;display:grid;gap:8px;align-content:start}
-.card b{font-size:18px;letter-spacing:-.02em}
-.card p{margin:0;color:var(--soft)}
-.card .big{font:800 40px/1 var(--sans);letter-spacing:-.04em;color:var(--teal)}
-.steps{counter-reset:s}
-.steps .card::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:500 12px var(--mono);color:var(--sky)}
-.flow{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
-.flow li{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:14px;padding:14px 18px;display:grid;grid-template-columns:14px auto 1fr;gap:12px;align-items:center}
-.flow i{width:12px;height:12px;border-radius:4px}
-.flow span{color:var(--soft);font-size:14px;text-align:right}
-.checks{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
-.checks li{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:14px;padding:16px 18px 16px 50px;position:relative;font-weight:600}
-.checks li::before{content:"";position:absolute;left:18px;top:19px;width:18px;height:18px;border-radius:50%;background:var(--teal);box-shadow:inset 0 0 0 5px var(--teal-soft)}
-details{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-radius:14px;padding:18px 20px;margin-top:10px}
-summary{cursor:pointer;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+/* faq + final */
+.faq{padding-block:120px;background:var(--bg)}
+.faq .list{max-width:860px;border-top:1px solid var(--line)}
+details{border-bottom:1px solid var(--line);padding:24px 0}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font:600 22px/1.3 var(--sans);letter-spacing:-.025em}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";color:var(--sky);font-weight:800}
-details[open] summary::after{content:"–"}
-details p{margin:10px 0 0;color:var(--soft)}
-.final{background:var(--sky);color:var(--ink);border-radius:32px;padding:clamp(32px,5vw,60px);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end}
-.final h2{color:var(--ink);margin:0}
-.final h2 span{color:var(--surface)}
-.final p{color:var(--ink);margin:0 0 18px}
-.final .btn.hot{background:var(--ink);color:var(--surface)}
-.final .btn.hot:hover{background:var(--teal)}
-.final .row{display:flex;gap:8px;flex-wrap:wrap}
-.final .btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(23,37,42,.35)}
-.scroll-cue{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:3;pointer-events:none;display:grid;justify-items:center;gap:6px;transition:opacity .4s}
-.scroll-cue i{width:2px;height:28px;border-radius:2px;background:linear-gradient(var(--sky),transparent);animation:cue 1.6s infinite}
-@keyframes cue{0%{transform:scaleY(.2);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(.2);transform-origin:bottom}}
-footer{background:var(--ice)}
-footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:28px;color:var(--soft);font-size:14px;flex-wrap:wrap}
-.foot-links{display:flex;gap:18px;flex-wrap:wrap}
-.foot-links a{font-weight:700;color:var(--ink)}
-.foot-links a:hover{color:var(--teal)}
+summary::after{content:"+";color:var(--teal);font-weight:400;font-size:28px;line-height:1;transition:transform .4s var(--ease)}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--soft);margin:12px 0 0;max-width:62ch}
+.final{min-height:120svh;display:grid;align-content:start;justify-items:center;text-align:center;padding-top:10vh}
+.final h2{font:600 clamp(42px,5.6vw,88px)/.95 var(--sans);letter-spacing:-.055em;margin:0;max-width:16ch}
+.final .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:32px}
+.final .btn.ghost{background:rgba(254,255,255,.08);color:var(--fg)}
+footer{border-top:1px solid var(--line);background:var(--bg)}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;padding-block:28px;font-size:13px;color:var(--soft);flex-wrap:wrap}
+footer nav{display:flex;gap:20px;flex-wrap:wrap}
+footer a:hover{color:var(--fg)}
 
-.bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:30;background:var(--ink);color:#fff;border-radius:18px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 40px -16px rgba(23,37,42,.6);transition:transform .45s cubic-bezier(.2,.8,.2,1);width:max-content;max-width:calc(100% - 32px)}
+/* sticky action bar + exit */
+.bar{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160%);z-index:30;background:rgba(32,52,57,.82);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);border-radius:999px;padding:8px 8px 8px 22px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 50px -20px rgba(0,0,0,.7),inset 0 0 0 1px var(--line);transition:transform .6s var(--ease);width:max-content;max-width:calc(100% - 32px)}
 .bar.show{transform:translate(-50%,0)}
-.bar span{font-weight:600;font-size:14px}
-.bar .dot{width:8px;height:8px;border-radius:50%;background:var(--surface);flex:none;box-shadow:0 0 0 4px rgba(254,255,255,.25)}
-.bar.good .dot{background:var(--sky);box-shadow:0 0 0 4px rgba(58,175,169,.25)}
-.modal{position:fixed;inset:0;z-index:40;background:rgba(23,37,42,.45);display:grid;place-items:center;padding:20px}
-.modal .box{background:var(--surface);border-radius:24px;padding:28px;max-width:420px;display:grid;gap:14px}
-.modal h3{font:800 24px/1.1 var(--sans);letter-spacing:-.03em;margin:0}
-.modal p{margin:0;color:var(--soft)}
+.bar span{font-size:14px}
+.bar .btn{padding:10px 18px;font-size:14px}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(10,18,20,.6);backdrop-filter:blur(10px);display:grid;place-items:center;padding:20px}
+.modal .box{background:var(--paper);color:var(--ink);border-radius:28px;padding:30px;max-width:420px;display:grid;gap:14px}
+.modal h3{font:600 26px/1.1 var(--sans);letter-spacing:-.035em;margin:0}
+.modal p{margin:0;color:var(--paper-text)}
 .modal .row{display:flex;gap:10px;flex-wrap:wrap}
+.modal .ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--paper-line)}
 
-@media (max-width:980px){
-  .hero{min-height:0}
-  .hero-grid{grid-template-columns:minmax(0,1fr);padding-top:46vh;position:static}
-  .scene{min-height:130vh;align-items:flex-end;padding-block:50vh 8vh}
-  .col{max-width:none;background:rgba(222,242,241,.74);backdrop-filter:blur(14px);border-radius:22px;padding:18px}
-  .scene.r .col{margin-left:0}
-  .flow span{text-align:left;grid-column:2/4}
-  .stats{position:absolute;top:12px;right:max(20px,env(safe-area-inset-right,0px));justify-self:auto}
-  .stats .stat:first-child{display:none}
-  .tag3d small{display:none}
-  .tag3d{padding:4px 8px;font-size:11px}
-  .hint,.scroll-cue{display:none}
-  nav{display:none}
-  nav.open{display:flex;position:absolute;left:max(20px,env(safe-area-inset-left,0px));right:max(20px,env(safe-area-inset-right,0px));top:72px;flex-direction:column;gap:0;background:var(--surface);border-radius:18px;padding:8px;box-shadow:0 20px 40px -20px rgba(23,37,42,.45);z-index:10}
-  nav.open a{padding:12px 14px;font-size:16px;color:var(--ink)}
+@media (max-width:900px){
+  .nav{display:none}
+  .nav.open{display:flex;flex-direction:column;position:absolute;top:56px;left:12px;right:12px;background:rgba(32,52,57,.96);backdrop-filter:blur(20px);border-radius:20px;padding:10px;gap:0}
+  .nav.open a{padding:14px;font-size:17px;color:var(--fg)}
   .menu-btn{display:inline-flex}
-  header .wrap > div > .btn:first-child{display:none}
-  .final{grid-template-columns:minmax(0,1fr)}
+  .top .btn.primary{display:none}
+  .story .pin{align-items:flex-end;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .steps{max-width:none;min-height:250px;margin:0!important}
+  .step{background:linear-gradient(transparent,rgba(23,37,42,.92) 22%);padding-top:30px}
+  .step h2{font-size:34px}
+  .step p{font-size:17px}
+  .dots{bottom:-34px}
+  .lbl{display:none}
+  .bento{grid-template-columns:minmax(0,1fr)}
+  .bento > *{grid-column:auto!important}
+  .builder .grid{grid-template-columns:minmax(0,1fr)}
+  .builder .spacer{display:none}
 }
-@media (max-width:480px){ .opts{grid-template-columns:1fr} .stat{min-width:0;padding:8px 10px} .stat b{font-size:20px} .panel{padding:22px} .svc{grid-template-columns:40px 1fr} .svc .go{display:none} }
-@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .btn,.bar,.tag3d,.svc{transition:none} .scroll-cue i{animation:none} }
+@media (max-width:480px){ .opts{grid-template-columns:1fr} .panel{padding:22px} .svc{grid-template-columns:40px 1fr} .svc .go{display:none} .bar span{font-size:13px} }
+@media (prefers-reduced-motion:reduce){
+  .anim .w,.anim .fade{animation:none;opacity:1;transform:none;filter:none}
+  .js .rv{opacity:1;transform:none;filter:none;transition:none}
+  .step{transition:none} .cue i::after{animation:none}
+}
 </style>
 </head>
 <body>
-<canvas id="world" aria-label="Your business as a 3D island. Customers arrive from your channels; without the right system some fall off the edge." role="img"></canvas>
+<canvas id="gl" aria-hidden="true"></canvas>
 <div class="labels" id="labels" aria-hidden="true"></div>
-<header><div class="wrap">
-  <a class="brand" href="#"><i aria-hidden="true"></i>Your Brand</a>
-  <nav aria-label="Main" id="mainNav"><a href="./" aria-current="page">Home</a><a href="services.html">Services</a><a href="about.html">About Us</a><a href="enquiry.html">Enquiry</a></nav>
-  <div style="display:flex;gap:8px;align-items:center"><a class="btn ghost" href="#build" data-jump style="padding:11px 16px">Get my free plan</a><button class="btn ghost menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mainNav" style="padding:11px 14px">Menu</button></div>
+
+<header class="top" id="top"><div class="wrap">
+  <a class="brand" href="./"><i aria-hidden="true"></i>Your Brand</a>
+  <nav class="nav" id="nav" aria-label="Main"><a href="./" aria-current="page">Home</a><a href="services.html">Services</a><a href="about.html">About Us</a><a href="enquiry.html">Enquiry</a></nav>
+  <div style="display:flex;gap:8px"><a class="btn primary" href="#plan" data-scroll>Get my free plan</a><button class="btn menu-btn" id="menuBtn" aria-expanded="false" aria-controls="nav">Menu</button></div>
 </div></header>
 
 <main>
-  <div class="hero" id="build" data-cam="hero">
-    <div class="wrap hero-grid">
-      <div class="panel" id="panel">
-        <!-- step 0: choose a service -->
-        <div id="intro">
-          <div style="display:grid;gap:14px">
-            <div class="mono">Free 60-second growth plan</div>
-            <h1>Customers are arriving. <em>Some are falling off.</em></h1>
-            <p class="lede">Each dot on the island is a potential customer. Pick what you need, answer four quick questions and watch us build the fix, live.</p>
-            <div class="services" role="group" aria-label="What do you need?">
-              <button class="svc" data-flow="auto">
-                <span class="ico" style="background:var(--ink);color:var(--sky)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
-                <span><b>Automation</b><small>Reply to every enquiry in seconds</small></span><span class="go" aria-hidden="true">→</span>
-              </button>
-              <button class="svc" data-flow="web">
-                <span class="ico" style="background:var(--sky);color:var(--surface)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg></span>
-                <span><b>Website</b><small>A fast site that turns visitors into enquiries</small></span><span class="go" aria-hidden="true">→</span>
-              </button>
-              <button class="svc" data-flow="seo">
-                <span class="ico" style="background:var(--teal);color:var(--surface)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
-                <span><b>SEO</b><small>Get found on Google, Maps and AI answers</small></span><span class="go" aria-hidden="true">→</span>
-              </button>
-            </div>
-            <span class="mono">No sign-up · Takes about a minute</span>
-          </div>
-        </div>
+  <section class="hero anim" id="hero">
+    <div class="eyebrow fade">Automation · Websites · SEO</div>
+    <h1 class="grad" id="h1">Your business. Engineered to grow.</h1>
+    <p class="fade">Four layers that turn more visitors into customers, built for you and owned by you.</p>
+    <div class="row fade"><a class="btn primary" href="#plan" data-scroll>Build my free plan</a><a class="link" href="#layers" data-scroll>See how it works</a></div>
+    <div class="cue fade" id="cue"><i></i>Scroll</div>
+  </section>
 
-        <!-- steps 1-4: rendered from the chosen flow -->
+  <section class="story" id="layers" style="height:420vh">
+    <div class="pin"><div class="wrap"><div class="steps" id="layerSteps">
+      <div class="step on"><div class="eyebrow">Four layers</div><h2>One system. Every layer working for you.</h2><p>Keep scrolling to take it apart. Each layer fixes one reason customers slip away.</p></div>
+      <div class="step"><div class="eyebrow">Layer 1 · Search</div><h2>Be found first.</h2><p>Google, Maps and AI answers send buyers to you before they see a competitor.</p></div>
+      <div class="step"><div class="eyebrow">Layer 2 · Website</div><h2>Turn visits into enquiries.</h2><p>A fast, mobile-first site with a clear next step on every page.</p></div>
+      <div class="step"><div class="eyebrow">Layer 3 · Automation</div><h2>Reply in seconds. Always.</h2><p>Every enquiry is answered, qualified and logged while you work on something else.</p></div>
+      <div class="dots" id="layerDots"><i class="on"></i><i></i><i></i><i></i></div>
+    </div></div></div>
+  </section>
+
+  <section class="statement" id="statement">
+    <div class="pin"><p id="scrub">Every enquiry answered. Every visitor guided. Every search won. All of it running quietly, while you run your business.</p></div>
+  </section>
+
+  <section class="story right" id="focus" style="height:360vh">
+    <div class="pin"><div class="wrap"><div class="steps" id="focusSteps">
+      <div class="step on"><div class="eyebrow">Automation</div><h2>Four seconds from enquiry to reply.</h2><p>WhatsApp, website, IndiaMART, email. Captured, qualified, answered and sent to your CRM.</p>
+        <div class="stats"><div><b>~4 s</b><span>first reply</span></div><div><b>24/7</b><span>always on</span></div><div><b>0</b><span>copy-paste</span></div></div></div>
+      <div class="step"><div class="eyebrow">Website</div><h2>Fast enough that nobody leaves.</h2><p>Built on Next.js, loading in under two seconds, with enquiry forms, WhatsApp and UPI built in.</p>
+        <div class="stats"><div><b>&lt; 2 s</b><span>load time target</span></div><div><b>100%</b><span>yours: code &amp; domain</span></div></div></div>
+      <div class="step"><div class="eyebrow">Search</div><h2>Found on Google, Maps and in AI answers.</h2><p>Technical fixes, city pages and Google Business Profile, reported monthly in plain language. No ranking promises.</p>
+        <div class="stats"><div><b>3</b><span>places buyers search</span></div><div><b>Monthly</b><span>plain-language report</span></div></div></div>
+      <div class="dots" id="focusDots"><i class="on"></i><i></i><i></i></div>
+    </div></div></div>
+  </section>
+
+  <section class="bento-sec" id="why"><div class="wrap">
+    <div class="eyebrow rv">Why owners choose us</div>
+    <h2 class="sec-h rv">Clear. Honest. Yours.</h2>
+    <div class="bento">
+      <div class="tile t-a rv"><div class="big grad">Fixed quote.</div><div><h3>Know the price before we start.</h3><p>Every project gets a written scope and price in INR or USD. Nothing starts until you approve.</p></div></div>
+      <div class="tile t-b rv"><h3>You own everything.</h3><p>Accounts, domain, code and workflows in your name, from day one.</p></div>
+      <div class="tile t-c rv"><div class="big">1 day</div><div><h3>Reply time.</h3><p>Before and after launch.</p></div></div>
+      <div class="tile t-d rv"><h3>No lock-in.</h3><p>No long contracts. Stay because it works.</p></div>
+      <div class="tile t-e rv"><h3>Hindi or English.</h3><p>Calls in your language, async updates for international clients.</p></div>
+      <div class="tile t-f rv"><h3>Works with the tools you already use.</h3><div class="tools"><span>WhatsApp Business</span><span>Google Sheets</span><span>Zoho</span><span>HubSpot</span><span>n8n</span><span>Zapier</span><span>Make</span><span>UPI</span><span>Next.js</span><span>Google Business Profile</span></div></div>
+    </div>
+  </div></section>
+
+  <section class="builder" id="plan"><div class="wrap">
+    <div class="head rv"><div class="eyebrow">Free · 60 seconds</div><h2>Build your growth plan.</h2><p>Pick what you need and answer four questions. Watch your layer light up, then get a plan and a fixed quote on WhatsApp.</p></div>
+    <div class="grid">
+      <div class="panel rv" id="panel">
+        <div id="intro" style="display:grid;gap:14px">
+          <div class="mono">What do you need?</div>
+          <div class="services">
+            <button class="svc" data-flow="auto"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span><b>Automation</b><small>Reply to every enquiry in seconds</small></span><span class="go" aria-hidden="true">›</span></button>
+            <button class="svc" data-flow="web"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span><span><b>Website</b><small>Turn visitors into enquiries</small></span><span class="go" aria-hidden="true">›</span></button>
+            <button class="svc" data-flow="seo"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span><b>SEO</b><small>Get found on Google, Maps and AI</small></span><span class="go" aria-hidden="true">›</span></button>
+          </div>
+          <span class="mono">No sign-up · About a minute</span>
+        </div>
         <div id="quiz" hidden style="display:grid;gap:16px">
           <div class="flow-head"><span class="chip" id="flowChip">Automation</span><button class="switch" id="switchFlow">Change service</button></div>
           <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div id="qBody" style="display:grid;gap:12px"></div>
-          <div class="nav-row"><button class="back" id="qBack">← Back</button><button class="btn primary" id="qNext" disabled>Next →</button></div>
+          <div class="nav-row"><button class="back" id="qBack">‹ Back</button><button class="btn ink" id="qNext" disabled>Next</button></div>
         </div>
-
-        <!-- result -->
         <div id="result" hidden>
           <div class="result">
-            <div class="flow-head"><span class="mono" id="rHead">Your system is live on the island</span><span class="chip" id="rChip">Automation</span></div>
-            <div class="nums">
-              <div class="num g"><b id="rN1">0</b><span class="mono" id="rL1">leads saved / month</span></div>
-              <div class="num"><b id="rN2">0</b><span class="mono" id="rL2">hours freed / month</span></div>
-            </div>
+            <div class="flow-head"><span class="mono">Your plan</span><span class="chip" id="rChip">Automation</span></div>
+            <div class="nums"><div class="num g"><b id="rN1">0</b><span class="mono" id="rL1"></span></div><div class="num"><b id="rN2">0</b><span class="mono" id="rL2"></span></div></div>
             <div class="plan"><span class="mono">Recommended start</span><b id="rPlan">Plan</b><ul id="rList"></ul></div>
             <p class="fine" id="rNote"></p>
-
             <form id="lead" novalidate>
-              <p class="q" style="font-size:17px">Get this plan and a fixed written quote</p>
+              <p class="q" style="font-size:18px">Get this plan and a fixed written quote</p>
               <div class="field"><label for="f-name">Your name</label><input id="f-name" autocomplete="name" placeholder="Name"></div>
               <div class="field"><label for="f-wa">WhatsApp number</label><input id="f-wa" inputmode="tel" autocomplete="tel" placeholder="+91 98xxx xxxxx"></div>
               <div class="field"><span class="mono" style="font-size:10px">Best time for a 15-minute call</span>
-                <div class="slots" role="group" aria-label="Best time">
-                  <button type="button" class="slot" aria-pressed="true">Today, evening</button>
-                  <button type="button" class="slot" aria-pressed="false">Tomorrow, morning</button>
-                  <button type="button" class="slot" aria-pressed="false">Tomorrow, afternoon</button>
-                  <button type="button" class="slot" aria-pressed="false">Just message me</button>
-                </div>
-              </div>
+                <div class="slots" role="group" aria-label="Best time"><button type="button" class="slot" aria-pressed="true">Today, evening</button><button type="button" class="slot" aria-pressed="false">Tomorrow, morning</button><button type="button" class="slot" aria-pressed="false">Tomorrow, afternoon</button><button type="button" class="slot" aria-pressed="false">Just message me</button></div></div>
               <p class="err" id="err" hidden></p>
-              <button class="btn hot" type="submit">Send me my plan →</button>
-              <p class="fine">Free. No obligation. We reply within one working day. By sending you agree to our <a href="terms.html" style="text-decoration:underline">Terms</a> and <a href="privacy.html" style="text-decoration:underline">Privacy Policy</a>. Prefer a longer form? <a href="enquiry.html" style="text-decoration:underline">Send a full enquiry</a>.</p>
+              <button class="btn primary" type="submit">Send me my plan</button>
+              <p class="fine">Free, no obligation. By sending you agree to our <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. Prefer a longer form? <a href="enquiry.html">Send a full enquiry</a>.</p>
             </form>
-            <div class="done" id="done" hidden>
-              <b>Plan saved. We'll message you on WhatsApp.</b>
-              <span class="fine">This is what we received (demo form, not connected yet):</span>
-              <pre id="summary"></pre>
-            </div>
+            <div class="done" id="done" hidden><b>Plan saved. We'll message you on WhatsApp.</b><span class="fine">This is what we received (demo form, not connected yet):</span><pre id="summary"></pre></div>
             <div class="also" id="also"></div>
             <button class="back" id="restart">↺ Start over</button>
           </div>
         </div>
       </div>
-
-      <div class="stats">
-        <div class="stat"><b id="sIn">0</b><span class="mono" id="sInL">Arrived</span></div>
-        <div class="stat won"><b id="sWon">0</b><span class="mono" id="sWonL">Answered</span></div>
-        <div class="stat lost"><b id="sLost">0</b><span class="mono" id="sLostL">Lost</span></div>
-      </div>
-    </div>
-    <span class="hint mono">Drag to turn the island</span>
-    <div class="scroll-cue" id="cue" aria-hidden="true"><span class="mono">Scroll to fly in</span><i></i></div>
-  </div>
-
-  <section class="scene" data-cam="cost" id="cost"><div class="wrap"><div class="col">
-    <div class="mono">01 · The leak</div>
-    <h2>Every falling dot is a customer who went somewhere else.</h2>
-    <p class="say" id="leakSay">An unanswered enquiry, a slow website, a search you didn't show up in. They all end the same way.</p>
-    <div class="stack">
-      <div class="card"><span class="big" id="cLost">—</span><b id="cLostL">Customers you may be missing each month</b><p id="cLostP">Pick a service above and answer four questions to see your number.</p></div>
-      <div class="card"><span class="big" style="color:var(--ink)">24 / 7</span><b>Your fix keeps working while you sleep</b><p>Automations reply at 2 a.m., your website takes enquiries on Sunday, and search sends buyers to you every day.</p></div>
-    </div>
-  </div></div></section>
-
-  <section class="scene r" data-cam="map" id="how"><div class="wrap"><div class="col">
-    <div class="mono">02 · The whole picture</div>
-    <h2>Every channel, mapped from above.</h2>
-    <p class="say">Automation, website and search work best together: search brings buyers, the website converts them, automation answers them.</p>
-    <div class="stack steps">
-      <div class="card"><b>15-minute call</b><p>Hindi or English. We look at your real numbers and tools.</p></div>
-      <div class="card"><b>Fixed written quote</b><p>Exact scope and price in INR or USD. Nothing starts until you approve.</p></div>
-      <div class="card"><b>Live in weeks</b><p>We build, test with real customers, then hand over with docs and a walkthrough.</p></div>
-    </div>
-  </div></div></section>
-
-  <section class="scene" data-cam="inside"><div class="wrap"><div class="col">
-    <div class="mono">03 · Inside your plan</div>
-    <h2 id="insideH">Five parts. Four seconds. Zero typing.</h2>
-    <ul class="flow" id="insideList"></ul>
-  </div></div></section>
-
-  <section class="scene r" data-cam="orbit"><div class="wrap"><div class="col">
-    <div class="mono">04 · Our promise</div>
-    <h2>Everything we build is yours.</h2>
-    <ul class="checks">
-      <li>Your accounts, domain, code and workflows, in your name</li>
-      <li>Works with what you use: WhatsApp, Sheets, Zoho, HubSpot, UPI</li>
-      <li>No lock-in contract. Leave whenever you want</li>
-      <li>Plain-language monthly reports, no jargon</li>
-    </ul>
-  </div></div></section>
-
-  <section class="scene" data-cam="far" id="faq"><div class="wrap"><div class="col">
-    <div class="mono">05 · Before you ask</div>
-    <h2>Questions owners ask us</h2>
-    <div style="margin-top:24px">
-      <details open><summary>How much does it cost?</summary><p>Every project gets a fixed written quote after the free call, based on your plan. Managed B2B outreach starts at ₹1,00,000 a month.</p></details>
-      <details><summary>Do you guarantee Google rankings?</summary><p>No, and nobody honest can. We fix the technical side, build the right pages and content, set up your Google Business Profile and report progress every month in plain language.</p></details>
-      <details><summary>Will I be able to edit my website myself?</summary><p>Yes. You get an admin panel for the content you change often, and the code, domain and hosting are in your name.</p></details>
-      <details><summary>Will my customers know replies are automated?</summary><p>Replies use your tone, your name and your WhatsApp Business number. Anything complex goes to a real person on your team immediately.</p></details>
-      <details><summary>What if we stop working together?</summary><p>Everything keeps running. It is all in your accounts, with documentation.</p></details>
-    </div>
-  </div></div></section>
-
-  <section class="scene c" data-cam="final"><div class="wrap">
-    <div class="final">
-      <h2>Stop losing customers you <span>already paid to get.</span></h2>
-      <div><p>Your plan takes 60 seconds. The call takes 15 minutes.</p>
-        <div class="row"><a class="btn hot" href="#build" data-jump data-flow-link="auto">Automation</a><a class="btn ghost" href="#build" data-jump data-flow-link="web">Website</a><a class="btn ghost" href="#build" data-jump data-flow-link="seo">SEO</a></div></div>
+      <div class="spacer" aria-hidden="true"></div>
     </div>
   </div></section>
+
+  <section class="faq"><div class="wrap">
+    <div class="eyebrow rv">Questions</div>
+    <h2 class="sec-h rv">Before you ask.</h2>
+    <div class="list rv">
+      <details><summary>How much does it cost?</summary><p>Every project gets a fixed written quote after a free call, based on your plan. Managed B2B outreach starts at ₹1,00,000 a month.</p></details>
+      <details><summary>Do you guarantee Google rankings?</summary><p>No, and nobody honest can. We fix the technical side, build the right pages and content, set up your Google Business Profile and report progress monthly in plain language.</p></details>
+      <details><summary>Will my customers know replies are automated?</summary><p>Replies use your tone, your name and your WhatsApp Business number. Anything complex goes to a real person on your team immediately.</p></details>
+      <details><summary>Can I edit my website myself?</summary><p>Yes. You get an admin panel for the content you change often, and the code, domain and hosting are in your name.</p></details>
+      <details><summary>What if we stop working together?</summary><p>Everything keeps running. It is all in your accounts, with documentation.</p></details>
+    </div>
+  </div></section>
+
+  <section class="final" id="final">
+    <h2 class="grad rv">Stop losing customers you already paid to get.</h2>
+    <div class="row rv"><a class="btn primary" href="#plan" data-scroll>Build my free plan</a><a class="btn ghost" href="enquiry.html">Send an enquiry</a></div>
+  </section>
 </main>
-<footer><div class="wrap"><span>© Your Brand · India · Worldwide</span><span class="foot-links"><a href="services.html">Services</a><a href="about.html">About Us</a><a href="enquiry.html">Enquiry</a><a href="terms.html">Terms &amp; Conditions</a><a href="privacy.html">Privacy Policy</a></span></div></footer>
+<footer><div class="wrap"><span>© Your Brand · India · Worldwide</span><nav aria-label="Footer"><a href="services.html">Services</a><a href="about.html">About Us</a><a href="enquiry.html">Enquiry</a><a href="terms.html">Terms &amp; Conditions</a><a href="privacy.html">Privacy Policy</a></nav></div></footer>
 
-<div class="bar" id="bar" role="region" aria-label="Quick action"><i class="dot" aria-hidden="true"></i><span id="barText">Your island is losing customers right now</span><a class="btn hot" href="#build" data-jump style="padding:11px 16px">Fix it in 60 sec</a></div>
-<div class="modal" id="exit" hidden role="dialog" aria-modal="true" aria-labelledby="exitT">
-  <div class="box">
-    <div class="mono">Before you go</div>
-    <h3 id="exitT">Your plan is half built.</h3>
-    <p>A few more taps and you'll see what you could gain each month. No sign-up needed.</p>
-    <div class="row"><button class="btn primary" id="exitGo">Finish my plan</button><button class="btn ghost" id="exitNo">Maybe later</button></div>
-  </div>
-</div>
+<div class="bar" id="bar" role="region" aria-label="Quick action"><span id="barText">Get a free growth plan in 60 seconds</span><a class="btn primary" href="#plan" data-scroll>Start</a></div>
+<div class="modal" id="exit" hidden role="dialog" aria-modal="true" aria-labelledby="exitT"><div class="box">
+  <div class="mono" style="color:var(--paper-text)">Before you go</div><h3 id="exitT">Your plan is half built.</h3><p>A few more taps and you'll see what you could gain each month. No sign-up needed.</p>
+  <div class="row"><button class="btn ink" id="exitGo">Finish my plan</button><button class="btn ghost" id="exitNo">Maybe later</button></div>
+</div></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script>
 (function(){
+  document.documentElement.classList.add('js');
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fmt = n => typeof n === 'string' ? n : Math.round(n).toLocaleString('en-IN');
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 
-  /* ================= the three flows ================= */
+  /* ---------- split headline and statement into words ---------- */
+  const h1 = $('#h1'), hw = h1.textContent.split(' ');
+  h1.innerHTML = hw.map((w, i) => `<span class="w" style="--i:${i}">${w}${i < hw.length - 1 ? ' ' : ''}</span>`).join('');
+  const sc = $('#scrub'), ACC = ['answered.', 'guided.', 'won.'];
+  sc.innerHTML = sc.textContent.split(' ').map(w => `<span class="sw${ACC.includes(w) ? ' acc' : ''}">${w} </span>`).join('');
+  const sws = $$('#scrub .sw');
+
+  /* ---------- smooth scroll ---------- */
+  let lenis = null;
+  if (!reduce && window.Lenis){ try { lenis = new Lenis({ lerp:.09, smoothWheel:true }); } catch(e){ lenis = null; } }
+  const go = el => { if (!el) return; lenis ? lenis.scrollTo(el, { offset:-20, duration:1.4 }) : el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); };
+  $$('[data-scroll]').forEach(a => a.addEventListener('click', e => { const t = $(a.getAttribute('href')); if (t){ e.preventDefault(); go(t); } }));
+
+  /* ---------- header, menu, reveal, spotlight tiles ---------- */
+  const top = $('#top');
+  $('#menuBtn').addEventListener('click', () => { const o = $('#nav').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', o); $('#menuBtn').textContent = o ? 'Close' : 'Menu'; });
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold:.12, rootMargin:'0px 0px -6% 0px' });
+  $$('.rv').forEach(el => io.observe(el));
+  $$('.tile').forEach(t => t.addEventListener('pointermove', e => { const r = t.getBoundingClientRect(); t.style.setProperty('--mx', (e.clientX - r.left) + 'px'); t.style.setProperty('--my', (e.clientY - r.top) + 'px'); }));
+
+  /* ================= plan builder (three services) ================= */
   const BIZ = { key:'biz', type:'single', q:'What kind of business do you run?', opts:[
-    ['maker','Manufacturer / Exporter','Bulk orders, quotes'],['service','Clinic / Local service','Bookings, calls'],
-    ['shop','Shop / Online store','Orders, stock'],['b2b','B2B services','Long sales cycle']] };
+    ['maker','Manufacturer / Exporter','Bulk orders, quotes'],['service','Clinic / Local service','Bookings, calls'],['shop','Shop / Online store','Orders, stock'],['b2b','B2B services','Long sales cycle']] };
   const FLOWS = {
-    auto:{
-      name:'Automation', counters:['Enquiries','Answered','Lost'], chKey:'src', chDefault:['Website','WhatsApp'],
-      channels:['Website','WhatsApp','IndiaMART','Instagram','Calls','Email'],
+    auto:{ name:'Automation', layer:1,
       qs:[ BIZ,
-        { key:'src', type:'multi', q:'Where do enquiries come from?', hint:'Pick all that apply · each appears on your island', opts:[
-          ['Website','Website form'],['WhatsApp','WhatsApp'],['IndiaMART','IndiaMART / JustDial'],['Instagram','Instagram DMs'],['Calls','Phone calls'],['Email','Email']] },
+        { key:'src', type:'multi', q:'Where do enquiries come from?', hint:'Pick all that apply', opts:[['Website','Website form'],['WhatsApp','WhatsApp'],['IndiaMART','IndiaMART / JustDial'],['Instagram','Instagram DMs'],['Calls','Phone calls'],['Email','Email']] },
         { key:'vol', type:'range', q:'How many enquiries a week?', min:5, max:300, step:5, def:40, unit:'per week' },
-        { key:'now', type:'single', one:true, q:'Today, what usually happens to them?', opts:[
-          ['0.35','Someone copies them into Excel and replies','Slow, but most get handled'],
-          ['0.5','We reply when someone is free','Hours later, sometimes the next day'],
-          ['0.65','Honestly, many never get a reply','Too busy running the business']] } ],
-      loss: a => +a.now || .5,
-      every: a => Math.max(.25, 1.9 - (a.vol || 40) / 170),
-      mods:[
-        { name:'Capture hub', sub:'all enquiries, one place', shape:'cyl', h:1.6, r:.62, color:'sky' },
-        { name:'Qualify', sub:'budget · city · need', shape:'box', h:.8, r:.5, color:'white' },
-        { name:'Instant reply', sub:'WhatsApp + email', shape:'cyl', h:.7, r:.45, color:'teal' },
-        { name:'CRM', sub:'logged & assigned', shape:'box', h:1.0, r:.5, color:'white' },
-        { name:'Owner alert', sub:'hot leads to your phone', shape:'cyl', h:.55, r:.4, color:'saffron' } ],
-      inside:'Five parts. Four seconds. Zero typing.',
-      result(a){
-        const m = (a.vol || 40) * 4.33, lost = m * this.loss(a);
-        const plans = { maker:['Quote engine',['Capture website, IndiaMART and WhatsApp enquiries in one place','Instant WhatsApp reply with price sheet and catalogue','Auto-qualify by quantity and city, then alert the owner','Quote PDF and follow-ups until the buyer replies']],
+        { key:'now', type:'single', one:true, q:'Today, what usually happens to them?', opts:[['0.35','Someone copies them into Excel and replies','Slow, but most get handled'],['0.5','We reply when someone is free','Hours later, sometimes the next day'],['0.65','Honestly, many never get a reply','Too busy running the business']] } ],
+      result(a){ const m = (a.vol || 40) * 4.33, lost = m * (+a.now || .5);
+        const P = { maker:['Quote engine',['Capture website, IndiaMART and WhatsApp enquiries in one place','Instant WhatsApp reply with price sheet and catalogue','Auto-qualify by quantity and city, then alert the owner','Quote PDF and follow-ups until the buyer replies']],
           service:['Booking autopilot',['Instant reply with available slots on WhatsApp','Bookings straight into your calendar','Reminders the day before to cut no-shows','Review request after every visit']],
           shop:['Order & support autopilot',['Order status and tracking answered automatically','Stock synced across store and marketplaces','Abandoned-cart and UPI payment-link follow-ups','Weekly sales report, built by itself']],
-          b2b:['Pipeline system',['Every inbound lead scored and routed to the right person','CRM kept up to date without typing','Follow-up sequences until a meeting is booked','Optional managed outbound, from ₹1,00,000 / month']] };
-        const p = plans[a.biz || 'maker'];
-        return { n1:lost * .8, l1:'leads saved / month', n2:m * 8 / 60, l2:'hours freed / month', lost, lostLabel:'Enquiries you may be missing each month',
-          plan:p[0], tier:(a.vol > 150 ? 'Scale' : a.vol > 40 ? 'Growth' : 'Starter'), list:p[1],
-          note:'Estimate from your answers: about 80% of currently missed enquiries recovered, 8 minutes of manual work per enquiry.',
-          bar:`Your plan saves about ${fmt(lost * .8)} leads a month` };
-      }
-    },
-    web:{
-      name:'Website', counters:['Visitors','Enquired','Bounced'], chKey:null, chDefault:['Google','Instagram','Ads','Referrals'],
-      channels:['Google','Instagram','Ads','Referrals'],
+          b2b:['Pipeline system',['Every inbound lead scored and routed to the right person','CRM kept up to date without typing','Follow-up sequences until a meeting is booked','Optional managed outbound, from ₹1,00,000 / month']] }[a.biz || 'maker'];
+        return { n1:lost * .8, l1:'leads saved / month', n2:m * 8 / 60, l2:'hours freed / month', plan:P[0], tier:a.vol > 150 ? 'Scale' : a.vol > 40 ? 'Growth' : 'Starter', list:P[1],
+          note:'Estimate from your answers: about 80% of currently missed enquiries recovered, 8 minutes of manual work per enquiry.', bar:`Your plan saves about ${fmt(lost * .8)} leads a month` }; } },
+    web:{ name:'Website', layer:2,
       qs:[ BIZ,
-        { key:'have', type:'single', one:true, q:'What do you have today?', opts:[
-          ['none','No website yet','Customers can only call or message'],['old','An old or slow website','Hard to update, slow on phones'],
-          ['few','A website, but few enquiries','Visitors come, then leave'],['store','I need an online store','Sell and take payments online']] },
-        { key:'need', type:'multi', q:'What must your new site have?', hint:'Each one appears on your island', opts:[
-          ['form','Quote / enquiry form'],['wa','WhatsApp button'],['pay','UPI & card payments'],['cat','Product catalogue'],['book','Booking calendar'],['lang','Hindi + English']] },
+        { key:'have', type:'single', one:true, q:'What do you have today?', opts:[['none','No website yet','Customers can only call or message'],['old','An old or slow website','Hard to update, slow on phones'],['few','A website, but few enquiries','Visitors come, then leave'],['store','I need an online store','Sell and take payments online']] },
+        { key:'need', type:'multi', q:'What must your new site have?', hint:'Pick all that apply', opts:[['form','Quote / enquiry form'],['wa','WhatsApp button'],['pay','UPI & card payments'],['cat','Product catalogue'],['book','Booking calendar'],['lang','Hindi + English']] },
         { key:'vol', type:'range', q:'Visitors a month? A rough guess is fine.', min:100, max:20000, step:100, def:1500, unit:'per month' } ],
-      loss: a => ({ none:.75, old:.62, few:.55, store:.6 })[a.have] || .6,
-      every: a => Math.max(.25, 1.6 - (a.vol || 1500) / 9000),
-      mods:[
-        { name:'Your website', sub:'mobile-first, Next.js', shape:'screen', h:1.5, r:.9, color:'white' },
-        { name:'Loads in < 2 s', sub:'fast on every phone', shape:'torus', h:.9, r:.4, color:'sky' },
-        { name:'Enquiry form', sub:'every visitor can ask', shape:'box', h:.6, r:.42, color:'teal', need:'form' },
-        { name:'WhatsApp button', sub:'one tap to chat', shape:'cyl', h:.5, r:.32, color:'teal', need:'wa' },
-        { name:'UPI checkout', sub:'take payments', shape:'box', h:.45, r:.42, color:'saffron', need:'pay' },
-        { name:'Catalogue', sub:'products & prices', shape:'plates', h:.6, r:.5, color:'white', need:'cat' },
-        { name:'Booking', sub:'slots & reminders', shape:'cyl', h:.6, r:.38, color:'sky', need:'book' },
-        { name:'Hindi + English', sub:'two languages', shape:'box', h:.4, r:.34, color:'white', need:'lang' } ],
-      inside:'A website built to turn visitors into enquiries.',
-      result(a){
-        const v = a.vol || 1500, cur = ({ none:0, old:.006, few:.004, store:.008 })[a.have] ?? .005, target = .025;
-        const extra = v * (target - cur);
-        const need = a.need || [];
+      result(a){ const v = a.vol || 1500, cur = ({ none:0, old:.006, few:.004, store:.008 })[a.have] ?? .005, extra = v * (.025 - cur), need = a.need || [];
         const plan = a.have === 'store' || need.includes('pay') ? 'Online store with admin panel' : (a.biz === 'maker' || a.biz === 'b2b' || need.includes('form')) ? 'Quote-request website' : 'Business website';
         const map = { form:'Enquiry / quote form on every page', wa:'WhatsApp button that opens a chat with your number', pay:'UPI and card checkout', cat:'Product catalogue you can edit yourself', book:'Online booking with reminders', lang:'Hindi and English versions' };
-        const list = ['Mobile-first design that loads in under 2 seconds'].concat(need.map(k => map[k])).concat(['Admin panel, domain and code in your name']);
-        return { n1:extra, l1:'extra enquiries / month', n2:'< 2 s', l2:'load time target', lost:v * this.loss(a), lostLabel:'Visitors who may leave without contacting you each month',
-          plan, tier:(v > 8000 ? 'Scale' : v > 2000 ? 'Growth' : 'Starter'), list,
-          note:`Estimate: a well-built business site often turns about 2–3% of visitors into enquiries; we used 2.5% against your ${a.have === 'none' ? 'current zero' : 'current site'}.`,
-          bar:`Your new site could bring about ${fmt(extra)} extra enquiries a month` };
-      }
-    },
-    seo:{
-      name:'SEO', counters:['Searches','Found you','Went elsewhere'], chKey:'where', chDefault:['Google'],
-      channels:['Google','Maps','AI answers','Marketplaces'],
+        return { n1:extra, l1:'extra enquiries / month', n2:'< 2 s', l2:'load time target', plan, tier:v > 8000 ? 'Scale' : v > 2000 ? 'Growth' : 'Starter',
+          list:['Mobile-first design that loads in under 2 seconds'].concat(need.map(k => map[k])).concat(['Admin panel, domain and code in your name']),
+          note:'Estimate: a well-built business site often turns about 2–3% of visitors into enquiries; we used 2.5%.', bar:`Your new site could bring about ${fmt(extra)} extra enquiries a month` }; } },
+    seo:{ name:'SEO', layer:3,
       qs:[ BIZ,
-        { key:'where', type:'multi', q:'Where should customers find you?', hint:'Each one appears on your island', opts:[
-          ['Google','Google search'],['Maps','Google Maps'],['AI answers','AI answers','ChatGPT, Gemini, Perplexity'],['Marketplaces','IndiaMART / marketplaces']] },
-        { key:'area', type:'single', one:true, q:'Which area do you serve?', opts:[
-          ['1','One city','Local customers'],['3','A few cities','Regional'],['10','All of India','National'],['20','International','India and abroad']] },
-        { key:'rank', type:'single', one:true, q:'Where do you show up on Google today?', opts:[
-          ['0.45','Page 1 for a few searches','Some visibility'],['0.7','Not on page 1','Hard to find'],['0.8',"I don't know",'Never checked']] } ],
-      loss: a => +a.rank || .65,
-      every: a => Math.max(.3, 1.6 - (+a.area || 1) * .06),
-      mods:[
-        { name:'Your listing', sub:'ranked & trusted', shape:'podium', h:1.5, r:.5, color:'sky' },
-        { name:'Technical fixes', sub:'speed · structure · indexing', shape:'torus', h:.8, r:.4, color:'white' },
-        { name:'City pages', sub:'one page per area', shape:'plates', h:.6, r:.5, color:'white' },
-        { name:'Maps profile', sub:'Google Business Profile', shape:'pin', h:1.0, r:.3, color:'rose', need:'Maps' },
-        { name:'AI answers', sub:'cited by ChatGPT & Gemini', shape:'bubble', h:.9, r:.42, color:'teal', need:'AI answers' },
-        { name:'Content plan', sub:'articles buyers search for', shape:'box', h:.5, r:.42, color:'saffron' } ],
-      inside:'Everything search engines and AI need to recommend you.',
-      result(a){
-        const area = +a.area || 1, searches = ({1:1200, 3:4000, 10:25000, 20:60000})[area] || 1200;
-        const plan = area >= 10 ? 'National SEO + AI answers' : area >= 3 ? 'Multi-city SEO' : 'Local SEO';
-        const w = a.where || [];
-        const list = ['Technical audit and fixes', area > 1 ? `Pages for each city or region you serve` : 'A strong page for your city and service']
-          .concat(w.includes('Maps') ? ['Google Business Profile set up and kept active'] : [])
-          .concat(w.includes('AI answers') ? ['Content structured so AI answers can cite you'] : [])
-          .concat(w.includes('Marketplaces') ? ['Marketplace listings cleaned up and linked'] : [])
-          .concat(['Plain-language monthly report, no ranking promises']);
-        return { n1:searches, l1:'searches to compete for / month', n2:String(area === 20 ? '20+' : area), l2:area === 1 ? 'city targeted' : 'areas targeted', lost:searches * this.loss(a), lostLabel:'Searches that may go to competitors each month',
-          plan, tier:'', list,
-          note:'Rough estimate of monthly searches for businesses like yours in the area you chose. Your call includes real keyword numbers for your service.',
-          bar:`About ${fmt(searches)} searches a month you could be found in` };
-      }
-    }
+        { key:'where', type:'multi', q:'Where should customers find you?', hint:'Pick all that apply', opts:[['Google','Google search'],['Maps','Google Maps'],['AI answers','AI answers','ChatGPT, Gemini, Perplexity'],['Marketplaces','IndiaMART / marketplaces']] },
+        { key:'area', type:'single', one:true, q:'Which area do you serve?', opts:[['1','One city','Local customers'],['3','A few cities','Regional'],['10','All of India','National'],['20','International','India and abroad']] },
+        { key:'rank', type:'single', one:true, q:'Where do you show up on Google today?', opts:[['0.45','Page 1 for a few searches','Some visibility'],['0.7','Not on page 1','Hard to find'],['0.8',"I don't know",'Never checked']] } ],
+      result(a){ const area = +a.area || 1, s = ({1:1200, 3:4000, 10:25000, 20:60000})[area] || 1200, w = a.where || [];
+        return { n1:s, l1:'searches to compete for / month', n2:String(area === 20 ? '20+' : area), l2:area === 1 ? 'city targeted' : 'areas targeted',
+          plan:area >= 10 ? 'National SEO + AI answers' : area >= 3 ? 'Multi-city SEO' : 'Local SEO', tier:'',
+          list:['Technical audit and fixes', area > 1 ? 'Pages for each city or region you serve' : 'A strong page for your city and service']
+            .concat(w.includes('Maps') ? ['Google Business Profile set up and kept active'] : []).concat(w.includes('AI answers') ? ['Content structured so AI answers can cite you'] : [])
+            .concat(w.includes('Marketplaces') ? ['Marketplace listings cleaned up and linked'] : []).concat(['Plain-language monthly report, no ranking promises']),
+          note:'Rough estimate of monthly searches for businesses like yours in the area you chose. Your call includes real keyword numbers.', bar:`About ${fmt(s)} searches a month you could be found in` }; } }
   };
-
-  /* ================= state ================= */
-  const KEY = 'growthplan';
-  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ return {}; } };
-  const S = Object.assign({ flow:null, step:0, built:false, a:{ auto:{}, web:{}, seo:{} } }, load());
-  S.sent = false;
+  const KEY = 'growthplan3';
+  const S = Object.assign({ flow:null, step:0, built:false, a:{ auto:{}, web:{}, seo:{} } }, (() => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ return {}; } })());
+  S.sent = false; if (S.flow && !FLOWS[S.flow]) S.flow = null;
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ flow:S.flow, step:S.step, built:S.built, a:S.a })); } catch(e){} };
-  const A = () => S.a[S.flow] || (S.a[S.flow] = {});
-  const F = () => FLOWS[S.flow];
+  const A = () => S.a[S.flow] || (S.a[S.flow] = {}), F = () => FLOWS[S.flow];
+  let R0 = null, pulse = 0;
 
-  /* ================= panel rendering ================= */
-  const intro = $('#intro'), quiz = $('#quiz'), resultEl = $('#result');
   function view(){
-    intro.hidden = !!S.flow && S.step > 0 ? true : false;
-    if (!S.flow || S.step === 0){ intro.hidden = false; quiz.hidden = true; resultEl.hidden = true; }
-    else if (S.step <= F().qs.length){ intro.hidden = true; quiz.hidden = false; resultEl.hidden = true; renderQ(); }
-    else { intro.hidden = true; quiz.hidden = true; resultEl.hidden = false; renderResult(); }
-    labels(); save(); world.update(); bar();
-  }
-  function labels(){
-    const f = F() || FLOWS.auto;
-    $('#sInL').textContent = f.counters[0]; $('#sWonL').textContent = f.counters[1]; $('#sLostL').textContent = f.counters[2];
-    $('#flowChip').textContent = f.name; $('#rChip').textContent = f.name;
-    $('#insideH').textContent = f.inside;
-    const list = $('#insideList'); list.innerHTML = '';
-    const col = { sky:'var(--sky)', teal:'var(--teal)', saffron:'var(--ink)', rose:'var(--ink)', white:'#c4e6e3' };
-    f.mods.forEach(m => { const li = document.createElement('li'); li.innerHTML = `<i style="background:${col[m.color]}"></i><b></b><span></span>`; li.children[1].textContent = m.name; li.children[2].textContent = m.sub; list.appendChild(li); });
+    const n = S.flow ? F().qs.length : 0;
+    $('#intro').hidden = !(!S.flow || S.step === 0);
+    $('#quiz').hidden = !(S.flow && S.step > 0 && S.step <= n);
+    $('#result').hidden = !(S.flow && S.step > n);
+    if (!$('#quiz').hidden) renderQ();
+    if (!$('#result').hidden) renderResult();
+    if (S.flow){ $('#flowChip').textContent = F().name; $('#rChip').textContent = F().name; }
+    save(); bar();
   }
   function renderQ(){
     const f = F(), q = f.qs[S.step - 1], a = A(), body = $('#qBody'), flowAt = S.flow;
@@ -529,23 +472,22 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     const h = document.createElement('p'); h.className = 'q'; h.textContent = q.q; body.appendChild(h);
     if (q.type === 'range'){
       if (a[q.key] == null) a[q.key] = q.def;
-      const row = document.createElement('div'); row.className = 'range-row'; row.innerHTML = `<b id="rv"></b><span class="mono"></span>`; row.lastChild.textContent = q.unit;
+      const row = document.createElement('div'); row.className = 'range-row'; row.innerHTML = '<b></b><span class="mono"></span>'; row.lastChild.textContent = q.unit;
       const lab = document.createElement('label'); lab.className = 'sr'; lab.htmlFor = 'rng'; lab.textContent = q.q;
       const r = document.createElement('input'); Object.assign(r, { type:'range', id:'rng', min:q.min, max:q.max, step:q.step, value:a[q.key] });
       const paint = () => { row.firstChild.textContent = fmt(+r.value); r.style.setProperty('--p', ((r.value - q.min) / (q.max - q.min) * 100) + '%'); };
-      r.addEventListener('input', () => { a[q.key] = +r.value; paint(); save(); world.update(); });
+      r.addEventListener('input', () => { a[q.key] = +r.value; paint(); save(); });
       body.append(row, lab, r); paint();
     } else {
       const g = document.createElement('div'); g.className = 'opts' + (q.one ? ' one' : ''); g.setAttribute('role', 'group'); g.setAttribute('aria-label', q.q);
       q.opts.forEach(([v, label, small]) => {
         const b = document.createElement('button'); b.className = 'opt'; b.type = 'button'; b.textContent = label;
         if (small){ const s = document.createElement('small'); s.textContent = small; b.appendChild(s); }
-        const on = q.type === 'multi' ? (a[q.key] || []).includes(v) : a[q.key] === v;
-        b.setAttribute('aria-pressed', on);
+        b.setAttribute('aria-pressed', q.type === 'multi' ? (a[q.key] || []).includes(v) : a[q.key] === v);
         b.addEventListener('click', () => {
           if (q.type === 'multi'){ const arr = a[q.key] || (a[q.key] = []), i = arr.indexOf(v); i < 0 ? arr.push(v) : arr.splice(i, 1); b.setAttribute('aria-pressed', i < 0); }
-          else { a[q.key] = v; g.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', x === b)); const st = S.step; if (!reduce && st < f.qs.length) setTimeout(() => { if (S.step === st && S.flow === flowAt) next(); }, 280); }
-          validate(); save(); world.update();
+          else { a[q.key] = v; g.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', x === b)); const st = S.step; if (!reduce && st < f.qs.length) setTimeout(() => { if (S.step === st && S.flow === flowAt) next(); }, 300); }
+          pulse = .6; validate(); save();
         });
         g.appendChild(b);
       });
@@ -553,44 +495,30 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
       if (q.hint){ const hi = document.createElement('span'); hi.className = 'mono'; hi.textContent = q.hint; body.appendChild(hi); }
     }
     const last = S.step === f.qs.length;
-    $('#qNext').textContent = last ? 'Build it ↑' : 'Next →';
-    $('#qNext').className = 'btn ' + (last ? 'hot' : 'primary');
+    $('#qNext').textContent = last ? 'Build my plan' : 'Next';
+    $('#qNext').className = 'btn ' + (last ? 'primary' : 'ink');
     validate();
   }
-  function validate(){
-    const q = F().qs[S.step - 1], v = A()[q.key];
-    $('#qNext').disabled = !(q.type === 'range' || (q.type === 'multi' ? v && v.length : v));
-  }
-  function next(){
-    const f = F();
-    if (S.step === f.qs.length){ S.built = true; world.build(); if (innerWidth < 980) $('.hero').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'}); }
-    S.step++; view();
-  }
+  function validate(){ const q = F().qs[S.step - 1], v = A()[q.key]; $('#qNext').disabled = !(q.type === 'range' || (q.type === 'multi' ? v && v.length : v)); }
+  function next(){ if (S.step === F().qs.length){ S.built = true; pulse = 1.6; } S.step++; view(); }
   $('#qNext').addEventListener('click', next);
   $('#qBack').addEventListener('click', () => { S.step = Math.max(0, S.step - 1); view(); });
-  function startFlow(k){
-    if (S.flow !== k){ world.unbuild(); S.built = false; }
-    S.flow = k; S.step = S.built ? F().qs.length + 1 : 1; view();
-  }
+  function startFlow(k){ if (S.flow !== k) S.built = false; S.flow = k; S.step = S.built ? F().qs.length + 1 : 1; pulse = 1; view(); }
   $$('.svc').forEach(b => b.addEventListener('click', () => startFlow(b.dataset.flow)));
   $('#switchFlow').addEventListener('click', () => { S.step = 0; view(); });
-  $('#restart').addEventListener('click', () => { S.a[S.flow] = {}; S.built = false; world.unbuild(); S.step = 1; $('#lead').hidden = false; $('#done').hidden = true; view(); });
-
-  /* ================= result ================= */
-  function countTo(el, to){ if (typeof to === 'string' || reduce){ el.textContent = fmt(to); return; } const t0 = performance.now(); (function f(t){ const k = Math.min(1, (t - t0) / 900); el.textContent = fmt(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0); }
-  let R0 = null;
+  $('#restart').addEventListener('click', () => { S.a[S.flow] = {}; S.built = false; S.step = 1; $('#lead').hidden = false; $('#done').hidden = true; view(); });
+  function countTo(el, to){ if (typeof to === 'string' || reduce){ el.textContent = fmt(to); return; } const t0 = performance.now(); (function f(t){ const k = Math.min(1, (t - t0) / 1100); el.textContent = fmt(to * (1 - Math.pow(1 - k, 4))); if (k < 1) requestAnimationFrame(f); })(t0); }
   function renderResult(){
     const r = R0 = F().result(A());
     countTo($('#rN1'), r.n1); countTo($('#rN2'), r.n2); $('#rL1').textContent = r.l1; $('#rL2').textContent = r.l2;
-    $('#rPlan').innerHTML = ''; $('#rPlan').append(r.plan); if (r.tier){ const s = document.createElement('span'); s.textContent = ' · ' + r.tier; $('#rPlan').appendChild(s); }
+    $('#rPlan').textContent = r.plan; if (r.tier){ const s = document.createElement('span'); s.textContent = ' · ' + r.tier; $('#rPlan').appendChild(s); }
     $('#rList').innerHTML = ''; r.list.forEach(t => { const li = document.createElement('li'); li.textContent = t; $('#rList').appendChild(li); });
     $('#rNote').textContent = r.note;
-    $('#rHead').textContent = S.flow === 'web' ? 'Your website is live on the island' : S.flow === 'seo' ? 'Your search presence is live on the island' : 'Your system is live on the island';
-    $('#cLost').textContent = fmt(r.lost); $('#cLostL').textContent = r.lostLabel; $('#cLostP').textContent = 'Based on your answers above.';
     const also = $('#also'); also.innerHTML = '<span class="mono">Also plan</span>';
-    Object.keys(FLOWS).filter(k => k !== S.flow).forEach(k => { const b = document.createElement('button'); b.className = 'slot'; b.type = 'button'; b.textContent = FLOWS[k].name + ' →'; b.addEventListener('click', () => { S.built = false; world.unbuild(); S.flow = k; S.step = 1; $('#lead').hidden = false; $('#done').hidden = true; view(); }); also.appendChild(b); });
+    Object.keys(FLOWS).filter(k => k !== S.flow).forEach(k => { const b = document.createElement('button'); b.className = 'slot'; b.type = 'button'; b.textContent = FLOWS[k].name + ' ›';
+      b.addEventListener('click', () => { S.built = false; S.flow = k; S.step = 1; $('#lead').hidden = false; $('#done').hidden = true; pulse = 1; view(); }); also.appendChild(b); });
   }
-  $$('.slot').forEach(s => s.addEventListener('click', () => s.closest('.slots') && $$('.slots .slot').forEach(x => x.setAttribute('aria-pressed', x === s))));
+  $$('.slots .slot').forEach(s => s.addEventListener('click', () => $$('.slots .slot').forEach(x => x.setAttribute('aria-pressed', x === s))));
   $('#lead').addEventListener('submit', e => {
     e.preventDefault();
     const name = $('#f-name').value.trim(), wa = $('#f-wa').value.replace(/[^\d+]/g, ''), err = $('#err');
@@ -598,256 +526,198 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     if (wa.replace(/\D/g, '').length < 10){ err.textContent = 'Enter a WhatsApp number with at least 10 digits.'; err.hidden = false; $('#f-wa').focus(); return; }
     err.hidden = true; S.sent = true;
     const f = F(), a = A(), lines = [`Service: ${f.name}`, `Name: ${name}`, `WhatsApp: ${wa}`, `Best time: ${$('.slots .slot[aria-pressed="true"]').textContent}`];
-    f.qs.forEach(q => { const v = a[q.key]; if (v == null) return; const txt = q.type === 'range' ? fmt(v) + ' ' + q.unit : [].concat(v).map(x => (q.opts.find(o => o[0] === x) || [x, x])[1]).join(', '); lines.push(`${q.q.replace(/\?.*$/, '?')} ${txt}`); });
+    f.qs.forEach(q => { const v = a[q.key]; if (v == null) return; lines.push(`${q.q.replace(/\?.*$/, '?')} ${q.type === 'range' ? fmt(v) + ' ' + q.unit : [].concat(v).map(x => (q.opts.find(o => o[0] === x) || [x, x])[1]).join(', ')}`); });
     lines.push(`Plan: ${$('#rPlan').textContent}`, `${R0.l1}: ${fmt(R0.n1)}`);
-    $('#summary').textContent = lines.join('\n');
-    $('#lead').hidden = true; $('#done').hidden = false; bar();
+    $('#summary').textContent = lines.join('\n'); $('#lead').hidden = true; $('#done').hidden = false; pulse = 2; bar();
   });
 
-  /* ================= sticky bar, deep links, exit intent ================= */
   function bar(){
-    const t = $('#barText'), a = $('#bar a'), b = $('#bar');
-    b.classList.toggle('good', S.built || S.sent);
+    const t = $('#barText'), a = $('#bar a');
     if (S.sent){ t.textContent = 'Plan received. We reply within one working day.'; a.hidden = true; }
     else if (S.built && R0){ t.textContent = R0.bar; a.textContent = 'Claim free call'; a.hidden = false; }
-    else { t.textContent = 'Your island is losing customers right now'; a.textContent = 'Fix it in 60 sec'; a.hidden = false; }
+    else { t.textContent = 'Get a free growth plan in 60 seconds'; a.textContent = 'Start'; a.hidden = false; }
   }
-  const hero = $('.hero');
-  new IntersectionObserver(([e]) => $('#bar').classList.toggle('show', !e.isIntersecting), {threshold:.15}).observe(hero);
-  $$('[data-jump]').forEach(el => el.addEventListener('click', () => {
-    const k = el.dataset.flowLink;
-    if (k) setTimeout(() => startFlow(k), 250);
-    else if (S.built && !S.sent) setTimeout(() => $('#f-name') && $('#f-name').focus({preventScroll:true}), 600);
-  }));
   const HASH = { automation:'auto', website:'web', seo:'seo' };
-  function fromHash(){ const k = HASH[location.hash.slice(1)]; if (k) startFlow(k); }
+  function fromHash(){ const k = HASH[location.hash.slice(1)]; if (k){ startFlow(k); setTimeout(() => go($('#plan')), 100); } }
   addEventListener('hashchange', fromHash);
   let exitShown = false;
-  document.addEventListener('mouseout', e => {
-    if (exitShown || S.sent || e.relatedTarget || e.clientY > 4 || !S.flow || S.step < 1 || S.built) return;
-    exitShown = true; $('#exit').hidden = false; $('#exitGo').focus();
-  });
+  document.addEventListener('mouseout', e => { if (exitShown || S.sent || e.relatedTarget || e.clientY > 4 || !S.flow || S.step < 1 || S.built) return; exitShown = true; $('#exit').hidden = false; $('#exitGo').focus(); });
   $('#exitNo').addEventListener('click', () => $('#exit').hidden = true);
-  $('#exitGo').addEventListener('click', () => { $('#exit').hidden = true; hero.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'}); });
+  $('#exitGo').addEventListener('click', () => { $('#exit').hidden = true; go($('#plan')); });
   addEventListener('keydown', e => { if (e.key === 'Escape') $('#exit').hidden = true; });
 
-  /* ================= 3D world ================= */
-  const counters = { in:0, won:0, lost:0 };
-  const paintCounters = () => { $('#sIn').textContent = fmt(counters.in); $('#sWon').textContent = fmt(counters.won); $('#sLost').textContent = fmt(counters.lost); };
-  const world = { update(){}, build(){}, unbuild(){} };
+  /* ================= 3D: the four-layer object ================= */
+  const L = [['Your business','the base everything runs on'],['Automation','replies, CRM, alerts'],['Website','fast, mobile-first, yours'],['Search','Google, Maps, AI answers']];
+  const lbls = L.map(([n, s]) => { const el = document.createElement('div'); el.className = 'lbl'; el.innerHTML = '<i></i><span><b></b><small></small></span>'; el.querySelector('b').textContent = n; el.querySelector('small').textContent = s; $('#labels').appendChild(el); return el; });
+  const world = {};
 
   (function(){
     if (!window.THREE) return;
-    const canvas = $('#world');
-    let R; try { R = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ canvas.remove(); return; }
-    R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputEncoding = THREE.sRGBEncoding; R.toneMapping = THREE.NoToneMapping;
-    R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
-    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xdef2f1, 30, 70);
-    const cam = new THREE.PerspectiveCamera(32, 1, .1, 100);
-    const C = { top:0xfeffff, side:0x3aafa9, base:0x2b7a78, sky:0x3aafa9, saffron:0x17252a, teal:0x2b7a78, rose:0x17252a, ink:0x17252a, white:0xfeffff, mint:0xdef2f1 };
+    const canvas = $('#gl');
+    let R; try { R = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' }); } catch(e){ canvas.remove(); return; }
+    R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputEncoding = THREE.sRGBEncoding; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.15;
+    const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, .1, 100); cam.position.set(0, 0, 13);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xb3dcd8, .8));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.1); sun.position.set(-6, 12, 6); sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, {left:-9, right:9, top:9, bottom:-9}); sun.shadow.radius = 5; scene.add(sun);
+    // studio environment: dark room, big soft boxes, a teal rim panel
+    const pm = new THREE.PMREMGenerator(R), envS = new THREE.Scene();
+    envS.add(new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30), new THREE.MeshBasicMaterial({ color:0x0c1416, side:THREE.BackSide })));
+    const panel = (w, h, c, x, y, z) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color:c, side:THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); envS.add(m); };
+    panel(16, 3, 0xffffff, 0, 12, 2); panel(3, 12, 0xffffff, -12, 2, 4); panel(4, 10, 0xdff6f4, 12, 1, -3); panel(10, 1.2, 0x3aafa9, 0, -4, -12); panel(8, 1, 0xffffff, 0, 4, 12);
+    scene.environment = pm.fromScene(envS, .035).texture;
+    const key = new THREE.DirectionalLight(0xffffff, .6); key.position.set(-4, 8, 6); scene.add(key);
 
-    const root = new THREE.Group(); scene.add(root);
-    const isl = new THREE.Group(); root.add(isl);
-    const RAD = 4.2;
-    const top = new THREE.Mesh(new THREE.CylinderGeometry(RAD, RAD, .5, 96), [new THREE.MeshStandardMaterial({color:C.side, roughness:.9}), new THREE.MeshStandardMaterial({color:C.top, roughness:.85}), new THREE.MeshStandardMaterial({color:C.side})]);
-    top.receiveShadow = true; top.castShadow = true; isl.add(top);
-    const under = new THREE.Mesh(new THREE.ConeGeometry(RAD * .96, 2.4, 96, 1, true), new THREE.MeshStandardMaterial({color:C.base, roughness:1, side:THREE.DoubleSide}));
-    under.rotation.x = Math.PI; under.position.y = -1.45; isl.add(under);
-    [1.4, 2.6, 3.7].forEach(r => { const ring = new THREE.Mesh(new THREE.RingGeometry(r - .01, r + .01, 128), new THREE.MeshBasicMaterial({color:0xc4e6e3})); ring.rotation.x = -Math.PI / 2; ring.position.y = .252; isl.add(ring); });
-
-    const labelsEl = $('#labels'), tags = [];
-    function tag(html, obj, offY, cls){ const el = document.createElement('div'); el.className = 'tag3d ' + (cls || ''); el.innerHTML = html; labelsEl.appendChild(el); const t = {el, obj, offY}; tags.push(t); return t; }
-    const std = (c, extra) => new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:.45, metalness:.05}, extra || {}));
-
-    /* channel portals: one ring of arches per flow */
-    const portals = {};
-    Object.entries(FLOWS).forEach(([fk, f]) => f.channels.forEach((name, i) => {
-      const a = (i / f.channels.length) * Math.PI * 2 + .3;
-      const g = new THREE.Group(); g.position.set(Math.cos(a) * (RAD + .1), .25, Math.sin(a) * (RAD + .1)); g.rotation.y = -a + Math.PI / 2;
-      const arch = new THREE.Mesh(new THREE.TorusGeometry(.42, .07, 12, 40, Math.PI), std(C.ink, {roughness:.35})); arch.castShadow = true; g.add(arch);
-      g.scale.setScalar(.001); g.visible = false; isl.add(g);
-      portals[fk + ':' + name] = { flow:fk, name, g, a, on:false, s:0, tag: tag(`${name}<small>${fk === 'auto' ? 'channel' : fk === 'web' ? 'traffic' : 'search'}</small>`, g, .75, 'src') };
-    }));
-
-    /* module shapes */
-    function shape(m){
-      const g = new THREE.Group(), col = C[m.color], add = (geo, mat, y) => { const me = new THREE.Mesh(geo, mat); me.castShadow = me.receiveShadow = true; me.position.y = y; g.add(me); return me; };
-      switch (m.shape){
-        case 'cyl': add(new THREE.CylinderGeometry(m.r, m.r, m.h, 48), std(col), m.h / 2); break;
-        case 'box': add(new THREE.BoxGeometry(m.r * 2, m.h, m.r * 2), std(col), m.h / 2); add(new THREE.BoxGeometry(m.r * 2.02, .06, m.r * 2.02), std(m.color === 'white' ? C.sky : C.ink), m.h); break;
-        case 'screen': { add(new THREE.BoxGeometry(m.r * 2.6, m.h, .14), std(C.white), m.h / 2 + .15); add(new THREE.BoxGeometry(m.r * 2.6, .2, .16), std(C.ink), m.h + .05);
-          const scr = add(new THREE.BoxGeometry(m.r * 2.3, m.h * .62, .02), std(C.sky, {emissive:C.sky, emissiveIntensity:.15}), m.h * .5 + .05); scr.position.z = .08;
-          const btn = add(new THREE.BoxGeometry(m.r * .9, .16, .03), std(C.sky), m.h * .3); btn.position.z = .09;
-          add(new THREE.BoxGeometry(.5, .15, .5), std(C.side), .075); break; }
-        case 'torus': { const t = add(new THREE.TorusGeometry(m.r, .1, 16, 48, Math.PI * 1.5), std(col), m.h * .6); t.rotation.z = Math.PI * .25;
-          add(new THREE.CylinderGeometry(.06, .06, m.h * .6, 12), std(C.ink), m.h * .3); add(new THREE.CylinderGeometry(.25, .25, .08, 32), std(C.side), .04); break; }
-        case 'plates': for (let i = 0; i < 3; i++){ const p = add(new THREE.BoxGeometry(m.r * 2, .12, m.r * 1.5), std(i === 2 ? col : C.white), .1 + i * .22); p.rotation.y = i * .12; } break;
-        case 'podium': [[-.62, .7, C.white], [0, m.h, col], [.62, .45, C.white]].forEach(([x, h, c]) => { const b = add(new THREE.BoxGeometry(.56, h, .56), std(c), h / 2); b.position.x = x; }); break;
-        case 'pin': { add(new THREE.ConeGeometry(m.r * .8, m.h * .55, 32), std(col), m.h * .3).rotation.x = Math.PI; add(new THREE.SphereGeometry(m.r, 32, 20), std(col), m.h * .7); add(new THREE.SphereGeometry(m.r * .38, 20, 12), std(C.white), m.h * .7).position.z = m.r * .72; break; }
-        case 'bubble': { const s = add(new THREE.SphereGeometry(m.r, 32, 20), std(col), m.h * .65); s.scale.set(1.35, .9, .9); const t = add(new THREE.ConeGeometry(.14, .3, 16), std(col), m.h * .3); t.position.x = -.25; t.rotation.z = -.5;
-          [-.22, 0, .22].forEach(x => { const d = add(new THREE.SphereGeometry(.06, 12, 8), std(C.white), m.h * .65); d.position.set(x, m.h * .65, m.r * .85); }); break; }
-      }
-      return g;
-    }
-    const sets = {};
-    Object.entries(FLOWS).forEach(([fk, f]) => {
-      sets[fk] = f.mods.map((d, i) => {
-        const m = Object.assign({}, d), n = f.mods.length - 1;
-        const ang = i === 0 ? 0 : ((i - 1) / n) * Math.PI * 2 + .5, rr = i === 0 ? 0 : 2.35;
-        m.pos = [Math.cos(ang) * rr, Math.sin(ang) * rr];
-        m.g = shape(m); m.g.position.set(m.pos[0], .25, m.pos[1]); if (m.shape === 'screen') m.g.rotation.y = .35;
-        m.g.scale.set(1, .001, 1); m.g.visible = false; isl.add(m.g);
-        m.k = 0; m.target = 0; m.tag = tag(`${m.name}<small>${m.sub}</small>`, m.g, m.h + .45);
-        if (i > 0){ const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, .3, 0), new THREE.Vector3(m.pos[0] / 2, .9, m.pos[1] / 2), new THREE.Vector3(m.pos[0], .3, m.pos[1]));
-          m.beam = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, .025, 8), new THREE.MeshBasicMaterial({color:C.sky, transparent:true, opacity:0})); isl.add(m.beam); }
-        return m;
-      });
+    // canvas textures drawn on the layer tops
+    function tex(draw, w = 1024, h = 704){ const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); draw(x, w, h); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = R.capabilities.getMaxAnisotropy(); return t; }
+    const rr = (x, X, Y, W, H, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + W, Y, X + W, Y + H, r); x.arcTo(X + W, Y + H, X, Y + H, r); x.arcTo(X, Y + H, X, Y, r); x.arcTo(X, Y, X + W, Y, r); x.closePath(); };
+    const circuit = tex((x, w, h) => {
+      x.strokeStyle = '#def2f1'; x.lineWidth = 5; x.lineCap = 'round'; x.lineJoin = 'round'; x.fillStyle = '#def2f1';
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 26; i++){ let px = 60 + rnd() * (w - 120), py = 60 + rnd() * (h - 120); x.beginPath(); x.moveTo(px, py);
+        for (let k = 0; k < 4; k++){ if (rnd() > .5) px = clamp(px + (rnd() - .5) * 420, 50, w - 50); else py = clamp(py + (rnd() - .5) * 320, 50, h - 50); x.lineTo(px, py); }
+        x.stroke(); x.beginPath(); x.arc(px, py, 11, 0, 7); x.fill(); }
+      x.lineWidth = 6; rr(x, w / 2 - 120, h / 2 - 90, 240, 180, 26); x.stroke(); x.font = '600 52px Geist, sans-serif'; x.textAlign = 'center'; x.fillText('AUTO', w / 2, h / 2 + 18);
     });
-    const enabled = (fk, m) => !m.need || [].concat(S.a[fk][FLOWS[fk].chKey === 'where' ? 'where' : 'need'] || []).includes(m.need);
+    const site = tex((x, w, h) => {
+      x.fillStyle = '#f4fbfa'; rr(x, 0, 0, w, h, 60); x.fill();
+      x.fillStyle = '#17252a'; rr(x, 70, 60, 120, 26, 13); x.fill(); [0, 1, 2].forEach(i => { x.fillStyle = '#9fbcbb'; rr(x, 620 + i * 100, 64, 70, 18, 9); x.fill(); });
+      x.fillStyle = '#17252a'; rr(x, 70, 170, 520, 54, 18); x.fill(); rr(x, 70, 240, 420, 54, 18); x.fill();
+      x.fillStyle = '#9fbcbb'; rr(x, 70, 330, 460, 20, 10); x.fill(); rr(x, 70, 364, 380, 20, 10); x.fill();
+      x.fillStyle = '#3aafa9'; rr(x, 70, 420, 220, 64, 32); x.fill();
+      const g = x.createLinearGradient(640, 160, 950, 500); g.addColorStop(0, '#3aafa9'); g.addColorStop(1, '#2b7a78'); x.fillStyle = g; rr(x, 640, 160, 310, 330, 36); x.fill();
+      x.fillStyle = '#def2f1'; [0, 1, 2].forEach(i => { rr(x, 70 + i * 300, 540, 270, 110, 24); x.fill(); });
+    });
+    const search = tex((x, w, h) => {
+      x.fillStyle = 'rgba(254,255,255,.95)'; rr(x, 90, 90, w - 180, 110, 55); x.fill();
+      x.strokeStyle = '#2b7a78'; x.lineWidth = 9; x.beginPath(); x.arc(160, 145, 24, 0, 7); x.stroke(); x.beginPath(); x.moveTo(178, 163); x.lineTo(198, 183); x.stroke();
+      x.fillStyle = '#17252a'; x.font = '500 40px Geist, sans-serif'; x.fillText('best fabricator near me', 220, 160);
+      [0, 1, 2].forEach(i => { const y = 270 + i * 135; x.fillStyle = i === 0 ? 'rgba(58,175,169,.95)' : 'rgba(222,242,241,.55)'; rr(x, 90, y, w - 180, 110, 26); x.fill();
+        x.fillStyle = i === 0 ? '#17252a' : 'rgba(23,37,42,.55)'; x.font = '600 36px Geist, sans-serif'; x.fillText(i === 0 ? 'Your Brand · #1 result' : 'Competitor ' + i, 130, y + 50);
+        x.font = '400 26px Geist, sans-serif'; x.fillText(i === 0 ? 'Open now · Quote in 24 hrs' : 'Slow site · no reviews', 130, y + 88); });
+    });
 
-    /* customer orbs */
-    const orbGeo = new THREE.SphereGeometry(.16, 20, 14), orbs = [];
-    for (let i = 0; i < 70; i++){ const m = new THREE.Mesh(orbGeo, std(C.ink, {roughness:.3})); m.castShadow = true; m.visible = false; isl.add(m); orbs.push({m, live:false}); }
-    const tmp = new THREE.Vector3();
-    const curFlow = () => S.flow || 'auto';
-    function spawn(){
-      const fk = curFlow(), live = Object.values(portals).filter(p => p.flow === fk && p.on);
-      if (!live.length) return;
-      const p = live[Math.floor(Math.random() * live.length)], o = orbs.find(o => !o.live); if (!o) return;
-      const start = new THREE.Vector3(Math.cos(p.a) * (RAD + 3.2), 2.4, Math.sin(p.a) * (RAD + 3.2));
-      const gate = new THREE.Vector3(Math.cos(p.a) * (RAD - .2), .4, Math.sin(p.a) * (RAD - .2));
-      const built = S.built, set = sets[fk], hub = set[0];
-      const lose = !built && Math.random() < FLOWS[fk].loss(S.a[fk]);
-      let path;
-      if (built){ const vis = set.slice(1).filter(m => m.target); const via = vis[Math.floor(Math.random() * vis.length)] || hub;
-        path = [start, gate, new THREE.Vector3(via.pos[0], .45 + via.h, via.pos[1]), new THREE.Vector3(0, .45 + hub.h, 0)]; }
-      else if (lose){ const b = p.a + (Math.random() - .5) * 2.2, off = new THREE.Vector3(Math.cos(b) * (RAD + .3), .4, Math.sin(b) * (RAD + .3));
-        path = [start, gate, new THREE.Vector3(Math.cos(b) * 2, .4, Math.sin(b) * 2), off, off.clone().setY(-6)]; }
-      else { const b = Math.random() * Math.PI * 2, r = Math.random() * 1.6; path = [start, gate, new THREE.Vector3(Math.cos(b) * r, .37, Math.sin(b) * r)]; }
-      Object.assign(o, { live:true, t:0, path, lose, built, dur:path.length * .55 });
-      o.m.material.color.setHex(C.ink); o.m.scale.setScalar(1); o.m.visible = true;
-      counters.in++;
+    // rounded, bevelled slab
+    function slab(w, d, h, r){
+      const s = new THREE.Shape(), x = -w / 2, y = -d / 2;
+      s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + d - r); s.quadraticCurveTo(x + w, y + d, x + w - r, y + d);
+      s.lineTo(x + r, y + d); s.quadraticCurveTo(x, y + d, x, y + d - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+      const b = Math.min(.07, h * .3), g = new THREE.ExtrudeGeometry(s, { depth:h - b * 2, bevelEnabled:true, bevelThickness:b, bevelSize:b, bevelSegments:8, curveSegments:32 });
+      g.rotateX(-Math.PI / 2); g.translate(0, -(h - b * 2) / 2, 0); g.computeVertexNormals(); return g;
     }
-    function along(path, k){ const seg = (path.length - 1) * k, i = Math.min(path.length - 2, Math.floor(seg)), f = seg - i;
-      tmp.lerpVectors(path[i], path[i + 1], f); if (i === 0) tmp.y += Math.sin(f * Math.PI) * .8; return tmp; }
+    const W = 3.4, D = 2.3, H = [.36, .26, .22, .3];
+    const obj = new THREE.Group(), spin = new THREE.Group(); obj.add(spin); scene.add(obj);
+    const mats = [
+      new THREE.MeshPhysicalMaterial({ color:0x24383d, metalness:.9, roughness:.32, clearcoat:.4, clearcoatRoughness:.3, transparent:true }),
+      new THREE.MeshPhysicalMaterial({ color:0x2b8481, metalness:.05, roughness:.32, clearcoat:1, clearcoatRoughness:.12, transparent:true }),
+      new THREE.MeshPhysicalMaterial({ color:0xf6fbfb, metalness:0, roughness:.38, clearcoat:.9, clearcoatRoughness:.15, transparent:true }),
+      new THREE.MeshPhysicalMaterial({ color:0xeaf8f7, metalness:0, roughness:.14, transmission:1, thickness:.9, ior:1.45, attenuationColor:new THREE.Color(0x3aafa9), attenuationDistance:2.2, clearcoat:1, clearcoatRoughness:.05, transparent:true })
+    ];
+    const layers = H.map((h, i) => { const g = new THREE.Group(); g.add(new THREE.Mesh(slab(W, D, h, .34), mats[i])); g.userData = { h, op:1, lift:0 }; spin.add(g); return g; });
+    const led = new THREE.Mesh(new THREE.BoxGeometry(1.1, .03, .02), new THREE.MeshBasicMaterial({ color:0x3aafa9 })); led.position.set(0, -.02, D / 2 + .005); layers[0].add(led);
+    const decal = (t, y, emissive) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(W * .82, D * .82), new THREE.MeshStandardMaterial(Object.assign({ map:t, transparent:false, alphaTest:.35, roughness:.5, metalness:0 }, emissive ? { emissive:0xffffff, emissiveMap:t, emissiveIntensity:emissive } : {}))); m.rotation.x = -Math.PI / 2; m.position.y = y; return m; };
+    const decals = [null, decal(circuit, H[1] / 2 + .002, .9), decal(site, H[2] / 2 + .002, .05), decal(search, 0, .5)];
+    decals.forEach((d, i) => d && layers[i].add(d));
 
-    let narrow = false;
-    function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; narrow = innerWidth < 980; cam.updateProjectionMatrix(); }
+    // contact shadow and teal floor glow
+    const radial = (stops, size = 256) => tex((x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); stops.forEach(([o, c]) => g.addColorStop(o, c)); x.fillStyle = g; x.fillRect(0, 0, w, h); }, size, size);
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.9, D * 1.9), new THREE.MeshBasicMaterial({ map:radial([[0, 'rgba(0,0,0,.6)'], [.5, 'rgba(0,0,0,.25)'], [1, 'rgba(0,0,0,0)']]), transparent:true, depthWrite:false }));
+    shadow.rotation.x = -Math.PI / 2; spin.add(shadow);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(W * 2.6, D * 2.6), new THREE.MeshBasicMaterial({ map:radial([[0, 'rgba(58,175,169,.55)'], [1, 'rgba(58,175,169,0)']]), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending }));
+    glow.rotation.x = -Math.PI / 2; spin.add(glow);
+
+    /* scroll choreography: object states at points along the page, eased between */
+    const mob = () => innerWidth < 900;
+    function stops(){
+      const m = mob(), vh = innerHeight, sec = id => { const el = $(id), r = el.getBoundingClientRect(); return { t:r.top + scrollY, h:el.offsetHeight }; };
+      const lay = sec('#layers'), st = sec('#statement'), fo = sec('#focus'), why = sec('#why'), plan = sec('#plan'), fin = sec('#final');
+      const at = (s, f) => s.t + (s.h - vh) * f, P = (o, mo) => m && mo ? Object.assign({}, o, mo) : o;
+      return [
+        [0,                     P({ x:0,    y:-2.55, s:.9,   ry:-.55, rx:.5,  ex:0,   focus:-1, lbl:0 }, { y:-2.5, s:.6 })],
+        [at(lay, .06),          P({ x:2.2,  y:-.15,  s:1.0,  ry:-.75, rx:.42, ex:0,   focus:-1, lbl:0 }, { x:0, y:1.15, s:.62 })],
+        [at(lay, .3),           P({ x:2.0,  y:-.2,   s:.92,  ry:-.55, rx:.28, ex:1,   focus:3,  lbl:1 }, { x:0, y:1.05, s:.55 })],
+        [at(lay, .55),          P({ x:2.0,  y:-.2,   s:.92,  ry:-.25, rx:.26, ex:1,   focus:2,  lbl:1 }, { x:0, y:1.05, s:.55 })],
+        [at(lay, .82),          P({ x:2.0,  y:-.2,   s:.92,  ry:.05,  rx:.26, ex:1,   focus:1,  lbl:1 }, { x:0, y:1.05, s:.55 })],
+        [at(st, .45),           P({ x:0,    y:-2.95, s:.45,  ry:.9,   rx:.7,  ex:.35, focus:-1, lbl:0, dim:.6 }, { y:-3.1, s:.4 })],
+        [at(fo, .1),            P({ x:-2.1, y:-.1,   s:1.15, ry:-.35, rx:.42, ex:.75, focus:1,  lbl:0 }, { x:0, y:1.2, s:.62 })],
+        [at(fo, .48),           P({ x:-2.1, y:-.1,   s:1.15, ry:-.1,  rx:.36, ex:.75, focus:2,  lbl:0 }, { x:0, y:1.2, s:.62 })],
+        [at(fo, .86),           P({ x:-2.1, y:-.1,   s:1.15, ry:.2,   rx:.62, ex:.75, focus:3,  lbl:0 }, { x:0, y:1.2, s:.62 })],
+        [why.t + why.h * .2,    P({ x:0,    y:5.2,   s:.8,   ry:.6,   rx:.5,  ex:.2,  focus:-1, lbl:0 })],
+        [plan.t - vh * .15,     P({ x:2.45, y:-.2,   s:.95,  ry:-.6,  rx:.45, ex:.35, focus:-2, lbl:0 }, { x:0, y:5.2, s:.6 })],
+        [plan.t + plan.h - vh,  P({ x:2.45, y:-.2,   s:.95,  ry:-.3,  rx:.45, ex:.35, focus:-2, lbl:0 }, { x:0, y:5.2, s:.6 })],
+        [fin.t - vh * .35,      P({ x:0,    y:-2.7,  s:.72,  ry:.2,   rx:.5,  ex:0,   focus:-1, lbl:0 }, { y:-2.5, s:.55 })]
+      ];
+    }
+    let STOPS = stops();
+    const KEYS = ['x','y','s','ry','rx','ex','dim'];
+    const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    function target(){
+      const y = scrollY; let i = 0; while (i < STOPS.length - 1 && STOPS[i + 1][0] <= y) i++;
+      const [y0, a] = STOPS[i], [y1, b] = STOPS[Math.min(i + 1, STOPS.length - 1)];
+      const t = y1 > y0 ? ease(clamp((y - y0) / (y1 - y0))) : 0, o = {};
+      KEYS.forEach(k => o[k] = (a[k] || 0) + ((b[k] || 0) - (a[k] || 0)) * t);
+      const near = t < .5 ? a : b; o.focus = near.focus; o.lbl = near.lbl;
+      return o;
+    }
+    const cur = target();
+    function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.fov = mob() ? 34 : 28; cam.updateProjectionMatrix(); STOPS = stops(); }
     addEventListener('resize', resize); resize();
+    addEventListener('load', () => { STOPS = stops(); }); setTimeout(() => { STOPS = stops(); }, 1500);
 
-    /* scroll choreography: one camera keyframe per scene */
-    const KF = {
-      hero:   { rx: 3.6, look:[-2.4, 0, 0],   dist:13.8, h:8.8, az:-.09, fov:32, tags:true },
-      cost:   { rx: 3.0, look:[-.6, .2, 3.4], dist:5.2,  h:1.3, az:.6,   fov:42, tags:false },
-      map:    { rx:-3.8, look:[2.6, 0, .2],   dist:1.2,  h:19,  az:0,    fov:34, tags:true },
-      inside: { rx: 3.2, look:[-1.5, 1.1, 0], dist:7.6,  h:3.2, az:-.75, fov:38, tags:true },
-      orbit:  { rx:-3.6, look:[2.3, .3, 0],   dist:11.5, h:3.6, az:1.1,  fov:34, tags:false },
-      far:    { rx: 4.4, look:[-3.8, -1, 0],  dist:27,   h:15,  az:-.35, fov:30, tags:false },
-      final:  { rx: 0,   look:[0, -3.4, 0],   dist:12,   h:6.5, az:0,    fov:36, tags:false }
-    };
-    const MOB = { hero:{look:[0,-3.4,0],dist:20,h:11}, cost:{look:[0,-.6,3.4],dist:7.5,h:2.4}, map:{look:[0,-.5,4.2],dist:1.5,h:24},
-      inside:{look:[0,-.8,0],dist:11,h:5}, orbit:{look:[0,-2.6,0],dist:17,h:5}, far:{look:[0,-6,0],dist:34,h:16}, final:{look:[0,-4.4,0],dist:17,h:8} };
-    const scenesEl = $$('[data-cam]');
-    const lerp = (a, b, t) => a + (b - a) * t, sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-    function keyOf(n){ const k = Object.assign({}, KF[n]); if (narrow){ Object.assign(k, MOB[n]); k.rx = 0; k.fov = Math.max(k.fov, 40); } return k; }
-    function targetCam(){
-      const mid = innerHeight * .55; let i = 0;
-      scenesEl.forEach((el, k) => { if (el.getBoundingClientRect().top <= mid) i = k; });
-      const r = scenesEl[i].getBoundingClientRect(), f = Math.min(1, Math.max(0, (mid - r.top) / r.height));
-      const j = Math.min(scenesEl.length - 1, i + 1), t = i === j ? 0 : sm(.42, 1, f);
-      const P = keyOf(scenesEl[i].dataset.cam), Q = keyOf(scenesEl[j].dataset.cam);
-      return { idx: t < .5 ? i : j, tags:(t < .5 ? P : Q).tags, rx:lerp(P.rx, Q.rx, t), dist:lerp(P.dist, Q.dist, t), h:lerp(P.h, Q.h, t), az:lerp(P.az, Q.az, t), fov:lerp(P.fov, Q.fov, t), look:[0,1,2].map(n => lerp(P.look[n], Q.look[n], t)) };
-    }
-    const cur = targetCam();
-    let tagsOn = true, preview = false;
-    const cue = $('#cue');
+    let px = 0, py = 0; addEventListener('pointermove', e => { px = e.clientX / innerWidth - .5; py = e.clientY / innerHeight - .5; });
+    const t0 = performance.now(), v = new THREE.Vector3();
 
-    let yaw = -.4, vy = 0, drag = false, lx = 0, px = 0, py = 0;
-    canvas.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; canvas.setPointerCapture(e.pointerId); });
-    canvas.addEventListener('pointermove', e => { if (drag){ vy = (e.clientX - lx) * .006; yaw += vy; lx = e.clientX; } });
-    canvas.addEventListener('pointerup', () => drag = false);
-    addEventListener('pointermove', e => { px = e.clientX / innerWidth - .5; py = e.clientY / innerHeight - .5; });
-
-    function setMods(on){
-      Object.entries(sets).forEach(([fk, set]) => set.forEach((m, i) => {
-        const want = on && fk === curFlow() && enabled(fk, m);
-        if (want && !m.target){ m.g.visible = true; m.delay = performance.now() + i * 220; }
-        m.target = want ? 1 : 0;
-      }));
-    }
-    world.update = () => {
-      const fk = curFlow(), f = FLOWS[fk], picked = f.chKey ? (S.a[fk][f.chKey] || []) : [];
-      Object.values(portals).forEach(p => { p.on = p.flow === fk && (f.chKey ? (picked.length ? picked.includes(p.name) : f.chDefault.includes(p.name)) : true); });
-      if (S.built || preview) setMods(true); else setMods(false);
-    };
-    world.build = () => setMods(true);
-    world.unbuild = () => { preview = false; setMods(false); };
-    world.update();
-
-    const v = new THREE.Vector3();
-    function placeTags(){
-      const w = innerWidth, h = innerHeight;
-      tags.forEach(t => {
-        const vis = tagsOn && t.obj.visible && t.obj.scale.y > .6 && t.obj.scale.x > .6;
-        t.obj.getWorldPosition(v); v.y += t.offY; v.project(cam);
-        t.el.classList.toggle('on', vis && v.z < 1);
-        t.el.style.transform = `translate(${(v.x * .5 + .5) * w}px, ${(-v.y * .5 + .5) * h}px) translate(-50%,-100%)`;
+    world.frame = now => {
+      const T = target(), d = reduce ? 1 : .075, time = (now - t0) / 1000, m = mob();
+      KEYS.forEach(k => cur[k] += (T[k] - cur[k]) * d);
+      const focus = T.focus === -2 ? (S.flow ? FLOWS[S.flow].layer : -1) : T.focus;
+      obj.position.set(cur.x, cur.y + (reduce ? 0 : Math.sin(time * .9) * .05), 0);
+      obj.scale.setScalar(cur.s);
+      obj.rotation.x = cur.rx + (m ? 0 : py * .12);
+      spin.rotation.y = cur.ry + (reduce ? 0 : time * .06) + (m ? 0 : px * .35);
+      pulse *= .96;
+      let yAcc = 0; const gap = .035 + cur.ex * .95;
+      layers.forEach((g, i) => {
+        const u = g.userData, k = reduce ? 1 : clamp((time - .25 - (3 - i) * .14) / 1.2), ki = 1 - Math.pow(1 - k, 4);
+        const focused = focus === i, op = focus < 0 ? 1 - cur.dim * .6 : focused ? 1 : .14;
+        u.op += (op - u.op) * .08; u.lift += ((focused ? .35 : 0) - u.lift) * .08;
+        g.position.y = yAcc + u.h / 2 + (1 - ki) * (3.5 + i * .6) + u.lift; yAcc += u.h + gap;
+        const o = u.op * ki, solid = o > .985; mats[i].opacity = o; mats[i].transparent = !solid; if (i === 3) mats[3].transmission = solid ? 1 : 0;
+        if (decals[i]){ decals[i].material.opacity = o; decals[i].material.transparent = !solid; decals[i].material.alphaTest = solid ? .35 : 0; if (i !== 2) decals[i].material.emissiveIntensity = (i === 1 ? .9 : .5) + (focused ? .6 + Math.sin(time * 3) * .25 + pulse : 0); }
+        if (i === 0){ led.material.opacity = o; led.material.transparent = !solid; }
       });
-    }
-
-    let last = performance.now(), acc = 0, pulse = 0;
-    const ease = x => 1 - Math.pow(1 - x, 3), back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
-    (function loop(now){
-      const dt = Math.min(.05, (now - last) / 1000); last = now;
-      const fk = curFlow();
-      acc += dt; if (acc > FLOWS[fk].every(S.a[fk])){ acc = 0; spawn(); }
-      Object.values(portals).forEach(p => { p.s += ((p.on ? 1 : 0) - p.s) * .12; p.g.scale.setScalar(Math.max(.001, back(Math.min(1, p.s)))); p.g.visible = p.s > .02; });
-      Object.values(sets).forEach(set => set.forEach(m => {
-        if (m.target && now < m.delay) return;
-        m.k += (m.target - m.k) * .1; const sY = m.target ? back(Math.min(1, m.k)) : m.k;
-        m.g.scale.set(1, Math.max(.001, sY), 1); if (!m.target && m.k < .02) m.g.visible = false;
-        if (m.beam) m.beam.material.opacity += ((m.target && m.k > .9 ? .5 : 0) - m.beam.material.opacity) * .08;
-      }));
-      pulse *= .9; const hubMesh = sets[fk][0].g.children.find(c => c.material && c.material.emissive);
-      if (hubMesh && sets[fk][0].shape !== 'screen') hubMesh.material.emissive.setRGB(pulse * .23, pulse * .69, pulse * .66);
-      orbs.forEach(o => { if (!o.live) return; o.t += dt / o.dur; const k = Math.min(1, o.t);
-        o.m.position.copy(along(o.path, o.built ? ease(k) : k));
-        if (o.lose && k > (o.path.length - 2) / (o.path.length - 1)) o.m.material.color.setHex(C.mint);
-        if (o.built && k > .5) o.m.material.color.setHex(C.sky);
-        if (k >= 1){ o.live = false; o.m.visible = false; if (o.lose) counters.lost++; else { counters.won++; if (o.built) pulse = 1; } }
-        else if (!o.lose && !o.built && k > .9) o.m.scale.setScalar(Math.max(.01, (1 - k) * 10));
-      });
-      if (!drag){ vy *= .94; yaw += vy + (reduce ? 0 : .0012); }
-      isl.rotation.y = yaw + scrollY * .0007;
-      const T = targetCam(), d = reduce ? 1 : .07;
-      ['rx','dist','h','az','fov'].forEach(k => cur[k] += (T[k] - cur[k]) * d);
-      cur.look.forEach((x, n) => cur.look[n] += (T.look[n] - x) * d);
-      tagsOn = T.tags;
-      root.position.set(cur.rx, reduce ? 0 : Math.sin(now / 1400) * .12, 0);
-      const lx0 = cur.rx + cur.look[0], ly0 = cur.look[1], lz0 = cur.look[2];
-      cam.position.set(lx0 + Math.sin(cur.az) * cur.dist + (narrow ? 0 : px * 1.2), ly0 + cur.h - (narrow ? 0 : py * .8), lz0 + Math.cos(cur.az) * cur.dist);
-      cam.lookAt(lx0, ly0, lz0);
-      if (Math.abs(cam.fov - cur.fov) > .01){ cam.fov = cur.fov; cam.updateProjectionMatrix(); }
-      const want = T.idx >= 2;
-      if (!S.built && want !== preview){ preview = want; setMods(want); }
-      if (cue) cue.style.opacity = scrollY > 60 ? 0 : 1;
-      R.render(scene, cam); placeTags();
-      if (Math.floor(now / 200) !== Math.floor((now - dt * 1000) / 200)) paintCounters();
-      requestAnimationFrame(loop);
-    })(performance.now());
+      const total = yAcc - gap; layers.forEach(g => g.position.y -= total / 2);
+      shadow.position.y = -total / 2 - .25 - cur.ex * .4; shadow.material.opacity = .9 - cur.ex * .5;
+      glow.position.y = shadow.position.y + .01; glow.material.opacity = .35 + pulse * .4 + (focus >= 0 ? .2 : 0);
+      led.material.color.setHSL(.49, .5, .45 + Math.sin(time * 2) * .1 + pulse * .1);
+      R.render(scene, cam);
+      const showL = T.lbl && !m && cur.ex > .6;
+      layers.forEach((g, i) => { g.localToWorld(v.set(W / 2 + .15, 0, 0)); v.project(cam);
+        const el = lbls[i]; el.style.opacity = showL ? (focus < 0 || focus === i ? 1 : .35) : 0;
+        el.style.transform = `translate(${(v.x * .5 + .5) * innerWidth}px, ${(-v.y * .5 + .5) * innerHeight}px) translateY(-50%)`; });
+    };
   })();
 
-  /* ================= menu ================= */
-  $('#menuBtn').addEventListener('click', () => { const o = $('#mainNav').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', o); $('#menuBtn').textContent = o ? 'Close' : 'Menu'; });
+  /* ================= frame loop: scroll-driven text + 3D ================= */
+  const layerSteps = $$('#layerSteps .step'), layerDots = $$('#layerDots i'), focusSteps = $$('#focusSteps .step'), focusDots = $$('#focusDots i');
+  const prog = el => { const r = el.getBoundingClientRect(); return clamp(-r.top / Math.max(1, r.height - innerHeight)); };
+  const secL = $('#layers'), secF = $('#focus'), secS = $('#statement'), secP = $('#plan'), barEl = $('#bar'), cue = $('#cue');
+  let lastL = -1, lastF = -1;
+  function frame(now){
+    if (lenis) lenis.raf(now);
+    const li = Math.min(3, Math.floor(prog(secL) * 4.2));
+    if (li !== lastL){ lastL = li; layerSteps.forEach((s, k) => s.classList.toggle('on', k === li)); layerDots.forEach((d, k) => d.classList.toggle('on', k === li)); }
+    const fi = Math.min(2, Math.floor(prog(secF) * 3));
+    if (fi !== lastF){ lastF = fi; focusSteps.forEach((s, k) => s.classList.toggle('on', k === fi)); focusDots.forEach((d, k) => d.classList.toggle('on', k === fi)); }
+    const lit = Math.floor(prog(secS) * 1.25 * sws.length); sws.forEach((w, k) => w.classList.toggle('lit', k < lit));
+    top.classList.toggle('solid', scrollY > 20);
+    cue.style.opacity = scrollY > 40 ? 0 : '';
+    const pr = secP.getBoundingClientRect();
+    barEl.classList.toggle('show', scrollY > innerHeight * .8 && !(pr.top < innerHeight * .7 && pr.bottom > innerHeight * .3));
+    if (world.frame) world.frame(now);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 
-  /* ================= boot ================= */
-  if (S.flow && !FLOWS[S.flow]) S.flow = null;
-  view();
-  fromHash();
+  view(); fromHash();
 })();
 </script>
 </body>

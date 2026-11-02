@@ -7,7 +7,7 @@
 <meta name="description" content="Tell us what you need. We reply within one working day with next steps and a free call.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="site.css">
 <style>
 .layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:28px;align-items:start}
@@ -33,7 +33,10 @@ legend{font:800 18px var(--sans);letter-spacing:-.02em;padding:0;margin-bottom:1
 .copy{all:unset;cursor:pointer;font:700 12px var(--sans);color:var(--deep);flex:none}
 .copy:focus-visible{outline:2px solid var(--deep)}
 .success{background:var(--white);border-radius:28px;padding:clamp(22px,4vw,40px);display:grid;gap:16px;justify-items:start}
-.success .obj{width:120px;height:120px}
+.tick{width:72px;height:72px;fill:none;stroke:var(--teal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.tick circle{stroke-dasharray:183;stroke-dashoffset:183;animation:draw .9s cubic-bezier(.2,.8,.2,1) forwards}
+.tick path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .6s cubic-bezier(.2,.8,.2,1) .6s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
 .success pre{white-space:pre-wrap;font:500 13px/1.7 var(--mono);background:var(--mint);border-radius:14px;padding:16px;margin:0;width:100%;overflow:auto}
 @media (max-width:900px){ .layout{grid-template-columns:minmax(0,1fr)} .side{position:static} }
 @media (max-width:560px){ .row2{grid-template-columns:1fr} }
@@ -105,11 +108,11 @@ legend{font:800 18px var(--sans);letter-spacing:-.02em;padding:0;margin-bottom:1
       </form>
 
       <div class="success" id="success" hidden tabindex="-1">
-        <div class="obj"><div class="spin"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+        <svg class="tick" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29"/><path d="M19 33l9 9 17-19"/></svg>
         <h2 style="margin:0">Thank you. Your enquiry is in.</h2>
         <p class="lede" style="font-size:17px">We'll reply within one working day by your chosen method. Here's a copy of what you sent (demo form, not connected yet):</p>
         <pre id="copyOut"></pre>
-        <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn primary" href="./#build">Build a free plan meanwhile</a><button class="btn ghost" id="again" type="button">Send another enquiry</button></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn primary" href="./#plan">Build a free plan meanwhile</a><button class="btn ghost" id="again" type="button">Send another enquiry</button></div>
       </div>
     </div>
 
