@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Template — Orbit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Onest:wght@300;400;500&display=swap">
+<style>
+/* Layout: twelve thousand particles in the centre, re-forming into a new shape for each service. Text at the edges only. */
+:root{
+  --bg:#060a17; --fg:#eef2ff; --soft:#8891ad; --rule:rgba(238,242,255,.12); --glow:#a9c4ff;
+  --display:"Michroma",system-ui,sans-serif; --sans:"Onest",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:300 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+.stage{position:relative;min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--glow);outline-offset:4px}
+.label{font:400 10px var(--display);letter-spacing:.24em;text-transform:uppercase;color:var(--soft)}
+header{display:flex;justify-content:space-between;align-items:center;padding-block:28px}
+.brand{font:400 13px var(--display);letter-spacing:.18em;text-transform:uppercase}
+.cta{font:400 10px var(--display);letter-spacing:.2em;text-transform:uppercase;border:1px solid var(--rule);padding:14px 20px;border-radius:999px;transition:background .3s,color .3s}
+.cta:hover{background:var(--fg);color:var(--bg)}
+.mid{display:flex;align-items:center;justify-content:space-between;gap:24px;pointer-events:none}
+h1{font:400 clamp(22px,3vw,40px)/1.25 var(--display);letter-spacing:-.01em;margin:0;max-width:13em;text-transform:uppercase;text-wrap:balance}
+.side{max-width:28ch;color:var(--soft);text-align:right;margin:0}
+.bottom{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule);margin-bottom:24px}
+.tab{all:unset;cursor:pointer;padding:22px 20px 22px 0;display:grid;gap:8px;position:relative}
+.tab::before{content:"";position:absolute;left:0;top:-1px;height:1px;width:0;background:var(--fg);transition:width .2s}
+.tab[aria-selected="true"]::before{width:100%;transition:width var(--dur,7s) linear}
+.tab.static[aria-selected="true"]::before{transition:none}
+.tab b{font:400 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--soft);transition:color .3s}
+.tab[aria-selected="true"] b,.tab:hover b{color:var(--fg)}
+.tab span{font-size:14px;color:var(--soft);max-width:26ch;opacity:.7}
+.tab:focus-visible{outline:1px solid var(--glow);outline-offset:-1px}
+section{position:relative;padding:140px max(24px,env(safe-area-inset-right,0px)) 120px max(24px,env(safe-area-inset-left,0px));display:grid;justify-items:center;text-align:center;gap:28px;background:linear-gradient(transparent,var(--bg) 40%)}
+h2{font:400 clamp(22px,3.2vw,44px)/1.3 var(--display);text-transform:uppercase;margin:0;max-width:20em;text-wrap:balance}
+section p{color:var(--soft);max-width:48ch;margin:0}
+footer{position:relative;display:flex;justify-content:space-between;padding:28px max(24px,env(safe-area-inset-right,0px)) 28px max(24px,env(safe-area-inset-left,0px));border-top:1px solid var(--rule);background:var(--bg)}
+.tpl-chip{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;font:400 9px var(--display);letter-spacing:.16em;text-transform:uppercase;background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:999px}
+@media (max-width:820px){
+  .mid{flex-direction:column;align-items:flex-start;justify-content:flex-start;padding-top:12px}
+  .side{text-align:left}
+  .bottom{grid-template-columns:1fr 1fr}
+  .tab span{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="stage">
+  <header><a class="brand" href="#">Your Brand</a><a class="cta" href="#talk">Start a project</a></header>
+  <div class="mid">
+    <h1>Every channel. One intelligent system.</h1>
+    <p class="side">Automation, websites, search and pipeline, engineered to work as one and handed over entirely to you.</p>
+  </div>
+  <div class="bottom" role="tablist" aria-label="Services">
+    <button class="tab" role="tab" aria-selected="true" data-shape="0"><b>Automate</b><span>Leads answered and followed up in seconds</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-shape="1"><b>Build</b><span>Fast websites, stores and quote systems</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-shape="2"><b>Rank</b><span>Google, Maps and AI-answer visibility</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-shape="3"><b>Grow</b><span>Managed B2B pipeline, meetings weekly</span></button>
+  </div>
+</div>
+<section id="talk">
+  <div class="label">Fixed quote · Full ownership · No lock-in</div>
+  <h2>Tell us what should run by itself.</h2>
+  <p>A free call, then a written proposal with a fixed scope and price. Nothing starts until you approve.</p>
+  <a class="cta" href="#talk">Book a call</a>
+</section>
+<footer><span class="label">© Your Brand</span><span class="label">India · Worldwide</span></footer>
+<a class="tpl-chip" href="./">← All templates · 2</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const tabs = [...document.querySelectorAll('.tab')];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let current = 0, timer;
+  function select(i, user){
+    current = i;
+    tabs.forEach((t, k) => { t.setAttribute('aria-selected', k === i); t.classList.toggle('static', !!user || reduce); });
+    if (window.__morph) window.__morph(i);
+    clearTimeout(timer); if (!user && !reduce) timer = setTimeout(() => select((current + 1) % 4), 7000);
+  }
+  tabs.forEach((t, i) => t.addEventListener('click', () => select(i, true)));
+
+  if (!window.THREE){ select(0); return; }
+  const canvas = document.getElementById('gl');
+  let renderer; try { renderer = new THREE.WebGLRenderer({canvas, antialias:true}); } catch(e){ canvas.remove(); select(0); return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setClearColor(0x060a17, 1);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(40, 1, .1, 100);
+  const N = 12000, R = 1.6;
+
+  // four target shapes
+  const shapes = [0,1,2,3].map(() => new Float32Array(N * 3));
+  for (let i = 0; i < N; i++){
+    // 0 sphere (fibonacci)
+    const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y*y), th = i * 2.399963;
+    shapes[0].set([Math.cos(th)*r*R, y*R, Math.sin(th)*r*R], i*3);
+    // 1 cube lattice surface
+    const f = i % 6, u = (Math.random()*2-1)*1.2, v = (Math.random()*2-1)*1.2, s = 1.2;
+    const c = [[s,u,v],[-s,u,v],[u,s,v],[u,-s,v],[u,v,s],[u,v,-s]][f];
+    shapes[1].set([Math.round(c[0]*10)/10, Math.round(c[1]*10)/10, Math.round(c[2]*10)/10], i*3);
+    // 2 torus
+    const a = Math.random()*Math.PI*2, b = Math.random()*Math.PI*2, tr = 1.3, tt = .45;
+    shapes[2].set([(tr + tt*Math.cos(b))*Math.cos(a), tt*Math.sin(b), (tr + tt*Math.cos(b))*Math.sin(a)], i*3);
+    // 3 double helix with rungs
+    const k = i / N, ang = k * Math.PI * 8, side = i % 2 ? 1 : -1, hy = (k - .5) * 4;
+    const rung = i % 7 === 0 ? Math.random()*2-1 : side;
+    shapes[3].set([Math.cos(ang)*.7*rung + (Math.random()-.5)*.04, hy, Math.sin(ang)*.7*rung + (Math.random()-.5)*.04], i*3);
+  }
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(shapes[0]), from = new Float32Array(shapes[0]), seed = new Float32Array(N);
+  for (let i = 0; i < N; i++) seed[i] = Math.random();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
+  const mat = new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+    uniforms:{uTime:{value:0}, uPx:{value:renderer.getPixelRatio()}},
+    vertexShader:`attribute float seed; uniform float uTime; uniform float uPx; varying float vA; varying vec3 vC;
+      void main(){ vec3 p = position; p += 0.015*vec3(sin(uTime*1.3+seed*40.), cos(uTime*1.1+seed*30.), sin(uTime*.9+seed*20.));
+        vec4 mv = modelViewMatrix*vec4(p,1.); gl_Position = projectionMatrix*mv;
+        gl_PointSize = (1.4 + seed*1.8) * uPx * (6.0 / -mv.z);
+        vA = 0.35 + 0.65*smoothstep(-2.,2.,p.y+p.x*.3);
+        vC = mix(vec3(.55,.66,1.), vec3(1.,.96,.92), seed); }`,
+    fragmentShader:`varying float vA; varying vec3 vC; void main(){ float d = length(gl_PointCoord-.5); if(d>.5) discard; gl_FragColor = vec4(vC, (1.-d*2.)*vA*.9); }`
+  });
+  const pts = new THREE.Points(geo, mat); scene.add(pts);
+
+  let t0 = -10, target = 0;
+  window.__morph = i => { from.set(pos); target = i; t0 = performance.now(); };
+  const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2;
+
+  function resize(){ const w = innerWidth, h = innerHeight; renderer.setSize(w,h,false); camera.aspect = w/h; camera.position.set(0,0, w < 820 ? 9.5 : 7.2); camera.updateProjectionMatrix(); pts.position.y = w < 820 ? -.3 : 0; }
+  addEventListener('resize', resize); resize();
+  let mx = 0, my = 0; addEventListener('pointermove', e => { mx = e.clientX/innerWidth - .5; my = e.clientY/innerHeight - .5; });
+
+  (function loop(now){
+    now = now || 0; const k = Math.min(1, (now - t0) / 1800), T = shapes[target];
+    if (k < 1){ for (let i = 0; i < N*3; i += 3){ const d = Math.min(1, Math.max(0, k*1.4 - seed[i/3]*.4)), e = ease(d);
+        pos[i] = from[i] + (T[i]-from[i])*e; pos[i+1] = from[i+1] + (T[i+1]-from[i+1])*e; pos[i+2] = from[i+2] + (T[i+2]-from[i+2])*e; }
+      geo.attributes.position.needsUpdate = true; }
+    mat.uniforms.uTime.value = now / 1000;
+    pts.rotation.y += reduce ? 0 : .0016; pts.rotation.x += ((my*.5) - pts.rotation.x) * .04; pts.rotation.z += ((-mx*.3) - pts.rotation.z) * .04;
+    renderer.render(scene, camera); requestAnimationFrame(loop);
+  })();
+  select(0);
+})();
+</script>
+</body>
+</html>

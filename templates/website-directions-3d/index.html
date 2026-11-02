@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Website Directions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400&display=swap">
+<style>
+/* Layout: a quiet index. One large preview per direction, name and one line beside it. */
+:root{
+  --bg:#f2f3f5; --card:#ffffff; --fg:#111215; --soft:#6a6f78; --rule:rgba(17,18,21,.1);
+  --sans:"Geist",system-ui,sans-serif; --mono:"Geist Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0f12;--card:#17181c;--fg:#eceef2;--soft:#959aa5;--rule:rgba(236,238,242,.1);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e0f12;--card:#17181c;--fg:#eceef2;--soft:#959aa5;--rule:rgba(236,238,242,.1);color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-block:56px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1.5px solid var(--fg);outline-offset:4px}
+.mono{font:400 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+h1{font-weight:300;font-size:clamp(38px,6vw,72px);line-height:1;letter-spacing:-.045em;margin:14px 0 18px;text-wrap:balance}
+.intro{color:var(--soft);max-width:58ch;margin:0}
+.list{display:grid;gap:64px;margin-top:64px}
+.item{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);gap:32px;align-items:end}
+.item:nth-child(even){grid-template-columns:minmax(0,4fr) minmax(0,7fr)}
+.item:nth-child(even) .shot{order:2}
+.shot{display:block;border-radius:14px;overflow:hidden;background:var(--card);border:1px solid var(--rule);aspect-ratio:16/10;max-width:100%}
+.shot img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.shot:hover img{transform:scale(1.025)}
+.meta{display:grid;gap:10px;padding-bottom:6px}
+.meta h2{font-weight:400;font-size:34px;line-height:1;letter-spacing:-.035em;margin:0}
+.meta p{margin:0;color:var(--soft);max-width:38ch}
+.meta .try{font-size:14px;color:var(--fg)}
+.open{justify-self:start;margin-top:8px;display:inline-flex;gap:10px;align-items:center;font-weight:500;font-size:14px;border-bottom:1px solid var(--fg);padding-bottom:3px}
+.note{margin-top:80px;padding-top:20px;border-top:1px solid var(--rule);color:var(--soft);font-size:14px;max-width:70ch}
+@media (max-width:760px){ .item,.item:nth-child(even){grid-template-columns:1fr;gap:18px} .item:nth-child(even) .shot{order:0} }
+@media (prefers-reduced-motion:reduce){ .shot img{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="mono">Homepage directions · Round 2 · 3D</div>
+  <h1>Five minimal, interactive 3D homepages</h1>
+  <p class="intro">Each one is built around a single real-time 3D object you can touch. Open them on a laptop for the full effect, then check them on your phone. Tell me which one you want, or which parts to combine.</p>
+
+  <div class="list">
+    <article class="item">
+      <a class="shot" href="1-monolith.html"><img src="thumbs/1-monolith.jpg" alt="Monolith template preview" loading="lazy"></a>
+      <div class="meta"><span class="mono">01</span><h2>Monolith</h2><p>A single polished black slab on a cool grey stage. Thin type, a lot of space.</p><span class="try">Try: drag the slab to spin it. Scrolling turns it.</span><a class="open" href="1-monolith.html">Open Monolith →</a></div>
+    </article>
+    <article class="item">
+      <a class="shot" href="2-orbit.html"><img src="thumbs/2-orbit.jpg" alt="Orbit template preview" loading="lazy"></a>
+      <div class="meta"><span class="mono">02</span><h2>Orbit</h2><p>Twelve thousand particles on deep navy that re-form into a new shape for each service.</p><span class="try">Try: click Automate, Build, Rank, Grow.</span><a class="open" href="2-orbit.html">Open Orbit →</a></div>
+    </article>
+    <article class="item">
+      <a class="shot" href="3-liquid.html"><img src="thumbs/3-liquid.jpg" alt="Liquid template preview" loading="lazy"></a>
+      <div class="meta"><span class="mono">03</span><h2>Liquid</h2><p>A living liquid-chrome form above an elegant serif headline. Calm and luxurious.</p><span class="try">Try: move your cursor over the chrome. It dents and ripples.</span><a class="open" href="3-liquid.html">Open Liquid →</a></div>
+    </article>
+    <article class="item">
+      <a class="shot" href="4-field.html"><img src="thumbs/4-field.jpg" alt="Field template preview" loading="lazy"></a>
+      <div class="meta"><span class="mono">04</span><h2>Field</h2><p>A dark horizon of points that moves like a signal. Technical and precise.</p><span class="try">Try: move over the field to raise it; click to send a pulse.</span><a class="open" href="4-field.html">Open Field →</a></div>
+    </article>
+    <article class="item">
+      <a class="shot" href="5-layers.html"><img src="thumbs/5-layers.jpg" alt="Layers template preview" loading="lazy"></a>
+      <div class="meta"><span class="mono">05</span><h2>Layers</h2><p>Your services as a stack of plates in isometric 3D. Clear and easy to explain to clients.</p><span class="try">Try: hover to open the stack; click a plate to lift it.</span><a class="open" href="5-layers.html">Open Layers →</a></div>
+    </article>
+  </div>
+
+  <p class="note">“Your Brand” is a placeholder until you choose a name. Buttons and links are not connected yet. Colours, fonts, wording and the 3D object can all be changed once you pick a direction.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Template — Liquid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500&display=swap">
+<style>
+/* Layout: a liquid-chrome form that ripples under the cursor, centred on a pale silver field. Serif headline beneath it, nothing else competing. */
+:root{
+  --bg:#dfe2e7; --fg:#111317; --soft:#666c77; --rule:rgba(17,19,23,.14); --card:rgba(255,255,255,.55);
+  --serif:"Instrument Serif",Georgia,serif; --sans:"Geist",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(120% 80% at 50% 30%,#f3f4f7 0%,var(--bg) 60%);background-color:var(--bg);color:var(--fg);font:400 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--fg);outline-offset:4px}
+.small{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);font-weight:500}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:26px}
+.brand{font:400 26px var(--serif);letter-spacing:-.01em}
+nav{display:flex;gap:32px;font-size:14px;color:var(--soft)} nav a:hover{color:var(--fg)}
+.hero{position:relative;text-align:center;padding-block:0 80px}
+#gl{display:block;width:100%;height:min(62vh,620px);cursor:crosshair;touch-action:pan-y}
+h1{font:400 clamp(48px,8vw,124px)/.92 var(--serif);letter-spacing:-.035em;margin:-40px 0 0;text-wrap:balance;position:relative}
+h1 em{font-style:italic}
+.sub{max-width:44ch;margin:28px auto 0;color:var(--soft);font-size:17px}
+.cta{display:inline-flex;gap:12px;align-items:center;margin-top:32px;background:var(--fg);color:#f3f4f7;padding:16px 28px;border-radius:999px;font-weight:500;font-size:15px;transition:transform .3s}
+.cta:hover{transform:scale(1.04)}
+section{padding-block:120px;border-top:1px solid var(--rule)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:20px;overflow:hidden;margin-top:48px}
+.cell{background:var(--card);backdrop-filter:blur(10px);padding:32px 26px 36px;display:grid;gap:14px;align-content:start;transition:background .3s}
+.cell:hover{background:#fff}
+.cell h3{font:400 34px/1 var(--serif);margin:0}
+.cell p{margin:0;color:var(--soft);font-size:15px}
+h2{font:400 clamp(36px,5vw,72px)/1 var(--serif);letter-spacing:-.02em;margin:14px 0 0;max-width:14em;text-wrap:balance}
+h2 em{font-style:italic}
+.end{text-align:center}
+.end h2{margin-inline:auto}
+footer .wrap{display:flex;justify-content:space-between;padding-block:28px;border-top:1px solid var(--rule)}
+.tpl-chip{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;background:var(--fg);color:#f3f4f7;padding:9px 14px;border-radius:999px}
+@media (max-width:860px){ .grid{grid-template-columns:1fr 1fr} nav{display:none} #gl{height:46vh} h1{margin-top:-16px} }
+@media (max-width:520px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="#">Your Brand</a><nav aria-label="Main"><a href="#services">Services</a><a href="#talk">Contact</a></nav></div></header>
+<main>
+  <div class="hero">
+    <canvas id="gl" aria-label="Liquid metal form that reacts to your cursor" role="img"></canvas>
+    <div class="wrap">
+      <h1>Quietly, <em>everything</em> works.</h1>
+      <p class="sub">Automations, websites and search, engineered so your business keeps moving without you pushing it.</p>
+      <a class="cta" href="#talk">Begin a project <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+
+  <section id="services"><div class="wrap">
+    <div class="small">What we make</div>
+    <h2>Fewer tasks. <em>More</em> business.</h2>
+    <div class="grid">
+      <div class="cell"><span class="small">Automation</span><h3>Self-running</h3><p>Leads captured, qualified and answered on WhatsApp and email in seconds.</p></div>
+      <div class="cell"><span class="small">Websites</span><h3>Fast &amp; yours</h3><p>Mobile-first sites, stores and B2B quote systems. You own the code.</p></div>
+      <div class="cell"><span class="small">Search</span><h3>Found</h3><p>Google, Maps and AI answers. Plain-language reports, no empty promises.</p></div>
+      <div class="cell"><span class="small">Pipeline</span><h3>Booked</h3><p>Managed B2B outreach with qualified meetings handed to your team.</p></div>
+    </div>
+  </div></section>
+
+  <section id="talk" class="end"><div class="wrap">
+    <div class="small">Fixed written quote · Full ownership · No lock-in</div>
+    <h2>Let's make it <em>effortless.</em></h2>
+    <a class="cta" href="#talk">Book a free call <span aria-hidden="true">→</span></a>
+  </div></section>
+</main>
+<footer><div class="wrap"><span class="small">© Your Brand</span><span class="small">India · Worldwide</span></div></footer>
+<a class="tpl-chip" href="./">← All templates · 3</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  if (!window.THREE) return;
+  const canvas = document.getElementById('gl');
+  let renderer; try { renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ canvas.remove(); return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(32, 1, .1, 100); camera.position.set(0,0,7);
+
+  // studio reflections
+  const pm = new THREE.PMREMGenerator(renderer), env = new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.SphereGeometry(20, 32, 16), new THREE.MeshBasicMaterial({color:0x2c3038, side:THREE.BackSide})));
+  [[0,10,0,24,3,0xffffff],[-10,0,4,2,14,0xffffff],[10,2,-3,2,10,0xdfe6f5],[0,-9,0,40,40,0xe9ecf2],[0,0,-12,30,2,0xffffff],[0,3,12,30,.8,0xffffff]].forEach(([x,y,z,w,h,c]) => {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:c, side:THREE.DoubleSide})); p.position.set(x,y,z); p.lookAt(0,0,0); env.add(p); });
+  scene.environment = pm.fromScene(env, .02).texture;
+
+  const uniforms = { uTime:{value:0}, uAmp:{value:.22}, uHit:{value:new THREE.Vector3(9,9,9)}, uPush:{value:0} };
+  const mat = new THREE.MeshStandardMaterial({color:0xffffff, metalness:1, roughness:.03});
+  mat.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, uniforms);
+    sh.vertexShader = `uniform float uTime; uniform float uAmp; uniform vec3 uHit; uniform float uPush;
+      vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;} vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}
+      vec4 perm(vec4 x){return m289(((x*34.)+1.)*x);} vec4 tis(vec4 r){return 1.79284291400159-.85373472095314*r;}
+      float snoise(vec3 v){const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);
+        vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);
+        vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;i=m289(i);
+        vec4 p=perm(perm(perm(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));
+        float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);
+        vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);
+        vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;vec4 sh=-step(h,vec4(0.));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+        vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);
+        vec4 norm=tis(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+        vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;
+        return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}
+      vec3 disp(vec3 p){ vec3 n = normalize(p);
+        float d = snoise(p*1.0 + vec3(0., uTime*.22, uTime*.15))*uAmp*1.15 + snoise(p*2.0 - uTime*.3)*uAmp*.25;
+        float hit = smoothstep(1.4, 0., distance(n*1.4, uHit)) * uPush; d -= hit*.35;
+        return n*(1.4 + d); }
+      ` + sh.vertexShader.replace('#include <beginnormal_vertex>', `
+        vec3 p0 = disp(position); vec3 nn = normalize(position);
+        vec3 tg = normalize(cross(nn, abs(nn.y) > .99 ? vec3(1.,0.,0.) : vec3(0.,1.,0.))); vec3 bt = cross(nn, tg);
+        float e = .01; vec3 p1 = disp(position + tg*e); vec3 p2 = disp(position + bt*e);
+        vec3 objectNormal = normalize(cross(p1 - p0, p2 - p0));
+        #ifdef USE_TANGENT
+          vec3 objectTangent = vec3(tangent.xyz);
+        #endif`).replace('#include <begin_vertex>', 'vec3 transformed = p0;');
+  };
+  const blob = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 64), mat); scene.add(blob);
+
+  function resize(){ const r = canvas.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.position.z = r.width < 600 ? 8.5 : 7; camera.updateProjectionMatrix(); }
+  addEventListener('resize', resize); resize();
+
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), hitSphere = new THREE.Sphere(new THREE.Vector3(), 1.5), hitP = new THREE.Vector3();
+  let push = 0, lastMove = 0, speed = 0, lx = 0, ly = 0;
+  canvas.addEventListener('pointermove', e => {
+    const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left)/r.width*2-1, -((e.clientY - r.top)/r.height*2-1));
+    speed = Math.min(1, speed + Math.hypot(e.clientX-lx, e.clientY-ly)/300); lx = e.clientX; ly = e.clientY;
+    ray.setFromCamera(ndc, camera);
+    if (ray.ray.intersectSphere(hitSphere, hitP)){ blob.worldToLocal(hitP); uniforms.uHit.value.copy(hitP.normalize().multiplyScalar(1.4)); push = 1; lastMove = performance.now(); }
+  });
+  canvas.addEventListener('pointerleave', () => push = 0);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function loop(now){
+    now = now || 0;
+    if (now - lastMove > 600) push = 0;
+    uniforms.uPush.value += (push - uniforms.uPush.value) * .08;
+    speed *= .96; uniforms.uAmp.value = .2 + speed * .25;
+    if (!reduce){ uniforms.uTime.value = now / 1000; blob.rotation.y += .002; }
+    renderer.render(scene, camera); requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>

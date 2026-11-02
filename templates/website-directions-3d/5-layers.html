@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Template — Layers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600&family=Martian+Mono:wght@300;400&display=swap">
+<style>
+/* Layout: the business as a stack of four glass-and-ceramic plates in isometric view. Hover opens the stack; pick a plate and it lifts while the side panel explains it. */
+:root{
+  --bg:#edeff2; --fg:#121418; --soft:#6a707b; --rule:rgba(18,20,24,.12); --cobalt:#2b4bd8; --panel:#ffffff;
+  --sans:"Familjen Grotesk",system-ui,sans-serif; --mono:"Martian Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1.5px solid var(--cobalt);outline-offset:4px}
+.mono{font:300 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:26px}
+.brand{font-weight:600;font-size:18px;letter-spacing:-.02em}
+.cta{display:inline-flex;gap:10px;align-items:center;background:var(--fg);color:var(--bg);padding:14px 22px;border-radius:12px;font-weight:500;font-size:15px;transition:background .3s}
+.cta:hover{background:var(--cobalt)}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:center;min-height:calc(100svh - 92px);padding-bottom:40px}
+h1{font:500 clamp(42px,6vw,92px)/.95 var(--sans);letter-spacing:-.045em;margin:16px 0 22px;text-wrap:balance}
+.lede{color:var(--soft);max-width:36ch;margin:0 0 28px;font-size:18px}
+.stage{position:relative;min-width:0}
+#gl{display:block;width:100%;aspect-ratio:5/4;max-width:100%;cursor:pointer;touch-action:pan-y}
+.picker{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pick{font:400 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);background:transparent;color:var(--fg);padding:9px 12px;border-radius:999px;cursor:pointer}
+.pick[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.card{background:var(--panel);border-radius:18px;padding:22px 24px;display:grid;gap:8px;margin-top:20px;max-width:440px;box-shadow:0 1px 0 var(--rule)}
+.card h2{font:600 24px/1.1 var(--sans);letter-spacing:-.02em;margin:0}
+.card p{margin:0;color:var(--soft);font-size:15px}
+section{padding-block:140px;border-top:1px solid var(--rule)}
+h3{font:500 clamp(34px,4.6vw,68px)/1 var(--sans);letter-spacing:-.04em;margin:14px 0 0;max-width:13em;text-wrap:balance}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;margin-top:56px}
+.three div{display:grid;gap:10px;align-content:start;border-top:1px solid var(--fg);padding-top:18px}
+.three b{font-weight:600;font-size:20px;letter-spacing:-.01em}
+.three span{color:var(--soft)}
+footer .wrap{display:flex;justify-content:space-between;padding-block:26px;border-top:1px solid var(--rule)}
+.tpl-chip{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;font:300 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:999px}
+@media (max-width:860px){ .hero{grid-template-columns:minmax(0,1fr);min-height:0} .three{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="#">Your Brand</a><a class="cta" href="#talk">Start a project</a></div></header>
+<main>
+  <div class="wrap hero">
+    <div>
+      <div class="mono">Automation · Websites · Search · Pipeline</div>
+      <h1>Built in layers. Owned by you.</h1>
+      <p class="lede">Four systems stacked into one business engine. Each layer works on its own and gets stronger with the others.</p>
+      <a class="cta" href="#talk">Book a free call →</a>
+      <div class="card" aria-live="polite">
+        <span class="mono" id="cNum">Layer 01 of 04</span>
+        <h2 id="cTitle">Pipeline</h2>
+        <p id="cText">Managed B2B research, outreach and follow-ups. Qualified meetings handed to your team every week.</p>
+      </div>
+    </div>
+    <div class="stage">
+      <canvas id="gl" aria-label="Stack of four service layers; choose one below or click a layer" role="img"></canvas>
+      <div class="picker" role="group" aria-label="Choose a layer">
+        <button class="pick" aria-pressed="true" data-i="0">Pipeline</button>
+        <button class="pick" aria-pressed="false" data-i="1">Search</button>
+        <button class="pick" aria-pressed="false" data-i="2">Website</button>
+        <button class="pick" aria-pressed="false" data-i="3">Automation</button>
+      </div>
+    </div>
+  </div>
+
+  <section><div class="wrap">
+    <div class="mono">How we work</div>
+    <h3>Clear from the first call to the last handover.</h3>
+    <div class="three">
+      <div><span class="mono">Before</span><b>Fixed written quote</b><span>Scope and price agreed in writing. Nothing starts until you approve.</span></div>
+      <div><span class="mono">During</span><b>Weekly progress</b><span>You see it working on your real enquiries, not on slides.</span></div>
+      <div><span class="mono">After</span><b>Everything is yours</b><span>Accounts, code and workflows in your name. Docs, walkthrough, no lock-in.</span></div>
+    </div>
+  </div></section>
+
+  <section id="talk"><div class="wrap">
+    <div class="mono">Contact</div>
+    <h3>Which layer should we start with?</h3>
+    <div style="margin-top:36px;display:flex;gap:16px;align-items:center;flex-wrap:wrap"><a class="cta" href="#talk">Book a free call →</a><span class="mono">Reply within one working day</span></div>
+  </div></section>
+</main>
+<footer><div class="wrap"><span class="mono">© Your Brand</span><span class="mono">India · Worldwide</span></div></footer>
+<a class="tpl-chip" href="./">← All templates · 5</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const L = [
+    {name:'Pipeline', text:'Managed B2B research, outreach and follow-ups. Qualified meetings handed to your team every week.', color:0x2b4bd8, ink:'#ffffff'},
+    {name:'Search', text:'Technical SEO, Google Maps and AI-answer visibility, reported monthly in plain language.', color:0xf4f5f7, ink:'#121418'},
+    {name:'Website', text:'Fast, mobile-first sites, stores and B2B quote systems on Next.js. The code is yours.', color:0xc9cfd9, ink:'#121418'},
+    {name:'Automation', text:'Enquiries captured, qualified and answered on WhatsApp and email in seconds. Orders and stock in sync.', color:0x1a1c21, ink:'#e9ecf1'}
+  ];
+  let sel = 0;
+  const picks = [...document.querySelectorAll('.pick')];
+  function choose(i){
+    sel = i; picks.forEach((p, k) => p.setAttribute('aria-pressed', k === i));
+    document.getElementById('cNum').textContent = `Layer 0${i+1} of 04`;
+    document.getElementById('cTitle').textContent = L[i].name; document.getElementById('cText').textContent = L[i].text;
+  }
+  picks.forEach((p, i) => p.addEventListener('click', () => choose(i)));
+  if (!window.THREE) return;
+
+  const canvas = document.getElementById('gl');
+  let renderer; try { renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ canvas.remove(); return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-4, 4, 4, -4, .1, 100); camera.position.set(8, 7.2, 8); camera.lookAt(0, 1.1, 0);
+
+  const pm = new THREE.PMREMGenerator(renderer), env = new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(20,20,20), new THREE.MeshBasicMaterial({color:0x9aa1ad, side:THREE.BackSide})));
+  [[0,9,0,12,12],[-9,3,3,1,8],[6,4,9,8,1]].forEach(([x,y,z,w,h]) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide})); p.position.set(x,y,z); p.lookAt(0,0,0); env.add(p); });
+  scene.environment = pm.fromScene(env, .04).texture;
+  const sun = new THREE.DirectionalLight(0xffffff, 1.1); sun.position.set(4, 10, 2); sun.castShadow = true; sun.shadow.mapSize.set(1024,1024);
+  Object.assign(sun.shadow.camera, {left:-5, right:5, top:5, bottom:-5}); sun.shadow.radius = 6; scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, .35));
+
+  function label(text, ink, bg){
+    const c = document.createElement('canvas'); c.width = c.height = 1024; const x = c.getContext('2d');
+    x.fillStyle = bg; x.fillRect(0,0,1024,1024);
+    x.fillStyle = ink; x.globalAlpha = .9; x.font = '500 120px "Familjen Grotesk", sans-serif'; x.fillText(text, 80, 940);
+    x.globalAlpha = .5; x.font = '300 34px "Martian Mono", monospace'; x.fillText('LAYER', 84, 150);
+    x.globalAlpha = .18; x.lineWidth = 2; x.strokeStyle = ink; for (let i = 1; i < 8; i++){ x.beginPath(); x.moveTo(i*128, 0); x.lineTo(i*128, 1024); x.stroke(); }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }
+  const plates = L.map((l, i) => {
+    const col = new THREE.Color(l.color), hex = '#' + col.getHexString();
+    const side = new THREE.MeshPhysicalMaterial({color:l.color, roughness:.35, metalness:.05, clearcoat:.6});
+    const top = new THREE.MeshPhysicalMaterial({map:label(l.name, l.ink, hex), roughness:.4, clearcoat:.8, clearcoatRoughness:.2});
+    const m = new THREE.Mesh(new THREE.BoxGeometry(3.4, .22, 3.4), [side, side, top, side, side, side]);
+    m.castShadow = m.receiveShadow = true; m.userData = {i, base: (3 - i) * .32}; m.position.y = m.userData.base; scene.add(m); return m;
+  });
+  document.fonts && document.fonts.ready.then(() => plates.forEach((p, i) => { p.material[2].map = label(L[i].name, L[i].ink, '#' + new THREE.Color(L[i].color).getHexString()); p.material[2].needsUpdate = true; }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(30,30), new THREE.ShadowMaterial({opacity:.12})); ground.rotation.x = -Math.PI/2; ground.position.y = -.4; ground.receiveShadow = true; scene.add(ground);
+
+  function resize(){ const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w,h,false); const a = w/h, s = 4.3; Object.assign(camera, {left:-s*a, right:s*a, top:s, bottom:-s}); camera.updateProjectionMatrix(); }
+  addEventListener('resize', resize); resize();
+
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let hover = false, mx = 0;
+  function pick(e){ const r = canvas.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height*2-1)); ray.setFromCamera(ndc, camera); const h = ray.intersectObjects(plates)[0]; return h && h.object.userData.i; }
+  canvas.addEventListener('pointerenter', () => hover = true);
+  canvas.addEventListener('pointerleave', () => hover = false);
+  canvas.addEventListener('pointermove', e => { const r = canvas.getBoundingClientRect(); mx = (e.clientX - r.left)/r.width - .5; });
+  canvas.addEventListener('click', e => { const i = pick(e); if (i !== undefined) choose(i); });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let open = 0, rot = 0;
+  (function loop(now){
+    now = (now || 0) / 1000;
+    open += ((hover ? 1 : .55) - open) * .06;
+    plates.forEach(p => { const i = p.userData.i, target = (3 - i) * (.32 + open * .7) + (i === sel ? .55 : 0);
+      p.position.y += (target - p.position.y) * .08; p.position.x += ((i === sel ? -.35 : 0) - p.position.x) * .08; });
+    rot += ((reduce ? 0 : Math.sin(now * .3) * .12) + mx * .5 - rot) * .05;
+    scene.rotation.y = rot;
+    renderer.render(scene, camera); requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>
