@@ -43,13 +43,16 @@ header .wrap{display:flex;justify-content:space-between;align-items:center;paddi
 .brand i{width:22px;height:22px;border-radius:7px;background:var(--ink);display:inline-block;box-shadow:inset -7px -7px 0 var(--saffron)}
 nav{display:flex;gap:28px;font-size:14px;color:var(--soft);font-weight:600}
 nav a:hover{color:var(--ink)}
+nav a[aria-current="page"]{color:var(--ink)}
+.menu-btn{display:none}
 
 /* 3D world, fixed behind everything */
 .hero{position:relative;min-height:max(780px,calc(100svh - 70px))}
 #world{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y;z-index:0}
 #world:active{cursor:grabbing}
 .labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
-header,main,footer{position:relative;z-index:2}
+header{position:relative;z-index:6}
+main,footer{position:relative;z-index:2}
 main{pointer-events:none}
 main .hero-grid > *,main .col,main .final{pointer-events:auto}
 .tag3d{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:var(--surface);border-radius:10px;padding:6px 10px;font:700 12px var(--sans);white-space:nowrap;box-shadow:0 6px 18px -8px rgba(23,37,42,.35);opacity:0;transition:opacity .4s}
@@ -174,6 +177,9 @@ details p{margin:10px 0 0;color:var(--soft)}
 @keyframes cue{0%{transform:scaleY(.2);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(.2);transform-origin:bottom}}
 footer{background:var(--ice)}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:28px;color:var(--soft);font-size:14px;flex-wrap:wrap}
+.foot-links{display:flex;gap:18px;flex-wrap:wrap}
+.foot-links a{font-weight:700;color:var(--ink)}
+.foot-links a:hover{color:var(--teal)}
 
 .bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:30;background:var(--ink);color:#fff;border-radius:18px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 40px -16px rgba(23,37,42,.6);transition:transform .45s cubic-bezier(.2,.8,.2,1);width:max-content;max-width:calc(100% - 32px)}
 .bar.show{transform:translate(-50%,0)}
@@ -199,6 +205,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
   .tag3d{padding:4px 8px;font-size:11px}
   .hint,.scroll-cue{display:none}
   nav{display:none}
+  nav.open{display:flex;position:absolute;left:max(20px,env(safe-area-inset-left,0px));right:max(20px,env(safe-area-inset-right,0px));top:72px;flex-direction:column;gap:0;background:var(--surface);border-radius:18px;padding:8px;box-shadow:0 20px 40px -20px rgba(23,37,42,.45);z-index:10}
+  nav.open a{padding:12px 14px;font-size:16px;color:var(--ink)}
+  .menu-btn{display:inline-flex}
+  header .wrap > div > .btn:first-child{display:none}
   .final{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:480px){ .opts{grid-template-columns:1fr} .stat{min-width:0;padding:8px 10px} .stat b{font-size:20px} .panel{padding:22px} .svc{grid-template-columns:40px 1fr} .svc .go{display:none} }
@@ -210,8 +220,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
 <div class="labels" id="labels" aria-hidden="true"></div>
 <header><div class="wrap">
   <a class="brand" href="#"><i aria-hidden="true"></i>Your Brand</a>
-  <nav aria-label="Main"><a href="#cost">What it costs you</a><a href="#how">How it works</a><a href="#faq">Questions</a></nav>
-  <a class="btn ghost" href="#build" data-jump style="padding:11px 16px">Get my free plan</a>
+  <nav aria-label="Main" id="mainNav"><a href="./" aria-current="page">Home</a><a href="services.html">Services</a><a href="about.html">About Us</a><a href="enquiry.html">Enquiry</a></nav>
+  <div style="display:flex;gap:8px;align-items:center"><a class="btn ghost" href="#build" data-jump style="padding:11px 16px">Get my free plan</a><button class="btn ghost menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mainNav" style="padding:11px 14px">Menu</button></div>
 </div></header>
 
 <main>
@@ -275,7 +285,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
               </div>
               <p class="err" id="err" hidden></p>
               <button class="btn hot" type="submit">Send me my plan →</button>
-              <p class="fine">Free. No obligation. We reply within one working day. You own everything we build.</p>
+              <p class="fine">Free. No obligation. We reply within one working day. By sending you agree to our <a href="terms.html" style="text-decoration:underline">Terms</a> and <a href="privacy.html" style="text-decoration:underline">Privacy Policy</a>. Prefer a longer form? <a href="enquiry.html" style="text-decoration:underline">Send a full enquiry</a>.</p>
             </form>
             <div class="done" id="done" hidden>
               <b>Plan saved. We'll message you on WhatsApp.</b>
@@ -356,7 +366,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     </div>
   </div></section>
 </main>
-<footer><div class="wrap"><span>© Your Brand</span><span>India · Worldwide</span></div></footer>
+<footer><div class="wrap"><span>© Your Brand · India · Worldwide</span><span class="foot-links"><a href="services.html">Services</a><a href="about.html">About Us</a><a href="enquiry.html">Enquiry</a><a href="terms.html">Terms &amp; Conditions</a><a href="privacy.html">Privacy Policy</a></span></div></footer>
 
 <div class="bar" id="bar" role="region" aria-label="Quick action"><i class="dot" aria-hidden="true"></i><span id="barText">Your island is losing customers right now</span><a class="btn hot" href="#build" data-jump style="padding:11px 16px">Fix it in 60 sec</a></div>
 <div class="modal" id="exit" hidden role="dialog" aria-modal="true" aria-labelledby="exitT">
@@ -830,6 +840,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
       requestAnimationFrame(loop);
     })(performance.now());
   })();
+
+  /* ================= menu ================= */
+  $('#menuBtn').addEventListener('click', () => { const o = $('#mainNav').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', o); $('#menuBtn').textContent = o ? 'Close' : 'Menu'; });
 
   /* ================= boot ================= */
   if (S.flow && !FLOWS[S.flow]) S.flow = null;

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enquiry — Your Brand</title>
+<meta name="description" content="Tell us what you need. We reply within one working day with next steps and a free call.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:28px;align-items:start}
+form.enq{background:var(--white);border-radius:28px;padding:clamp(22px,4vw,40px);display:grid;gap:22px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:10px}
+legend{font:800 18px var(--sans);letter-spacing:-.02em;padding:0;margin-bottom:10px}
+.req{color:var(--deep)}
+.consent{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:14px;color:var(--soft)}
+.consent input{width:20px;height:20px;accent-color:var(--deep);margin-top:2px}
+.bar-p{height:6px;border-radius:3px;background:var(--mint);overflow:hidden}
+.bar-p i{display:block;height:100%;width:0;background:var(--teal);transition:width .3s}
+.side{display:grid;gap:14px;position:sticky;top:calc(90px + env(safe-area-inset-top,0px))}
+.next{background:var(--ink);color:var(--mint);border-radius:24px;padding:26px;display:grid;gap:16px}
+.next h3{color:var(--white)}
+.next ol{list-style:none;margin:0;padding:0;display:grid;gap:14px;counter-reset:n}
+.next li{display:grid;grid-template-columns:32px 1fr;gap:12px;color:#a7c7c4}
+.next li::before{counter-increment:n;content:counter(n);width:28px;height:28px;border-radius:9px;background:var(--teal);color:var(--ink);display:grid;place-items:center;font-weight:800}
+.next b{color:var(--white);display:block}
+.contact{background:var(--white);border-radius:24px;padding:22px;display:grid;gap:12px}
+.contact .line{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--mint);border-radius:12px;padding:10px 12px}
+.contact .line span{font-weight:700;user-select:all;min-width:0;overflow-wrap:anywhere}
+.copy{all:unset;cursor:pointer;font:700 12px var(--sans);color:var(--deep);flex:none}
+.copy:focus-visible{outline:2px solid var(--deep)}
+.success{background:var(--white);border-radius:28px;padding:clamp(22px,4vw,40px);display:grid;gap:16px;justify-items:start}
+.success .obj{width:120px;height:120px}
+.success pre{white-space:pre-wrap;font:500 13px/1.7 var(--mono);background:var(--mint);border-radius:14px;padding:16px;margin:0;width:100%;overflow:auto}
+@media (max-width:900px){ .layout{grid-template-columns:minmax(0,1fr)} .side{position:static} }
+@media (max-width:560px){ .row2{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-page="enquiry">
+<main>
+  <div class="wrap page-hero">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Enquiry</span></nav>
+    <h1>Tell us what you need. <em>We'll reply within one working day.</em></h1>
+    <p class="lede">Two minutes to fill in. We read every enquiry ourselves and come back with clear next steps, and a free call if it makes sense.</p>
+  </div>
+
+  <div class="wrap layout">
+    <div>
+      <form class="enq" id="enq" novalidate>
+        <div style="display:grid;gap:8px"><div style="display:flex;justify-content:space-between"><span class="mono">Your enquiry</span><span class="mono" id="pct">0% complete</span></div><div class="bar-p" aria-hidden="true"><i id="pbar"></i></div></div>
+
+        <fieldset>
+          <legend>What can we help with? <span class="req">*</span></legend>
+          <div class="chips" role="group" aria-label="Services" id="svc">
+            <button type="button" class="chip" aria-pressed="false" data-v="automation">Automation</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="website">Website</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="seo">SEO &amp; AI search</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="pipeline">B2B pipeline</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="unsure">Not sure yet</button>
+          </div>
+          <p class="field"><span class="msg" id="svcMsg" hidden>Pick at least one option.</span></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>About you</legend>
+          <div class="row2">
+            <div class="field"><label for="name">Your name <span class="req">*</span></label><input id="name" autocomplete="name" required><span class="msg" hidden></span></div>
+            <div class="field"><label for="biz">Business name</label><input id="biz" autocomplete="organization"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="wa">WhatsApp number <span class="req">*</span></label><input id="wa" inputmode="tel" autocomplete="tel" placeholder="+91 98xxx xxxxx" required><span class="msg" hidden></span></div>
+            <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@business.com"><span class="msg" hidden></span></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label for="city">City</label><input id="city" autocomplete="address-level2" placeholder="e.g. Pune"></div>
+            <div class="field"><label for="web">Current website (if any)</label><input id="web" inputmode="url" placeholder="yourbusiness.in"></div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Your project</legend>
+          <div class="row2">
+            <div class="field"><label for="budget">Budget range</label>
+              <select id="budget"><option value="">Choose a range</option><option>Under ₹25,000</option><option>₹25,000 – ₹75,000</option><option>₹75,000 – ₹2,00,000</option><option>₹2,00,000+</option><option>Monthly retainer</option><option>Not sure yet</option></select></div>
+            <div class="field"><label for="when">When do you want to start?</label>
+              <select id="when"><option value="">Choose a timeline</option><option>As soon as possible</option><option>Within a month</option><option>In 1–3 months</option><option>Just exploring</option></select></div>
+          </div>
+          <div class="field"><label for="msg">What should we know? <span class="req">*</span></label><textarea id="msg" required placeholder="e.g. We get 40 enquiries a week on IndiaMART and WhatsApp and reply late to most of them."></textarea><span class="msg" hidden></span></div>
+          <div class="field"><span class="label">Best way to reach you</span>
+            <div class="chips" role="group" aria-label="Best way to reach you" id="via">
+              <button type="button" class="chip" aria-pressed="true" data-v="WhatsApp">WhatsApp</button>
+              <button type="button" class="chip" aria-pressed="false" data-v="Phone call">Phone call</button>
+              <button type="button" class="chip" aria-pressed="false" data-v="Email">Email</button>
+            </div>
+          </div>
+        </fieldset>
+
+        <label class="consent" for="ok"><input type="checkbox" id="ok"><span>I agree to the <a href="terms.html">Terms &amp; Conditions</a> and <a href="privacy.html">Privacy Policy</a>, and I'm happy to be contacted about this enquiry. <span class="req">*</span></span></label>
+        <p class="field" style="margin:0"><span class="msg" id="okMsg" hidden>Please tick the box so we can contact you.</span></p>
+
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn hot" type="submit">Send enquiry →</button><span class="mono">Draft saved on this device</span></div>
+      </form>
+
+      <div class="success" id="success" hidden tabindex="-1">
+        <div class="obj"><div class="spin"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+        <h2 style="margin:0">Thank you. Your enquiry is in.</h2>
+        <p class="lede" style="font-size:17px">We'll reply within one working day by your chosen method. Here's a copy of what you sent (demo form, not connected yet):</p>
+        <pre id="copyOut"></pre>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn primary" href="./#build">Build a free plan meanwhile</a><button class="btn ghost" id="again" type="button">Send another enquiry</button></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="next">
+        <h3>What happens next</h3>
+        <ol>
+          <li><span><b>We read it</b>Within one working day, a founder reads your enquiry.</span></li>
+          <li><span><b>Free call</b>15–30 minutes on WhatsApp or phone, Hindi or English.</span></li>
+          <li><span><b>Written quote</b>Fixed scope and price. Nothing starts until you approve.</span></li>
+        </ol>
+      </div>
+      <div class="contact">
+        <h3>Prefer to message directly?</h3>
+        <div class="line"><span id="c1">+91 00000 00000</span><button class="copy" data-copy="c1">Copy</button></div>
+        <div class="line"><span id="c2">hello@yourbrand.com</span><button class="copy" data-copy="c2">Copy</button></div>
+        <p class="mono" style="margin:0">Placeholders · replace with your real details</p>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="site.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const form = $('#enq'), KEY = 'enquiry-draft';
+  const fields = ['name','biz','wa','email','city','web','budget','when','msg'];
+  const S = { svc:[], via:'WhatsApp' };
+
+  // restore draft
+  try { const d = JSON.parse(localStorage.getItem(KEY) || '{}'); fields.forEach(f => { if (d[f]) $('#' + f).value = d[f]; }); if (d.svc) S.svc = d.svc; if (d.via) S.via = d.via; } catch(e){}
+  const pre = location.hash.slice(1); if (['automation','website','seo','pipeline'].includes(pre) && !S.svc.includes(pre)) S.svc.push(pre);
+  const save = () => { try { const d = { svc:S.svc, via:S.via }; fields.forEach(f => d[f] = $('#' + f).value); localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){} };
+
+  function paintChips(){
+    $$('#svc .chip').forEach(c => c.setAttribute('aria-pressed', S.svc.includes(c.dataset.v)));
+    $$('#via .chip').forEach(c => c.setAttribute('aria-pressed', S.via === c.dataset.v));
+  }
+  $$('#svc .chip').forEach(c => c.addEventListener('click', () => { const v = c.dataset.v, i = S.svc.indexOf(v); i < 0 ? S.svc.push(v) : S.svc.splice(i, 1); paintChips(); progress(); save(); $('#svcMsg').hidden = true; }));
+  $$('#via .chip').forEach(c => c.addEventListener('click', () => { S.via = c.dataset.v; paintChips(); save(); }));
+
+  function progress(){
+    const parts = [S.svc.length > 0, !!$('#name').value.trim(), $('#wa').value.replace(/\D/g, '').length >= 10, !!$('#msg').value.trim(), $('#ok').checked, !!$('#budget').value, !!$('#when').value];
+    const p = Math.round(parts.filter(Boolean).length / parts.length * 100);
+    $('#pbar').style.width = p + '%'; $('#pct').textContent = p + '% complete';
+  }
+  form.addEventListener('input', () => { progress(); save(); });
+  form.addEventListener('change', progress);
+
+  function flag(id, text){ const el = $('#' + id), m = el.parentElement.querySelector('.msg'); el.setAttribute('aria-invalid', !!text); if (m){ m.textContent = text || ''; m.hidden = !text; } return !text; }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const wa = $('#wa').value.replace(/[^\d+]/g, ''), email = $('#email').value.trim();
+    const checks = [
+      flag('name', $('#name').value.trim() ? '' : 'Add your name so we know who to ask for.'),
+      flag('wa', wa.replace(/\D/g, '').length >= 10 ? '' : 'Enter a WhatsApp number with at least 10 digits.'),
+      flag('email', !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'This email looks incomplete. Check it or leave it empty.'),
+      flag('msg', $('#msg').value.trim() ? '' : 'Tell us a little about what you need.')
+    ];
+    const svcOk = S.svc.length > 0; $('#svcMsg').hidden = svcOk;
+    const ok = $('#ok').checked; $('#okMsg').hidden = ok;
+    if (!svcOk){ $('#svc .chip').focus(); return; }
+    const firstBad = ['name','wa','email','msg'].find((f, i) => !checks[i]);
+    if (firstBad){ $('#' + firstBad).focus(); return; }
+    if (!ok){ $('#ok').focus(); return; }
+    const names = { automation:'Automation', website:'Website', seo:'SEO & AI search', pipeline:'B2B pipeline', unsure:'Not sure yet' };
+    const lines = [`Services: ${S.svc.map(s => names[s]).join(', ')}`, `Name: ${$('#name').value.trim()}`, `Business: ${$('#biz').value.trim() || '—'}`, `WhatsApp: ${wa}`, `Email: ${email || '—'}`,
+      `City: ${$('#city').value.trim() || '—'}`, `Website: ${$('#web').value.trim() || '—'}`, `Budget: ${$('#budget').value || '—'}`, `Start: ${$('#when').value || '—'}`, `Contact by: ${S.via}`, '', $('#msg').value.trim()];
+    $('#copyOut').textContent = lines.join('\n');
+    form.hidden = true; $('#success').hidden = false; $('#success').focus();
+    try { localStorage.removeItem(KEY); } catch(e){}
+  });
+  $('#again').addEventListener('click', () => { form.reset(); S.svc = []; S.via = 'WhatsApp'; paintChips(); progress(); form.hidden = false; $('#success').hidden = true; $('#name').focus(); });
+  $$('.copy').forEach(b => b.addEventListener('click', () => {
+    const el = $('#' + b.dataset.copy), done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500); };
+    const sel = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; };
+    try { navigator.clipboard.writeText(el.textContent).then(done, sel); } catch(e){ sel(); }
+  }));
+  addEventListener('hashchange', () => { const h = location.hash.slice(1); if (['automation','website','seo','pipeline'].includes(h) && !S.svc.includes(h)){ S.svc.push(h); paintChips(); progress(); } });
+  paintChips(); progress();
+})();
+</script>
+</body>
+</html>

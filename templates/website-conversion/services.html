@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Services — Your Brand</title>
+<meta name="description" content="Business automation, fast websites, SEO and AI search, and managed B2B pipeline. Fixed written quotes and full ownership.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="site.css">
+<style>
+.finder{background:var(--white);border-radius:24px;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.finder .answer{background:var(--mint);border-radius:18px;padding:20px;display:grid;gap:8px;min-height:100%}
+.finder .answer b{font-size:22px;letter-spacing:-.02em}
+.finder .answer p{margin:0;color:var(--soft)}
+.svc-block{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:72px;border-top:1px solid var(--line);scroll-margin-top:80px}
+.svc-block:nth-of-type(even) .svc-text{order:2}
+.svc-text{display:grid;gap:16px}
+.svc-text .who{display:flex;gap:6px;flex-wrap:wrap}
+.svc-text .who span{font:700 12px var(--sans);background:var(--white);padding:6px 10px;border-radius:999px}
+.svc-card{background:var(--white);border-radius:24px;padding:28px;display:grid;gap:18px}
+.svc-card .top{display:flex;gap:18px;align-items:center}
+.svc-card ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.svc-card li{display:grid;grid-template-columns:20px 1fr;gap:10px;font-weight:600}
+.svc-card li::before{content:"";width:12px;height:12px;border-radius:4px;background:var(--teal);margin-top:6px}
+.svc-card .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.svc-card .meta div{background:var(--mint);border-radius:12px;padding:10px 12px}
+.svc-card .meta b{display:block;font-size:15px}
+.svc-card .row{display:flex;gap:8px;flex-wrap:wrap}
+.works{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:28px}
+.works .card b{font:500 12px var(--mono);color:var(--deep)}
+@media (max-width:900px){ .finder,.svc-block{grid-template-columns:minmax(0,1fr)} .svc-block:nth-of-type(even) .svc-text{order:0} .works{grid-template-columns:1fr 1fr} }
+@media (max-width:480px){ .works{grid-template-columns:1fr} .svc-card .meta{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-page="services">
+<main>
+  <div class="wrap page-hero">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Services</span></nav>
+    <h1>Four services. <em>One goal:</em> more customers, less manual work.</h1>
+    <p class="lede">Search brings buyers to you, your website turns them into enquiries, and automation answers every one. Use one service or connect all of them.</p>
+  </div>
+
+  <section style="padding-top:0"><div class="wrap">
+    <div class="finder" aria-labelledby="finderT">
+      <div style="display:grid;gap:14px">
+        <div class="mono">Not sure where to start?</div>
+        <h2 id="finderT" style="font-size:28px;margin:0">What's your biggest problem right now?</h2>
+        <div class="chips" role="group" aria-label="Your biggest problem">
+          <button class="chip" aria-pressed="true" data-k="automation">We miss or reply late to enquiries</button>
+          <button class="chip" aria-pressed="false" data-k="website">Our website brings no enquiries</button>
+          <button class="chip" aria-pressed="false" data-k="seo">Customers can't find us on Google</button>
+          <button class="chip" aria-pressed="false" data-k="pipeline">We need more B2B meetings</button>
+          <button class="chip" aria-pressed="false" data-k="manual">Too much copy-paste and admin</button>
+        </div>
+      </div>
+      <div class="answer" aria-live="polite">
+        <span class="mono">Start with</span>
+        <b id="fName">Automation</b>
+        <p id="fWhy">Every enquiry gets an instant reply on WhatsApp or email, lands in your CRM and alerts the right person.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><a class="btn primary" id="fGo" href="#automation">See this service</a><a class="btn ghost" id="fEnq" href="enquiry.html#automation">Enquire</a></div>
+      </div>
+    </div>
+  </div></section>
+
+  <div class="wrap">
+    <article class="svc-block" id="automation">
+      <div class="svc-text">
+        <div class="mono">01 · Automation</div>
+        <h2>Reply to every enquiry in seconds.</h2>
+        <p class="lede" style="font-size:17px">We connect your website, WhatsApp, IndiaMART, email and calls so leads are captured, qualified and followed up automatically, while invoices, orders and stock stay in sync.</p>
+        <div class="who"><span>Manufacturers</span><span>Clinics</span><span>Online shops</span><span>Service businesses</span></div>
+      </div>
+      <div class="svc-card tilt">
+        <div class="top"><div class="obj lift"><div class="spin"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div><h3>What's included</h3></div>
+        <ul><li>Lead capture from every channel into one place</li><li>Instant WhatsApp and email replies in your tone</li><li>Qualification, CRM entry and owner alerts</li><li>Invoice, order and inventory syncing</li><li>Reports that build themselves</li></ul>
+        <div class="meta"><div><span class="mono">Tools</span><b>n8n · Zapier · Make · Zoho · HubSpot</b></div><div><span class="mono">Pricing</span><b>Fixed written quote</b></div></div>
+        <div class="row"><a class="btn hot" href="./#automation">Build my plan</a><a class="btn ghost" href="enquiry.html#automation">Enquire</a></div>
+      </div>
+    </article>
+
+    <article class="svc-block" id="website">
+      <div class="svc-text">
+        <div class="mono">02 · Websites</div>
+        <h2>A fast website that turns visitors into enquiries.</h2>
+        <p class="lede" style="font-size:17px">Mobile-first business sites, landing pages, online stores with an admin panel and B2B quote-request systems. Built on Next.js, loading in under two seconds, with the code and domain in your name.</p>
+        <div class="who"><span>New businesses</span><span>Old or slow sites</span><span>Stores</span><span>Exporters</span></div>
+      </div>
+      <div class="svc-card tilt">
+        <div class="top"><div class="obj ink lift"><div class="spin"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div><h3>What's included</h3></div>
+        <ul><li>Design for phones first, then desktop</li><li>Enquiry forms and WhatsApp button on every page</li><li>UPI and card payments for stores</li><li>Admin panel to edit content yourself</li><li>Basic SEO setup and analytics from day one</li></ul>
+        <div class="meta"><div><span class="mono">Built with</span><b>Next.js · React</b></div><div><span class="mono">Pricing</span><b>Fixed written quote</b></div></div>
+        <div class="row"><a class="btn hot" href="./#website">Build my plan</a><a class="btn ghost" href="enquiry.html#website">Enquire</a></div>
+      </div>
+    </article>
+
+    <article class="svc-block" id="seo">
+      <div class="svc-text">
+        <div class="mono">03 · SEO &amp; AI search</div>
+        <h2>Get found on Google, Maps and in AI answers.</h2>
+        <p class="lede" style="font-size:17px">Technical fixes, city pages, content plans and Google Business Profile, plus structuring your content so AI assistants can cite you. Reported every month in plain language, with no ranking guarantees or risky tactics.</p>
+        <div class="who"><span>Local businesses</span><span>Multi-city</span><span>National brands</span><span>B2B</span></div>
+      </div>
+      <div class="svc-card tilt">
+        <div class="top"><div class="obj round lift"><div class="spin"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div><h3>What's included</h3></div>
+        <ul><li>Technical SEO audit and fixes</li><li>Keyword research and a content plan</li><li>Google Business Profile for every location</li><li>AI-answer visibility (ChatGPT, Gemini, Perplexity)</li><li>Monthly report you can actually read</li></ul>
+        <div class="meta"><div><span class="mono">Reporting</span><b>Monthly, plain language</b></div><div><span class="mono">Pricing</span><b>Fixed monthly quote</b></div></div>
+        <div class="row"><a class="btn hot" href="./#seo">Build my plan</a><a class="btn ghost" href="enquiry.html#seo">Enquire</a></div>
+      </div>
+    </article>
+
+    <article class="svc-block" id="pipeline">
+      <div class="svc-text">
+        <div class="mono">04 · B2B pipeline</div>
+        <h2>Qualified meetings, without hiring a sales team.</h2>
+        <p class="lede" style="font-size:17px">A managed outbound service for established B2B companies: prospect research, personalised outreach, follow-ups, reply handling and CRM management, with meetings handed to your team.</p>
+        <div class="who"><span>Exporters</span><span>Manufacturers</span><span>IT services</span><span>Professional services</span></div>
+      </div>
+      <div class="svc-card tilt">
+        <div class="top"><div class="obj ink round lift"><div class="spin"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div><h3>What's included</h3></div>
+        <ul><li>Ideal-customer research and qualified lists</li><li>Personalised outreach and follow-up sequences</li><li>Reply classification and routing</li><li>CRM pipeline management and meeting handoff</li><li>Weekly performance reporting</li></ul>
+        <div class="meta"><div><span class="mono">Starts at</span><b>₹1,00,000 / month + setup</b></div><div><span class="mono">Best for</span><b>High-value B2B deals</b></div></div>
+        <div class="row"><a class="btn hot" href="enquiry.html#pipeline">Enquire</a></div>
+      </div>
+    </article>
+  </div>
+
+  <section><div class="wrap">
+    <div class="mono">How every project works</div>
+    <h2>Clear steps. No surprises.</h2>
+    <div class="works">
+      <div class="card tilt"><b>01</b><h3>Free call</h3><p>15–30 minutes, Hindi or English. We look at your real numbers.</p></div>
+      <div class="card tilt"><b>02</b><h3>Written quote</h3><p>Fixed scope and price in INR or USD. Nothing starts until you approve.</p></div>
+      <div class="card tilt"><b>03</b><h3>Build &amp; test</h3><p>Weekly updates. Tested on your real customers before launch.</p></div>
+      <div class="card tilt"><b>04</b><h3>Handover</h3><p>Accounts, code and docs in your name, with a walkthrough.</p></div>
+    </div>
+  </div></section>
+
+  <section><div class="wrap">
+    <div class="cta-band">
+      <h2>Not sure what you need? <span>Ask us.</span></h2>
+      <div class="row"><a class="btn primary" href="enquiry.html">Send an enquiry</a><a class="btn ghost" href="./#build">Build a free plan</a></div>
+    </div>
+  </div></section>
+</main>
+<script src="site.js"></script>
+<script>
+(function(){
+  const A = {
+    automation:['Automation','Every enquiry gets an instant reply on WhatsApp or email, lands in your CRM and alerts the right person.'],
+    website:['Website','A fast, mobile-first site with clear calls to action and forms on every page, so visitors become enquiries.'],
+    seo:['SEO & AI search','Technical fixes, city pages and Google Business Profile so buyers find you before your competitors.'],
+    pipeline:['B2B pipeline','Managed research and outreach that books qualified meetings with the companies you want to sell to.'],
+    manual:['Automation','Orders, invoices, stock and reports synced automatically, so your team stops copying data between tools.']
+  };
+  const chips = [...document.querySelectorAll('.finder .chip')];
+  chips.forEach(c => c.addEventListener('click', () => {
+    chips.forEach(x => x.setAttribute('aria-pressed', x === c));
+    const k = c.dataset.k, [n, w] = A[k], id = k === 'manual' ? 'automation' : k;
+    document.getElementById('fName').textContent = n; document.getElementById('fWhy').textContent = w;
+    document.getElementById('fGo').href = '#' + id; document.getElementById('fEnq').href = 'enquiry.html#' + id;
+  }));
+})();
+</script>
+</body>
+</html>
