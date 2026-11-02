@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lead System Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a floating 3D island fills the hero. Enquiries fly in; without a system, many fall off the edge.
+   The visitor answers four questions on the left panel, the island builds their system, and the result turns into a booked call. */
+:root{
+  --mist:#e8ecf4; --mist-2:#dfe4ee; --surface:#ffffff; --ink:#0f1530; --soft:#5b6380; --line:rgba(15,21,48,.1);
+  --cobalt:#3346ff; --cobalt-soft:#e6e9ff; --coral:#ff6b4a; --mint:#18b892; --mint-soft:#dcf6ee;
+  --sans:"Manrope",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  --r:18px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--mist);color:var(--ink);font:500 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cobalt);outline-offset:3px}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.mono{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;border-radius:14px;padding:15px 22px;font:700 15px var(--sans);transition:transform .2s,box-shadow .2s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--cobalt);color:#fff;box-shadow:0 10px 24px -10px rgba(51,70,255,.7)}
+.btn.hot{background:var(--coral);color:#fff;box-shadow:0 10px 24px -10px rgba(255,107,74,.7)}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* header */
+header{position:relative;z-index:5}
+header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:20px;gap:16px}
+.brand{font-weight:800;font-size:18px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.brand i{width:22px;height:22px;border-radius:7px;background:var(--cobalt);display:inline-block;box-shadow:inset -6px -6px 0 var(--coral)}
+nav{display:flex;gap:28px;font-size:14px;color:var(--soft);font-weight:600}
+nav a:hover{color:var(--ink)}
+
+/* hero world */
+.hero{position:relative;min-height:max(760px,calc(100svh - 70px))}
+#world{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
+#world:active{cursor:grabbing}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tag3d{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:var(--surface);border-radius:10px;padding:6px 10px;font:700 12px var(--sans);white-space:nowrap;box-shadow:0 6px 18px -8px rgba(15,21,48,.35);opacity:0;transition:opacity .4s}
+.tag3d small{display:block;font:500 10px var(--mono);color:var(--soft);letter-spacing:.04em}
+.tag3d.on{opacity:1}
+.tag3d.src{background:var(--ink);color:#fff}
+.tag3d.src small{color:#aab0c6}
+.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:24px;padding-block:24px 40px;pointer-events:none}
+.hero-grid > *{pointer-events:auto}
+.stats{align-self:start;justify-self:end;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.stat{background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border-radius:14px;padding:10px 14px;min-width:120px}
+.stat b{display:block;font:800 26px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat.lost b{color:var(--coral)} .stat.won b{color:var(--mint)}
+.hint{position:absolute;right:max(20px,env(safe-area-inset-right,0px));bottom:20px;pointer-events:none}
+
+/* panel */
+.panel{background:rgba(255,255,255,.86);backdrop-filter:blur(16px);border-radius:24px;padding:28px;box-shadow:0 30px 60px -30px rgba(15,21,48,.35);display:grid;gap:18px}
+h1{font:800 clamp(30px,3.4vw,44px)/1.05 var(--sans);letter-spacing:-.04em;margin:0;text-wrap:balance}
+h1 em{font-style:normal;color:var(--coral)}
+.lede{margin:0;color:var(--soft);font-size:16px}
+.progress{display:flex;gap:6px}
+.progress i{flex:1;height:4px;border-radius:2px;background:var(--mist-2);transition:background .3s}
+.progress i.on{background:var(--cobalt)}
+.step{display:grid;gap:12px}
+.step[hidden]{display:none}
+.q{font:800 20px/1.2 var(--sans);letter-spacing:-.02em;margin:0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;border-radius:14px;padding:12px 14px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);font:600 14px/1.3 var(--sans);display:grid;gap:2px;transition:box-shadow .15s,background .15s}
+.opt small{font:500 12px var(--sans);color:var(--soft)}
+.opt:hover{box-shadow:inset 0 0 0 1.5px var(--cobalt)}
+.opt[aria-pressed="true"]{background:var(--cobalt-soft);box-shadow:inset 0 0 0 2px var(--cobalt)}
+.opt:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+.opts.one{grid-template-columns:1fr}
+.range-row{display:flex;justify-content:space-between;align-items:baseline}
+.range-row b{font:800 34px var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--cobalt) var(--p,30%),var(--mist-2) var(--p,30%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--cobalt),0 4px 10px rgba(51,70,255,.4);cursor:grab}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--cobalt);cursor:grab}
+.nav-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.back{all:unset;cursor:pointer;color:var(--soft);font-weight:600;font-size:14px}
+.back:hover{color:var(--ink)}
+.back:focus-visible{outline:2px solid var(--cobalt)}
+
+/* result */
+.result{display:grid;gap:14px}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.num{background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:inset 0 0 0 1.5px var(--line)}
+.num b{display:block;font:800 28px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.num.g b{color:var(--mint)}
+.plan{background:var(--ink);color:#fff;border-radius:16px;padding:16px 18px;display:grid;gap:6px}
+.plan .mono{color:#aab0c6}
+.plan b{font-size:18px;letter-spacing:-.01em}
+.plan ul{margin:4px 0 0;padding-left:18px;color:#d5d9e8;font-size:14px}
+form{display:grid;gap:10px}
+.field{display:grid;gap:4px}
+.field label{font:600 13px var(--sans);color:var(--soft)}
+.field input{font:600 16px var(--sans);padding:13px 14px;border-radius:12px;border:0;box-shadow:inset 0 0 0 1.5px var(--line);background:var(--surface);color:var(--ink)}
+.field input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--cobalt)}
+.slots{display:flex;gap:6px;flex-wrap:wrap}
+.slot{all:unset;cursor:pointer;font:600 13px var(--sans);padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);background:var(--surface)}
+.slot[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}
+.slot:focus-visible{outline:2px solid var(--cobalt)}
+.fine{font-size:12px;color:var(--soft);margin:0}
+.err{color:var(--coral);font-size:13px;margin:0;font-weight:600}
+.done{background:var(--mint-soft);border-radius:16px;padding:18px;display:grid;gap:8px}
+.done b{font-size:18px}
+.done pre{white-space:pre-wrap;font:500 12px/1.6 var(--mono);background:var(--surface);border-radius:10px;padding:12px;margin:0;max-height:180px;overflow:auto}
+
+/* sections */
+section{padding-block:110px}
+h2{font:800 clamp(30px,4vw,52px)/1.05 var(--sans);letter-spacing:-.04em;margin:12px 0 0;max-width:18em;text-wrap:balance}
+.lose{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:44px}
+.card{background:var(--surface);border-radius:var(--r);padding:26px;display:grid;gap:10px;align-content:start}
+.card b{font-size:19px;letter-spacing:-.02em}
+.card p{margin:0;color:var(--soft)}
+.card .big{font:800 44px/1 var(--sans);letter-spacing:-.04em;color:var(--coral)}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:44px;counter-reset:s}
+.steps .card::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:500 12px var(--mono);color:var(--cobalt)}
+.own{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:start}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.checks li{background:var(--surface);border-radius:14px;padding:16px 18px 16px 50px;position:relative;font-weight:600}
+.checks li::before{content:"";position:absolute;left:18px;top:19px;width:18px;height:18px;border-radius:50%;background:var(--mint);box-shadow:inset 0 0 0 5px var(--mint-soft)}
+details{background:var(--surface);border-radius:14px;padding:18px 20px;margin-top:10px}
+summary{cursor:pointer;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--cobalt);font-weight:800}
+details[open] summary::after{content:"–"}
+details p{margin:10px 0 0;color:var(--soft)}
+.final{background:var(--ink);color:#fff;border-radius:32px;padding:clamp(32px,6vw,72px);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end}
+.final h2{color:#fff;margin:0}
+.final p{color:#b6bbd0;margin:0 0 18px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:28px;color:var(--soft);font-size:14px;flex-wrap:wrap}
+
+/* sticky bar + exit modal */
+.bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:30;background:var(--ink);color:#fff;border-radius:18px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 40px -16px rgba(15,21,48,.6);transition:transform .45s cubic-bezier(.2,.8,.2,1);width:max-content;max-width:calc(100% - 32px)}
+.bar.show{transform:translate(-50%,0)}
+.bar span{font-weight:600;font-size:14px}
+.bar .dot{width:8px;height:8px;border-radius:50%;background:var(--coral);flex:none;box-shadow:0 0 0 4px rgba(255,107,74,.25)}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(15,21,48,.45);display:grid;place-items:center;padding:20px}
+.modal .box{background:var(--surface);border-radius:24px;padding:28px;max-width:420px;display:grid;gap:14px}
+.modal h3{font:800 24px/1.1 var(--sans);letter-spacing:-.03em;margin:0}
+.modal p{margin:0;color:var(--soft)}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:980px){
+  .hero{min-height:0}
+  #world{position:relative;height:56vh;min-height:380px}
+  .labels{height:56vh;min-height:380px;bottom:auto}
+  .hero-grid{grid-template-columns:minmax(0,1fr);padding-top:0;position:static}
+  .stats{position:absolute;top:12px;right:max(20px,env(safe-area-inset-right,0px));justify-self:auto}
+  .stats .stat:first-child{display:none}
+  .tag3d small{display:none}
+  .tag3d{padding:4px 8px;font-size:11px}
+  .hint{display:none}
+  nav{display:none}
+  .lose,.steps,.own,.final{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:480px){ .opts{grid-template-columns:1fr} .stat{min-width:0;padding:8px 10px} .stat b{font-size:20px} .panel{padding:22px} }
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .btn,.bar,.tag3d{transition:none} }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="#"><i aria-hidden="true"></i>Your Brand</a>
+  <nav aria-label="Main"><a href="#cost">What it costs you</a><a href="#how">How it works</a><a href="#faq">Questions</a></nav>
+  <a class="btn ghost" href="#build" style="padding:11px 16px">Build my system</a>
+</div></header>
+
+<main>
+  <div class="hero" id="build">
+    <canvas id="world" aria-label="Your business as a 3D island. Enquiries arrive from your channels; without a system some fall off the edge." role="img"></canvas>
+    <div class="labels" id="labels" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="panel" id="panel">
+        <div class="step" data-step="0">
+          <div class="mono">60-second lead check · free</div>
+          <h1>Your leads are arriving. <em>Some are falling off.</em></h1>
+          <p class="lede">Watch the island. Each dot is an enquiry. Answer four quick questions and we'll build the system that catches every one, live.</p>
+          <div class="nav-row"><button class="btn primary" data-next>Build my system →</button><span class="mono">No sign-up</span></div>
+        </div>
+
+        <div class="step" data-step="1" hidden>
+          <div class="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+          <p class="q">What kind of business do you run?</p>
+          <div class="opts" role="group" aria-label="Business type" data-key="biz" data-single>
+            <button class="opt" data-v="maker">Manufacturer / Exporter<small>Bulk orders, quotes</small></button>
+            <button class="opt" data-v="service">Clinic / Local service<small>Bookings, calls</small></button>
+            <button class="opt" data-v="shop">Shop / Online store<small>Orders, stock</small></button>
+            <button class="opt" data-v="b2b">B2B services<small>Long sales cycle</small></button>
+          </div>
+          <div class="nav-row"><button class="back" data-back>← Back</button><button class="btn primary" data-next disabled>Next →</button></div>
+        </div>
+
+        <div class="step" data-step="2" hidden>
+          <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <p class="q">Where do enquiries come from?</p>
+          <div class="opts" role="group" aria-label="Enquiry channels" data-key="src">
+            <button class="opt" data-v="Website">Website form</button>
+            <button class="opt" data-v="WhatsApp">WhatsApp</button>
+            <button class="opt" data-v="IndiaMART">IndiaMART / JustDial</button>
+            <button class="opt" data-v="Instagram">Instagram DMs</button>
+            <button class="opt" data-v="Calls">Phone calls</button>
+            <button class="opt" data-v="Email">Email</button>
+          </div>
+          <span class="mono">Pick all that apply · each appears on your island</span>
+          <div class="nav-row"><button class="back" data-back>← Back</button><button class="btn primary" data-next disabled>Next →</button></div>
+        </div>
+
+        <div class="step" data-step="3" hidden>
+          <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+          <p class="q">How many enquiries a week?</p>
+          <div class="range-row"><b id="wkV">40</b><span class="mono">per week</span></div>
+          <label class="mono" for="wk" style="position:absolute;left:-9999px">Enquiries per week</label>
+          <input type="range" id="wk" min="5" max="300" step="5" value="40">
+          <p class="q" style="font-size:16px;margin-top:6px">And today, what usually happens to them?</p>
+          <div class="opts one" role="group" aria-label="Current handling" data-key="now" data-single>
+            <button class="opt" data-v="0.35">Someone copies them into Excel and replies<small>Slow, but most get handled</small></button>
+            <button class="opt" data-v="0.5">We reply when someone is free<small>Hours later, sometimes the next day</small></button>
+            <button class="opt" data-v="0.65">Honestly, many never get a reply<small>Too busy running the business</small></button>
+          </div>
+          <div class="nav-row"><button class="back" data-back>← Back</button><button class="btn hot" data-next id="buildBtn" disabled>Build it ↑</button></div>
+        </div>
+
+        <div class="step" data-step="4" hidden>
+          <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+          <div class="result">
+            <div class="mono">Your system is live on the island</div>
+            <div class="nums">
+              <div class="num g"><b id="rLeads">0</b><span class="mono">leads saved / month</span></div>
+              <div class="num"><b id="rHours">0</b><span class="mono">hours freed / month</span></div>
+            </div>
+            <div class="plan"><span class="mono">Recommended start</span><b id="rPlan">Lead capture + WhatsApp follow-up</b><ul id="rList"></ul></div>
+            <p class="fine" id="rNote">Estimate from your answers: about 80% of currently missed enquiries recovered, 8 minutes of manual work per enquiry.</p>
+
+            <form id="lead" novalidate>
+              <p class="q" style="font-size:17px">Get this plan and a fixed written quote</p>
+              <div class="field"><label for="f-name">Your name</label><input id="f-name" autocomplete="name" placeholder="Name"></div>
+              <div class="field"><label for="f-wa">WhatsApp number</label><input id="f-wa" inputmode="tel" autocomplete="tel" placeholder="+91 98xxx xxxxx"></div>
+              <div class="field"><span class="mono" style="font-size:10px">Best time for a 15-minute call</span>
+                <div class="slots" role="group" aria-label="Best time">
+                  <button type="button" class="slot" aria-pressed="true">Today, evening</button>
+                  <button type="button" class="slot" aria-pressed="false">Tomorrow, morning</button>
+                  <button type="button" class="slot" aria-pressed="false">Tomorrow, afternoon</button>
+                  <button type="button" class="slot" aria-pressed="false">Just message me</button>
+                </div>
+              </div>
+              <p class="err" id="err" hidden></p>
+              <button class="btn hot" type="submit">Send me my plan →</button>
+              <p class="fine">Free. No obligation. We reply within one working day. You own everything we build.</p>
+            </form>
+            <div class="done" id="done" hidden>
+              <b>Plan saved. We'll message you on WhatsApp.</b>
+              <span class="fine">This is what we received (demo form, not connected yet):</span>
+              <pre id="summary"></pre>
+            </div>
+            <button class="back" data-restart>↺ Start over</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats" aria-live="off">
+        <div class="stat"><b id="sIn">0</b><span class="mono">Arrived</span></div>
+        <div class="stat won"><b id="sWon">0</b><span class="mono">Answered</span></div>
+        <div class="stat lost"><b id="sLost">0</b><span class="mono">Lost</span></div>
+      </div>
+    </div>
+    <span class="hint mono">Drag to turn the island</span>
+  </div>
+
+  <section id="cost"><div class="wrap">
+    <div class="mono">Why this matters</div>
+    <h2>The first business to reply usually wins the order.</h2>
+    <div class="lose">
+      <div class="card"><span class="big" id="cLost">—</span><b>Enquiries you may be missing each month</b><p>Based on your answers above. Build your system to see your number.</p></div>
+      <div class="card"><span class="big">2 a.m.</span><b>When buyers often message</b><p>Automation replies at any hour with prices, catalogue or a booking link.</p></div>
+      <div class="card"><span class="big">0 min</span><b>Copy-paste after we're done</b><p>Every enquiry lands in your CRM or sheet, tagged and assigned, without anyone typing.</p></div>
+    </div>
+  </div></section>
+
+  <section id="how" style="padding-top:0"><div class="wrap">
+    <div class="mono">What happens after you send your plan</div>
+    <h2>Three steps. Nothing starts until you approve.</h2>
+    <div class="steps">
+      <div class="card"><b>15-minute call</b><p>Hindi or English. We look at your real enquiries and tools.</p></div>
+      <div class="card"><b>Fixed written quote</b><p>Exact scope and price in INR or USD. No hourly surprises.</p></div>
+      <div class="card"><b>Live in weeks</b><p>We build, test on real leads, then hand over with docs and a walkthrough.</p></div>
+    </div>
+  </div></section>
+
+  <section style="padding-top:0"><div class="wrap own">
+    <div><div class="mono">Our promise</div><h2>Everything we build is yours.</h2></div>
+    <ul class="checks">
+      <li>Your accounts, code and workflows, in your name</li>
+      <li>Works with what you use: WhatsApp, Sheets, Zoho, HubSpot, UPI</li>
+      <li>No lock-in contract. Leave whenever you want</li>
+      <li>Plain-language reports, no tech jargon</li>
+    </ul>
+  </div></section>
+
+  <section id="faq" style="padding-top:0"><div class="wrap">
+    <div class="mono">Before you ask</div>
+    <h2>Questions owners ask us</h2>
+    <div style="margin-top:32px;max-width:820px">
+      <details open><summary>How much does it cost?</summary><p>Every project gets a fixed written quote after the free call, based on your plan above. Managed B2B outreach starts at ₹1,00,000 a month.</p></details>
+      <details><summary>Will my customers know it's automated?</summary><p>Replies use your tone, your name and your WhatsApp Business number. Anything complex is handed to a real person on your team immediately.</p></details>
+      <details><summary>We're a small team. Is this too much for us?</summary><p>Small teams gain the most. Most clients start with one flow, like WhatsApp follow-up, and add more later.</p></details>
+      <details><summary>What if we stop working together?</summary><p>Everything keeps running. It is all in your accounts, with documentation.</p></details>
+    </div>
+  </div></section>
+
+  <section style="padding-top:0"><div class="wrap">
+    <div class="final">
+      <h2>Stop losing enquiries you already paid to get.</h2>
+      <div><p>Your plan takes 60 seconds. The call takes 15 minutes.</p><a class="btn hot" href="#build" data-jump>Build my system →</a></div>
+    </div>
+  </div></section>
+</main>
+<footer><div class="wrap"><span>© Your Brand</span><span>India · Worldwide</span></div></footer>
+
+<div class="bar" id="bar" role="region" aria-label="Quick action"><i class="dot" aria-hidden="true"></i><span id="barText">Your island is losing enquiries right now</span><a class="btn hot" href="#build" data-jump style="padding:11px 16px">Fix it in 60 sec</a></div>
+<div class="modal" id="exit" hidden role="dialog" aria-modal="true" aria-labelledby="exitT">
+  <div class="box">
+    <div class="mono">Before you go</div>
+    <h3 id="exitT">Your plan is half built.</h3>
+    <p>Two more taps and you'll see how many enquiries you could save each month. No sign-up needed.</p>
+    <div class="row"><button class="btn primary" id="exitGo">Finish my plan</button><button class="btn ghost" id="exitNo">Maybe later</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = { get(){ try { return JSON.parse(localStorage.getItem('leadplan') || '{}'); } catch(e){ return {}; } }, set(v){ try { localStorage.setItem('leadplan', JSON.stringify(v)); } catch(e){} } };
+
+  /* ---------- state ---------- */
+  const S = Object.assign({ step:0, biz:null, src:[], wk:40, now:null, built:false, sent:false }, store.get());
+  S.sent = false;
+  const save = () => store.set({ step:S.step, biz:S.biz, src:S.src, wk:S.wk, now:S.now, built:S.built });
+
+  /* ---------- builder UI ---------- */
+  const steps = $$('.step');
+  function show(n){
+    S.step = n; steps.forEach(s => s.hidden = +s.dataset.step !== n); save();
+    if (n === 4) result();
+    world.update();
+  }
+  function validate(){
+    steps[1].querySelector('[data-next]').disabled = !S.biz;
+    steps[2].querySelector('[data-next]').disabled = !S.src.length;
+    $('#buildBtn').disabled = !S.now;
+  }
+  $$('[data-next]').forEach(b => b.addEventListener('click', () => {
+    if (S.step === 3){ S.built = true; world.build(); if (innerWidth < 980) hero.scrollIntoView({behavior: reduce ? "auto" : "smooth"}); }
+    show(Math.min(4, S.step + 1)); validate();
+  }));
+  $$('[data-back]').forEach(b => b.addEventListener('click', () => show(Math.max(0, S.step - 1))));
+  $('[data-restart]').addEventListener('click', () => { Object.assign(S, {biz:null, src:[], now:null, built:false, wk:40}); syncOpts(); world.unbuild(); show(1); validate(); });
+  $$('.opts').forEach(g => g.addEventListener('click', e => {
+    const o = e.target.closest('.opt'); if (!o) return; const k = g.dataset.key;
+    if ('single' in g.dataset){ S[k] = o.dataset.v; g.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', x === o)); }
+    else { const v = o.dataset.v, i = S.src.indexOf(v); i < 0 ? S.src.push(v) : S.src.splice(i, 1); o.setAttribute('aria-pressed', i < 0); }
+    validate(); save(); world.update();
+  }));
+  function syncOpts(){
+    $$('.opts').forEach(g => g.querySelectorAll('.opt').forEach(o => {
+      const k = g.dataset.key; o.setAttribute('aria-pressed', k === 'src' ? S.src.includes(o.dataset.v) : S[k] === o.dataset.v);
+    }));
+    $('#wk').value = S.wk; paintRange();
+  }
+  function paintRange(){ const r = $('#wk'); $('#wkV').textContent = r.value; r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); }
+  $('#wk').addEventListener('input', e => { S.wk = +e.target.value; paintRange(); save(); world.update(); });
+
+  /* ---------- result + plan ---------- */
+  const PLANS = {
+    maker:{name:'Quote engine', list:['Capture website, IndiaMART and WhatsApp enquiries in one place','Instant WhatsApp reply with price sheet and catalogue','Auto-qualify by quantity and city, then alert the owner','Quote PDF and follow-ups until the buyer replies']},
+    service:{name:'Booking autopilot', list:['Instant reply with available slots on WhatsApp','Bookings straight into your calendar','Reminders the day before to cut no-shows','Review request after every visit']},
+    shop:{name:'Order & support autopilot', list:['Order status and tracking answered automatically','Stock synced across store and marketplaces','Abandoned-cart and UPI payment-link follow-ups','Weekly sales report, built by itself']},
+    b2b:{name:'Pipeline system', list:['Every inbound lead scored and routed to the right person','CRM kept up to date without typing','Follow-up sequences until a meeting is booked','Optional managed outbound, from ₹1,00,000 / month']}
+  };
+  const fmt = n => Math.round(n).toLocaleString('en-IN');
+  function countTo(el, to){ if (reduce){ el.textContent = fmt(to); return; } const t0 = performance.now(), from = 0; (function f(t){ const k = Math.min(1, (t - t0) / 900); el.textContent = fmt(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0); }
+  function numbers(){ const m = S.wk * 4.33, lost = m * (+S.now || .5); return { lost, saved: lost * .8, hours: m * 8 / 60 }; }
+  function result(){
+    const n = numbers(), p = PLANS[S.biz || 'maker'];
+    countTo($('#rLeads'), n.saved); countTo($('#rHours'), n.hours);
+    $('#rPlan').textContent = p.name + (S.wk > 150 ? ' · Scale' : S.wk > 40 ? ' · Growth' : ' · Starter');
+    $('#rList').innerHTML = ''; p.list.forEach(t => { const li = document.createElement('li'); li.textContent = t; $('#rList').appendChild(li); });
+    $('#cLost').textContent = fmt(n.lost);
+    bar();
+  }
+  $$('.slot').forEach(s => s.addEventListener('click', () => $$('.slot').forEach(x => x.setAttribute('aria-pressed', x === s))));
+  $('#lead').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('#f-name').value.trim(), wa = $('#f-wa').value.replace(/[^\d+]/g, '');
+    const err = $('#err');
+    if (!name){ err.textContent = 'Add your name so we know who to ask for.'; err.hidden = false; $('#f-name').focus(); return; }
+    if (wa.replace(/\D/g, '').length < 10){ err.textContent = 'Enter a WhatsApp number with at least 10 digits.'; err.hidden = false; $('#f-wa').focus(); return; }
+    err.hidden = true; S.sent = true;
+    const n = numbers();
+    $('#summary').textContent = `Name: ${name}\nWhatsApp: ${wa}\nBest time: ${$('.slot[aria-pressed="true"]').textContent}\nBusiness: ${$('[data-key="biz"] [aria-pressed="true"]')?.firstChild.textContent.trim()}\nChannels: ${S.src.join(', ')}\nEnquiries/week: ${S.wk}\nEst. leads saved/month: ${fmt(n.saved)}\nPlan: ${$('#rPlan').textContent}`;
+    $('#lead').hidden = true; $('#done').hidden = false; bar();
+  });
+
+  /* ---------- sticky bar + exit intent ---------- */
+  function bar(){
+    const t = $('#barText'), a = $('#bar a');
+    if (S.sent){ t.textContent = 'Plan received. We reply within one working day.'; a.hidden = true; }
+    else if (S.built){ t.textContent = `Your plan saves about ${fmt(numbers().saved)} leads a month`; a.textContent = 'Claim free call'; a.hidden = false; }
+    else { t.textContent = 'Your island is losing enquiries right now'; a.textContent = 'Fix it in 60 sec'; a.hidden = false; }
+  }
+  const hero = $('.hero');
+  new IntersectionObserver(([e]) => $('#bar').classList.toggle('show', !e.isIntersecting), {threshold:.15}).observe(hero);
+  $$('[data-jump]').forEach(a => a.addEventListener('click', () => { if (S.step === 0) setTimeout(() => show(1), 300); else if (S.built && !S.sent) setTimeout(() => $('#f-name').focus({preventScroll:true}), 600); }));
+  let exitShown = false;
+  document.addEventListener('mouseout', e => {
+    if (exitShown || S.sent || e.relatedTarget || e.clientY > 4 || S.step < 1 || S.built) return;
+    exitShown = true; $('#exit').hidden = false; $('#exitGo').focus();
+  });
+  $('#exitNo').addEventListener('click', () => $('#exit').hidden = true);
+  $('#exitGo').addEventListener('click', () => { $('#exit').hidden = true; hero.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'}); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') $('#exit').hidden = true; });
+
+  /* ---------- 3D world ---------- */
+  const counters = { in:0, won:0, lost:0 };
+  const paintCounters = () => { $('#sIn').textContent = fmt(counters.in); $('#sWon').textContent = fmt(counters.won); $('#sLost').textContent = fmt(counters.lost); };
+  const world = { update(){}, build(){}, unbuild(){} };
+
+  (function(){
+    if (!window.THREE) return;
+    const canvas = $('#world');
+    let R; try { R = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ canvas.remove(); return; }
+    R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputEncoding = THREE.sRGBEncoding; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
+    R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xe8ecf4, 22, 42);
+    const cam = new THREE.PerspectiveCamera(32, 1, .1, 100);
+    const C = { top:0xf7f8fc, side:0xd3d9e8, cobalt:0x3346ff, coral:0xff6b4a, mint:0x18b892, ink:0x0f1530, white:0xffffff };
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xc9d0e6, .75));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.1); sun.position.set(-6, 12, 6); sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, {left:-9, right:9, top:9, bottom:-9}); sun.shadow.radius = 5; scene.add(sun);
+
+    const root = new THREE.Group(); scene.add(root);
+    const isl = new THREE.Group(); root.add(isl);
+    const RAD = 4.2;
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(RAD, RAD, .5, 96), [new THREE.MeshStandardMaterial({color:C.side, roughness:.9}), new THREE.MeshStandardMaterial({color:C.top, roughness:.85}), new THREE.MeshStandardMaterial({color:C.side})]);
+    top.receiveShadow = true; top.castShadow = true; isl.add(top);
+    const under = new THREE.Mesh(new THREE.ConeGeometry(RAD * .96, 2.4, 96, 1, true), new THREE.MeshStandardMaterial({color:C.side, roughness:1, side:THREE.DoubleSide}));
+    under.rotation.x = Math.PI; under.position.y = -1.45; isl.add(under);
+    // fine rings on the surface
+    [1.4, 2.6, 3.7].forEach(r => { const ring = new THREE.Mesh(new THREE.RingGeometry(r - .01, r + .01, 128), new THREE.MeshBasicMaterial({color:0xc4cbdd})); ring.rotation.x = -Math.PI / 2; ring.position.y = .252; isl.add(ring); });
+
+    // labels
+    const labelsEl = $('#labels'), tags = [];
+    function tag(html, obj, offY, cls){ const el = document.createElement('div'); el.className = 'tag3d ' + (cls || ''); el.innerHTML = html; labelsEl.appendChild(el); const t = {el, obj, offY, on:false}; tags.push(t); return t; }
+
+    // channel portals
+    const CH = ['Website','WhatsApp','IndiaMART','Instagram','Calls','Email'];
+    const portals = {};
+    CH.forEach((name, i) => {
+      const a = (i / CH.length) * Math.PI * 2 + .3;
+      const g = new THREE.Group(); g.position.set(Math.cos(a) * (RAD + .1), .25, Math.sin(a) * (RAD + .1)); g.rotation.y = -a + Math.PI / 2;
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(.42, .07, 12, 40, Math.PI), new THREE.MeshStandardMaterial({color:C.ink, roughness:.4}));
+      arch.castShadow = true; g.add(arch); g.scale.setScalar(.001); isl.add(g);
+      portals[name] = { g, a, on:false, s:0, tag: tag(`${name}<small>channel</small>`, g, .75, 'src') };
+    });
+
+    // modules of the system
+    const MODS = [
+      { key:'hub', name:'Capture hub', sub:'all enquiries, one place', pos:[0,0], h:1.6, r:.62, color:C.cobalt, shape:'cyl' },
+      { key:'q', name:'Qualify', sub:'budget · city · need', pos:[2.1,-.9], h:.8, r:.5, color:C.white, shape:'box' },
+      { key:'crm', name:'CRM', sub:'logged & assigned', pos:[-1.9,-1.2], h:1.0, r:.5, color:C.white, shape:'box' },
+      { key:'wa', name:'Instant reply', sub:'WhatsApp + email', pos:[1.3,1.9], h:.7, r:.45, color:C.mint, shape:'cyl' },
+      { key:'alert', name:'Owner alert', sub:'hot leads to your phone', pos:[-1.6,1.7], h:.55, r:.4, color:C.coral, shape:'cyl' }
+    ];
+    MODS.forEach(m => {
+      const mat = new THREE.MeshStandardMaterial({color:m.color, roughness:.45, metalness:.05});
+      const geo = m.shape === 'cyl' ? new THREE.CylinderGeometry(m.r, m.r, m.h, 48) : new THREE.BoxGeometry(m.r * 2, m.h, m.r * 2);
+      const mesh = new THREE.Mesh(geo, mat); mesh.castShadow = mesh.receiveShadow = true;
+      const g = new THREE.Group(); g.add(mesh); mesh.position.y = m.h / 2;
+      if (m.shape === 'box'){ const cap = new THREE.Mesh(new THREE.BoxGeometry(m.r * 2.02, .06, m.r * 2.02), new THREE.MeshStandardMaterial({color:C.cobalt})); cap.position.y = m.h; g.add(cap); }
+      g.position.set(m.pos[0], .25, m.pos[1]); g.scale.set(1, .001, 1); g.visible = false; isl.add(g);
+      m.g = g; m.k = 0; m.tag = tag(`${m.name}<small>${m.sub}</small>`, g, m.h + .35);
+    });
+    const hub = MODS[0];
+    // beams from hub to modules
+    const beams = MODS.slice(1).map(m => {
+      const pts = [new THREE.Vector3(0, .3, 0), new THREE.Vector3(m.pos[0] / 2, .9, m.pos[1] / 2), new THREE.Vector3(m.pos[0], .3, m.pos[1])];
+      const curve = new THREE.QuadraticBezierCurve3(...pts);
+      const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, .025, 8), new THREE.MeshBasicMaterial({color:C.cobalt, transparent:true, opacity:0}));
+      isl.add(line); return line;
+    });
+
+    // enquiry orbs
+    const orbGeo = new THREE.SphereGeometry(.16, 20, 14), POOL = 70, orbs = [];
+    for (let i = 0; i < POOL; i++){ const m = new THREE.Mesh(orbGeo, new THREE.MeshStandardMaterial({color:C.ink, roughness:.3, emissive:0x000000})); m.castShadow = true; m.visible = false; isl.add(m); orbs.push({m, live:false}); }
+    const tmp = new THREE.Vector3();
+    function spawn(){
+      const live = Object.values(portals).filter(p => p.on); const pool = live.length ? live : [portals.Website, portals.WhatsApp];
+      const p = pool[Math.floor(Math.random() * pool.length)], o = orbs.find(o => !o.live); if (!o) return;
+      const start = new THREE.Vector3(Math.cos(p.a) * (RAD + 3.2), 2.4, Math.sin(p.a) * (RAD + 3.2));
+      const gate = new THREE.Vector3(Math.cos(p.a) * (RAD - .2), .4, Math.sin(p.a) * (RAD - .2));
+      const lose = !S.built && Math.random() < (+S.now || .5);
+      let path;
+      if (S.built){ const via = MODS[1 + Math.floor(Math.random() * 4)];
+        path = [start, gate, new THREE.Vector3(via.pos[0], .45 + via.h, via.pos[1]), new THREE.Vector3(0, .45 + hub.h, 0)]; }
+      else if (lose){ const b = p.a + (Math.random() - .5) * 2.2; const off = new THREE.Vector3(Math.cos(b) * (RAD + .3), .4, Math.sin(b) * (RAD + .3));
+        path = [start, gate, new THREE.Vector3(Math.cos(b) * 2, .4, Math.sin(b) * 2), off, off.clone().setY(-6)]; }
+      else { const b = Math.random() * Math.PI * 2, r = Math.random() * 1.6; path = [start, gate, new THREE.Vector3(Math.cos(b) * r, .37, Math.sin(b) * r)]; }
+      Object.assign(o, { live:true, t:0, path, lose, built:S.built, dur: path.length * .55 });
+      o.m.material.color.setHex(C.ink); o.m.material.emissive.setHex(0); o.m.scale.setScalar(1); o.m.visible = true;
+      counters.in++;
+    }
+    function along(path, k){ const seg = (path.length - 1) * k, i = Math.min(path.length - 2, Math.floor(seg)), f = seg - i; const a = path[i], b = path[i + 1];
+      tmp.lerpVectors(a, b, f); if (i === 0) tmp.y += Math.sin(f * Math.PI) * .8; return tmp; }
+
+    // camera, sizing
+    let narrow = false;
+    function resize(){
+      const w = canvas.clientWidth, h = canvas.clientHeight; R.setSize(w, h, false); cam.aspect = w / h;
+      narrow = w < 980 || innerWidth < 980;
+      cam.position.set(0, narrow ? 11.5 : 8.8, narrow ? Math.max(19, 19 / Math.min(1, cam.aspect)) : 13.8); cam.lookAt(0, 0, 0);
+      root.position.x = narrow ? 0 : 3.6; root.position.z = narrow ? 0 : -.4;
+      cam.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize); resize();
+
+    // drag to turn
+    let yaw = -.4, vy = 0, drag = false, lx = 0, px = 0, py = 0;
+    canvas.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener('pointermove', e => { if (drag){ vy = (e.clientX - lx) * .006; yaw += vy; lx = e.clientX; } });
+    canvas.addEventListener('pointerup', () => drag = false);
+    addEventListener('pointermove', e => { px = e.clientX / innerWidth - .5; py = e.clientY / innerHeight - .5; });
+
+    // public hooks
+    world.update = () => {
+      const want = S.step >= 2 || S.src.length ? S.src : [];
+      CH.forEach(n => { portals[n].on = want.includes(n) || (!want.length && (n === 'Website' || n === 'WhatsApp')); });
+    };
+    world.build = () => { MODS.forEach((m, i) => { m.g.visible = true; m.delay = performance.now() + i * 260; m.target = 1; }); counters.lost = counters.lost; };
+    world.unbuild = () => { MODS.forEach(m => { m.target = 0; }); };
+    world.update(); if (S.built){ world.build(); }
+
+    // labels projection
+    const v = new THREE.Vector3();
+    function placeTags(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      tags.forEach(t => {
+        const vis = t.obj.visible !== false && t.obj.scale.y > .6 && t.obj.scale.x > .6;
+        t.obj.getWorldPosition(v); v.y += t.offY; v.project(cam);
+        const front = v.z < 1;
+        t.el.classList.toggle('on', vis && front);
+        t.el.style.transform = `translate(${(v.x * .5 + .5) * w}px, ${(-v.y * .5 + .5) * h}px) translate(-50%,-100%)`;
+      });
+    }
+
+    let last = performance.now(), acc = 0, hubPulse = 0;
+    const ease = x => 1 - Math.pow(1 - x, 3), back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+    (function loop(now){
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      // spawn rate follows enquiries per week
+      acc += dt; const every = Math.max(.25, 1.9 - S.wk / 170);
+      if (acc > every){ acc = 0; spawn(); }
+      // portals
+      Object.values(portals).forEach(p => { p.s += ((p.on ? 1 : 0) - p.s) * .12; p.g.scale.setScalar(Math.max(.001, back(Math.min(1, p.s)))); p.g.visible = p.s > .02; });
+      // modules rise
+      MODS.forEach(m => { if (m.target === undefined) return; if (m.target && now < m.delay) return;
+        m.k += ((m.target) - m.k) * .1; const sY = m.target ? back(Math.min(1, m.k)) : m.k; m.g.scale.set(1, Math.max(.001, sY), 1); if (!m.target && m.k < .02) m.g.visible = false; });
+      beams.forEach((b, i) => { b.material.opacity += (((MODS[i + 1].k > .9 && S.built) ? .55 : 0) - b.material.opacity) * .08; });
+      hubPulse *= .9; hub.g.children[0].material.emissive.setRGB(hubPulse * .2, hubPulse * .25, hubPulse * .9);
+      // orbs
+      orbs.forEach(o => { if (!o.live) return; o.t += dt / o.dur; const k = Math.min(1, o.t);
+        o.m.position.copy(along(o.path, o.built ? ease(k) : k));
+        if (o.lose && k > (o.path.length - 2) / (o.path.length - 1)){ o.m.material.color.setHex(C.coral); }
+        if (o.built && k > .5){ o.m.material.color.setHex(C.mint); }
+        if (k >= 1){ o.live = false; o.m.visible = false;
+          if (o.lose) counters.lost++; else { counters.won++; if (o.built) hubPulse = 1; } }
+        else if (!o.lose && !o.built && k > .9){ o.m.scale.setScalar(Math.max(.01, (1 - k) * 10)); }
+      });
+      // camera feel
+      if (!drag){ vy *= .94; yaw += vy + (reduce ? 0 : .0012); }
+      isl.rotation.y = yaw;
+      root.position.y = reduce ? 0 : Math.sin(now / 1400) * .12;
+      cam.position.x += ((narrow ? 0 : px * 1.5) - cam.position.x) * .03; cam.lookAt(narrow ? 0 : 1.2, -py * .6, 0);
+      R.render(scene, cam); placeTags();
+      if (Math.floor(now / 200) !== Math.floor((now - dt * 1000) / 200)) paintCounters();
+      requestAnimationFrame(loop);
+    })(performance.now());
+  })();
+
+  /* ---------- boot ---------- */
+  syncOpts(); validate(); show(S.step); bar();
+})();
+</script>
+</body>
+</html>
