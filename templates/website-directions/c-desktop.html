@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autowebly — Desktop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: the site is a desktop. Each service is a window you can drag, close and reopen from the dock. Stacks into cards on phones. */
+:root{
+  --desk:#c6cbdc; --dot:#b3b9cf; --win:#fbfbfd; --ink:#16171d; --soft:#5a5e6e; --accent:#3651d4; --hot:#ff8a3d; --bar:#e9ebf3;
+  --sans:"Schibsted Grotesk",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--desk);color:var(--ink);font:15px/1.55 var(--sans);
+  background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:8px 8px;overflow-x:hidden}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+.menubar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  background:var(--win);border-bottom:1.5px solid var(--ink);padding-block:6px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font:600 13px var(--mono)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--win)}
+.menubar .brand{font:900 15px var(--sans);letter-spacing:-.02em}
+.menubar .items{display:flex;gap:18px}
+.menubar button{background:none;border:0;font:inherit;cursor:pointer;color:var(--ink);padding:2px 4px}
+.menubar button:hover{background:var(--ink);color:var(--win)}
+#clock{font-variant-numeric:tabular-nums}
+
+.desk{position:relative;min-height:1120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.headline{position:absolute;left:max(24px,env(safe-area-inset-left,0px));top:36px;max-width:620px;pointer-events:none}
+.headline h1{font:900 clamp(40px,6vw,80px)/1.02 var(--sans);letter-spacing:-.045em;margin:0;text-wrap:balance}
+.headline h1 span{background:var(--ink);color:var(--desk);padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.headline p{font:600 13px var(--mono);margin:16px 0 0;color:var(--soft)}
+
+.win{position:absolute;background:var(--win);border:1.5px solid var(--ink);box-shadow:6px 6px 0 var(--ink);width:340px;display:flex;flex-direction:column}
+.win.front{z-index:20}
+.tb{display:flex;align-items:center;gap:10px;background:var(--bar);border-bottom:1.5px solid var(--ink);padding:6px 8px;cursor:grab;user-select:none;touch-action:none}
+.tb:active{cursor:grabbing}
+.tb .x{width:14px;height:14px;border:1.5px solid var(--ink);background:var(--win);cursor:pointer;padding:0;flex:none}
+.tb .x:hover{background:var(--hot)}
+.tb .name{font:600 12px var(--mono);flex:1;text-align:center;margin-right:24px}
+.body{padding:16px 18px 18px;display:grid;gap:10px}
+.body h2{font:900 24px/1.05 var(--sans);letter-spacing:-.03em;margin:0}
+.body p{margin:0;color:var(--soft)}
+.body ul{margin:0;padding-left:18px}
+.body .meta{font:600 12px var(--mono);color:var(--accent)}
+.btn{display:inline-block;font:700 14px var(--sans);background:var(--ink);color:var(--win);border:0;padding:10px 14px;text-decoration:none;cursor:pointer;justify-self:start}
+.btn.hot{background:var(--hot);color:var(--ink);border:1.5px solid var(--ink)}
+
+/* terminal-ish automation log */
+.term{background:var(--ink);color:#dfe3f2;font:12.5px/1.7 var(--mono);padding:12px;min-height:150px}
+.term .g{color:#8be4b4}.term .o{color:var(--hot)}
+/* spreadsheet */
+table{border-collapse:collapse;width:100%;font:12px var(--mono)}
+th,td{border:1px solid #c9ccd8;padding:5px 6px;text-align:left;white-space:nowrap}
+th{background:var(--bar)}
+td.s{color:var(--accent);font-weight:600}
+.sheet{overflow-x:auto}
+/* search result */
+.serp{border:1px solid #c9ccd8;padding:10px 12px;display:grid;gap:2px}
+.serp .u{font:12px var(--mono);color:#2a7a3e}
+.serp .t{color:var(--accent);font-weight:700;font-size:16px}
+.serp .d{font-size:13px;color:var(--soft)}
+.ai{border:1.5px dashed var(--accent);padding:10px 12px;font-size:13px}
+form{display:grid;gap:8px}
+input,textarea,select{font:14px var(--sans);border:1.5px solid var(--ink);padding:8px 10px;background:var(--win);color:var(--ink);width:100%}
+.done{font:600 12px var(--mono);color:#2a7a3e;margin:0}
+
+.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;display:flex;gap:6px;
+  background:var(--win);border:1.5px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:6px}
+.dock button{font:600 12px var(--mono);border:1.5px solid var(--ink);background:var(--bar);padding:8px 10px;cursor:pointer;color:var(--ink)}
+.dock button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.tpl-chip{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:45;font:600 12px var(--mono);background:var(--ink);color:var(--win);padding:8px 12px;text-decoration:none}
+
+@media (max-width:860px){
+  .desk{min-height:0;display:grid;gap:22px;padding-block:24px 120px}
+  .headline{position:static;pointer-events:auto}
+  .win{position:static!important;width:auto!important}
+  .tb{cursor:default}
+  .menubar .items{display:none}
+  .dock{display:none}
+  .tpl-chip{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+}
+</style>
+</head>
+<body>
+<div class="menubar">
+  <span class="brand">● Autowebly OS</span>
+  <span class="items"><button data-open="w-auto">Automations</button><button data-open="w-web">Websites</button><button data-open="w-seo">SEO</button><button data-open="w-pipe">Pipeline</button><button data-open="w-hi">Contact</button></span>
+  <span id="clock">10:00</span>
+</div>
+
+<main class="desk" id="desk">
+  <div class="headline">
+    <h1>Run a small team like a <span>bigger one.</span></h1>
+    <p>Automations · websites · SEO · B2B pipeline — drag the windows around ↘</p>
+  </div>
+
+  <section class="win" id="w-auto" style="left:52%;top:34px;width:380px" aria-labelledby="t-auto">
+    <div class="tb"><button class="x" aria-label="Close Automations"></button><span class="name">automations.app</span></div>
+    <div class="body">
+      <h2 id="t-auto">Leads that follow themselves up</h2>
+      <div class="term" id="term" aria-live="polite"><div>$ watch enquiries --live</div></div>
+      <button class="btn" id="runTerm">Simulate a new lead</button>
+    </div>
+  </section>
+
+  <section class="win" id="w-web" style="left:2%;top:350px;width:330px" aria-labelledby="t-web">
+    <div class="tb"><button class="x" aria-label="Close Websites"></button><span class="name">websites.app</span></div>
+    <div class="body">
+      <span class="meta">Next.js · React · mobile-first</span>
+      <h2 id="t-web">Sites that bring enquiries, not just compliments</h2>
+      <ul><li>Business sites and landing pages</li><li>Stores with an admin panel</li><li>B2B quote-request systems</li></ul>
+      <p>You own the code, the domain and the hosting.</p>
+    </div>
+  </section>
+
+  <section class="win" id="w-seo" style="left:30%;top:430px;width:360px" aria-labelledby="t-seo">
+    <div class="tb"><button class="x" aria-label="Close SEO"></button><span class="name">seo-report.txt</span></div>
+    <div class="body">
+      <h2 id="t-seo">Be the answer, on Google and in AI</h2>
+      <div class="serp"><span class="u">yourbusiness.in › services</span><span class="t">Steel Fabricators in Pune · Quote in 24 hrs</span><span class="d">Sample listing. Technical SEO, local pages and Google Business Profile.</span></div>
+      <div class="ai"><b>AI answer:</b> “For fabrication in Pune, <u>yourbusiness.in</u> lists capacity and turnaround clearly…”</div>
+      <p style="font-size:13px">Plain-language monthly report. No ranking guarantees.</p>
+    </div>
+  </section>
+
+  <section class="win" id="w-pipe" style="left:63%;top:410px;width:380px" aria-labelledby="t-pipe">
+    <div class="tb"><button class="x" aria-label="Close Pipeline"></button><span class="name">pipeline.xls</span></div>
+    <div class="body">
+      <h2 id="t-pipe">Meetings in your calendar, weekly</h2>
+      <div class="sheet"><table>
+        <thead><tr><th>Company</th><th>City</th><th>Stage</th></tr></thead>
+        <tbody>
+          <tr><td>Sample Exports</td><td>Surat</td><td class="s">Meeting</td></tr>
+          <tr><td>Example Forge</td><td>Rajkot</td><td>Replied</td></tr>
+          <tr><td>Demo Textiles</td><td>Tiruppur</td><td>Follow-up 2</td></tr>
+        </tbody>
+      </table></div>
+      <span class="meta">Managed B2B outreach · from ₹1,00,000 / month</span>
+    </div>
+  </section>
+
+  <section class="win" id="w-hi" style="left:6%;top:700px;width:300px" aria-labelledby="t-hi">
+    <div class="tb"><button class="x" aria-label="Close Contact"></button><span class="name">say-hello.form</span></div>
+    <div class="body">
+      <h2 id="t-hi">Free call, written quote</h2>
+      <form id="form">
+        <label for="f-n" class="meta">Name</label><input id="f-n" required>
+        <label for="f-w" class="meta">WhatsApp</label><input id="f-w" inputmode="tel">
+        <label for="f-s" class="meta">I need</label><select id="f-s"><option>Automation</option><option>Website</option><option>SEO</option><option>B2B pipeline</option></select>
+        <button class="btn hot" type="submit">Send</button>
+        <p class="done" id="done" hidden>✓ Sent. Reply within one working day.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<nav class="dock" aria-label="Open windows">
+  <button data-open="w-auto" aria-pressed="true">Automate</button>
+  <button data-open="w-web" aria-pressed="true">Web</button>
+  <button data-open="w-seo" aria-pressed="true">SEO</button>
+  <button data-open="w-pipe" aria-pressed="true">Pipeline</button>
+  <button data-open="w-hi" aria-pressed="true">Hello</button>
+</nav>
+<a class="tpl-chip" href="./">← All templates · C</a>
+
+<script>
+(function(){
+  const tick = () => { const d = new Date(); document.getElementById('clock').textContent = d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); };
+  tick(); setInterval(tick, 30000);
+  let z = 21;
+  const desktop = () => matchMedia('(min-width: 861px)').matches;
+  const front = w => { w.style.zIndex = ++z; };
+  function setOpen(id, open){
+    const w = document.getElementById(id); w.hidden = !open; if (open) front(w);
+    document.querySelectorAll(`.dock [data-open="${id}"]`).forEach(b => b.setAttribute('aria-pressed', open));
+  }
+  document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => {
+    const w = document.getElementById(b.dataset.open);
+    if (b.closest('.dock')) setOpen(w.id, w.hidden); else setOpen(w.id, true);
+  }));
+  document.querySelectorAll('.win').forEach(w => {
+    w.addEventListener('pointerdown', () => front(w));
+    w.querySelector('.x').addEventListener('click', e => { e.stopPropagation(); setOpen(w.id, false); });
+    const tb = w.querySelector('.tb');
+    tb.addEventListener('pointerdown', e => {
+      if (!desktop() || e.target.closest('.x')) return;
+      const desk = document.getElementById('desk').getBoundingClientRect();
+      const r = w.getBoundingClientRect(), ox = e.clientX - r.left, oy = e.clientY - r.top;
+      tb.setPointerCapture(e.pointerId);
+      const move = ev => {
+        const x = Math.max(0, Math.min(desk.width - r.width, ev.clientX - desk.left - ox));
+        const y = Math.max(0, ev.clientY - desk.top - oy);
+        w.style.left = x + 'px'; w.style.top = y + 'px';
+      };
+      const up = () => { tb.removeEventListener('pointermove', move); tb.removeEventListener('pointerup', up); };
+      tb.addEventListener('pointermove', move); tb.addEventListener('pointerup', up);
+    });
+  });
+  const term = document.getElementById('term'), btn = document.getElementById('runTerm');
+  const lines = [
+    ['', '→ new enquiry: website form, “Need 50 kg samples”'],
+    ['g', '✓ qualified (city: Ahmedabad, budget: fits)'],
+    ['g', '✓ added to Google Sheet, row 214'],
+    ['g', '✓ WhatsApp reply sent with price list'],
+    ['o', '! owner pinged: hot lead, call today'],
+    ['', 'done in 3.8s · 0 minutes of your time']
+  ];
+  btn.addEventListener('click', () => {
+    btn.disabled = true; term.innerHTML = '<div>$ watch enquiries --live</div>';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    lines.forEach(([c, t], i) => setTimeout(() => {
+      const d = document.createElement('div'); d.className = c; d.textContent = t; term.appendChild(d);
+      if (i === lines.length - 1) btn.disabled = false;
+    }, reduce ? 0 : 450 * (i + 1)));
+  });
+  btn.click();
+  document.getElementById('form').addEventListener('submit', e => { e.preventDefault(); document.getElementById('done').hidden = false; });
+})();
+</script>
+</body>
+</html>

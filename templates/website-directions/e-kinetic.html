@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autowebly — Kinetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: four verbs fill the hero. Hover or tap a verb and the panel below becomes that service. Bold, single-colour brand world. */
+:root{
+  --blue:#1d3cff; --deep:#0f24b8; --ice:#eef1ff; --peach:#ffb48f; --ink:#0a0f33; --line:rgba(238,241,255,.25);
+  --display:"Unbounded",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--blue);color:var(--ice);font:17px/1.6 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--peach);outline-offset:3px}
+.tag{font:600 12px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--peach)}
+
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:22px}
+.logo{font:900 20px var(--display);letter-spacing:-.02em;text-decoration:none}
+.btn{display:inline-flex;gap:10px;align-items:center;background:var(--peach);color:var(--ink);font:700 16px var(--body);padding:14px 22px;border-radius:14px;text-decoration:none;border:0;cursor:pointer;transition:transform .2s}
+.btn:hover{transform:translateY(-2px) rotate(-1deg)}
+.btn.ice{background:var(--ice)}
+
+.hero{padding-block:20px 0;position:relative}
+.verbs{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.verb{border-bottom:1px solid var(--line)}
+.verb button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:6px 0}
+.verb .w{font:900 clamp(48px,11vw,168px)/.95 var(--display);letter-spacing:-.05em;transition:transform .45s cubic-bezier(.2,.8,.2,1),color .25s;display:inline-block;white-space:nowrap}
+.verb .hint{font:600 14px var(--body);opacity:.7;text-align:right;max-width:22ch}
+.verb button:hover .w,.verb button[aria-selected="true"] .w{transform:translateX(3vw);color:var(--peach)}
+.verb button[aria-selected="true"] .hint{opacity:1}
+.verb button:focus-visible{outline:2px solid var(--peach);outline-offset:-2px}
+
+.panel{background:var(--ice);color:var(--ink);border-radius:28px;margin-top:32px;padding:clamp(24px,4vw,48px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:start}
+.panel h2{font:800 clamp(28px,3.6vw,46px)/1.05 var(--display);letter-spacing:-.03em;margin:10px 0 16px;text-wrap:balance}
+.panel .tag{color:var(--blue)}
+.panel p{margin:0 0 20px;color:#3a416b;max-width:46ch}
+.panel ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.panel li{display:flex;gap:12px;align-items:baseline;padding-bottom:10px;border-bottom:1px solid #d5dbff;font-weight:600}
+.panel li::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--blue);flex:none;transform:translateY(-1px)}
+.fact{background:var(--blue);color:var(--ice);border-radius:18px;padding:22px;display:grid;gap:6px;margin-top:6px}
+.fact b{font:800 30px var(--display);letter-spacing:-.03em}
+.panel-body{transition:opacity .25s}
+.panel-body.swap{opacity:0}
+
+.marquee{overflow:hidden;border-block:1px solid var(--line);margin-top:80px;padding-block:18px;white-space:nowrap}
+.track{display:inline-flex;gap:48px;animation:slide 30s linear infinite;font:600 22px var(--display);letter-spacing:-.02em}
+.track span{opacity:.85}
+.track span::after{content:"✳";margin-left:48px;color:var(--peach)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+section{padding-block:96px}
+h3.big{font:800 clamp(34px,5vw,70px)/1 var(--display);letter-spacing:-.04em;margin:14px 0 0;max-width:16ch;text-wrap:balance}
+.promises{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:48px}
+.p{border:1.5px solid var(--line);border-radius:22px;padding:26px;display:grid;gap:10px;align-content:start;transition:background .25s,color .25s}
+.p:hover{background:var(--ice);color:var(--ink)}
+.p b{font:800 21px/1.15 var(--display);letter-spacing:-.02em}
+.p span{opacity:.85}
+
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:48px;border-top:1.5px solid var(--ice)}
+.st{padding:22px 20px 0 0;display:grid;gap:8px;align-content:start}
+.st i{font:900 15px var(--display);font-style:normal;color:var(--peach)}
+.st b{font:700 20px var(--display);letter-spacing:-.02em}
+.st span{opacity:.85;font-size:16px}
+
+.final{background:var(--ink);border-radius:36px 36px 0 0;padding-block:88px 120px}
+.final .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:start}
+.final h3{font:900 clamp(40px,6vw,88px)/.95 var(--display);letter-spacing:-.05em;margin:0}
+.final h3 em{font-style:normal;color:var(--peach)}
+form{display:grid;gap:12px}
+label{font:600 14px var(--body);opacity:.8}
+input,select{font:17px var(--body);padding:14px 16px;border-radius:14px;border:1.5px solid rgba(238,241,255,.3);background:transparent;color:var(--ice);width:100%}
+select option{color:#111}
+.ok{color:var(--peach);font-weight:700;margin:0}
+.tpl-chip{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:20;font:600 12px var(--display);background:var(--ice);color:var(--ink);padding:8px 14px;border-radius:10px;text-decoration:none}
+
+@media (max-width:860px){
+  .panel,.final .wrap{grid-template-columns:1fr}
+  .promises{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr;gap:20px}
+  .verb .hint{display:none}
+  .verb button:hover .w,.verb button[aria-selected="true"] .w{transform:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .track{animation:none}.verb .w,.btn{transition:none}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#">AUTOWEBLY</a>
+  <a class="btn" href="#go">Free call →</a>
+</div></header>
+
+<main>
+  <div class="wrap hero">
+    <p class="tag" style="margin:0 0 14px">Small team. Big-team output. Pick a verb ↓</p>
+    <ul class="verbs" role="tablist" aria-label="Services">
+      <li class="verb"><button role="tab" aria-selected="true" data-k="auto" aria-controls="panel"><span class="w">AUTOMATE</span><span class="hint">Leads, follow-ups, invoices, stock</span></button></li>
+      <li class="verb"><button role="tab" aria-selected="false" data-k="build" aria-controls="panel"><span class="w">BUILD</span><span class="hint">Websites, stores, quote systems</span></button></li>
+      <li class="verb"><button role="tab" aria-selected="false" data-k="rank" aria-controls="panel"><span class="w">RANK</span><span class="hint">SEO, local, AI answers</span></button></li>
+      <li class="verb"><button role="tab" aria-selected="false" data-k="sell" aria-controls="panel"><span class="w">SELL</span><span class="hint">Managed B2B pipeline</span></button></li>
+    </ul>
+
+    <div class="panel" id="panel" role="tabpanel">
+      <div class="panel-body" id="pA">
+        <div class="tag" id="pTag">Automation</div>
+        <h2 id="pTitle">Stop doing by hand what software can do for you.</h2>
+        <p id="pText">Enquiries captured, qualified and answered on WhatsApp and email within seconds. Orders, invoices and stock stay in sync and reports build themselves.</p>
+        <a class="btn" href="#go" style="background:var(--blue);color:var(--ice)">Map my workflows</a>
+      </div>
+      <div class="panel-body" id="pB">
+        <ul id="pList">
+          <li>Lead capture and qualification</li><li>WhatsApp and email follow-ups</li><li>Invoice, order and inventory sync</li><li>Self-building weekly reports</li>
+        </ul>
+        <div class="fact"><span id="fLabel">Works with</span><b id="fVal">n8n · Zapier · Make</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="marquee" aria-hidden="true"><div class="track" id="track">
+    <span>n8n</span><span>Zapier</span><span>Make</span><span>Google Sheets</span><span>HubSpot</span><span>Zoho</span><span>WhatsApp</span><span>UPI</span><span>Next.js</span><span>Google Business Profile</span>
+  </div></div>
+
+  <section><div class="wrap">
+    <div class="tag">The deal</div>
+    <h3 class="big">No fine print. Here is all of it.</h3>
+    <div class="promises">
+      <div class="p"><b>Fixed written quote</b><span>Scope and price in INR or USD before anything starts. You approve, then we build.</span></div>
+      <div class="p"><b>You own everything</b><span>Accounts, code, workflows and site in your name, with docs and a walkthrough.</span></div>
+      <div class="p"><b>No lock-in</b><span>No long contracts. Replies within one working day, after launch too.</span></div>
+    </div>
+  </div></section>
+
+  <section style="padding-top:0"><div class="wrap">
+    <div class="tag">How it goes</div>
+    <div class="steps">
+      <div class="st"><i>01</i><b>Free call</b><span>30 minutes, Hindi or English.</span></div>
+      <div class="st"><i>02</i><b>Written quote</b><span>Fixed scope. Nothing starts until you say yes.</span></div>
+      <div class="st"><i>03</i><b>Build</b><span>Weekly updates on your real data.</span></div>
+      <div class="st"><i>04</i><b>Handover</b><span>Keys, docs and walkthrough.</span></div>
+    </div>
+  </div></section>
+
+  <section class="final" id="go"><div class="wrap">
+    <h3>Let's make your week <em>shorter.</em></h3>
+    <form id="form">
+      <label for="f-n">Name</label><input id="f-n" required>
+      <label for="f-w">WhatsApp or email</label><input id="f-w">
+      <label for="f-s">Start with</label><select id="f-s"><option>Automate</option><option>Build</option><option>Rank</option><option>Sell</option></select>
+      <button class="btn" type="submit" style="justify-self:start;margin-top:6px">Send →</button>
+      <p class="ok" id="ok" hidden>Sent. We'll reply within one working day.</p>
+    </form>
+  </div></section>
+</main>
+<a class="tpl-chip" href="./">← All templates · E</a>
+
+<script>
+(function(){
+  const D = {
+    auto:{tag:'Automation',title:'Stop doing by hand what software can do for you.',text:'Enquiries captured, qualified and answered on WhatsApp and email within seconds. Orders, invoices and stock stay in sync and reports build themselves.',list:['Lead capture and qualification','WhatsApp and email follow-ups','Invoice, order and inventory sync','Self-building weekly reports'],fl:'Works with',fv:'n8n · Zapier · Make'},
+    build:{tag:'Websites',title:'Fast sites that turn visitors into enquiries.',text:'Mobile-first business sites, landing pages, online stores with an admin panel and B2B quote-request systems, built on Next.js and React.',list:['Business sites and landing pages','Stores with admin panel','B2B quote-request systems','Your code, your hosting'],fl:'Built on',fv:'Next.js · React'},
+    rank:{tag:'SEO + AI search',title:'Show up on Google, in Maps and in AI answers.',text:'Technical audits and fixes, keyword research, content plans and Google Business Profile, with plain-language monthly reports and no risky tactics.',list:['Technical SEO audit and fixes','Local SEO for each city','Content plan and articles','AI-answer visibility'],fl:'Our promise',fv:'No ranking guarantees'},
+    sell:{tag:'B2B pipeline',title:'Qualified meetings without hiring an SDR team.',text:'Managed prospect research, personalised outreach, follow-ups and CRM management for high-value B2B companies. Meetings go straight to your sales team.',list:['Prospect research and qualification','Personalised outreach','Reply classification and routing','Meeting handoff to your team'],fl:'Starts at',fv:'₹1,00,000 / month'}
+  };
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function show(k){
+    const d = D[k], a = $('pA'), b = $('pB');
+    a.classList.add('swap'); b.classList.add('swap');
+    setTimeout(() => {
+      $('pTag').textContent = d.tag; $('pTitle').textContent = d.title; $('pText').textContent = d.text;
+      $('pList').innerHTML = ''; d.list.forEach(t => { const li = document.createElement('li'); li.textContent = t; $('pList').appendChild(li); });
+      $('fLabel').textContent = d.fl; $('fVal').textContent = d.fv;
+      a.classList.remove('swap'); b.classList.remove('swap');
+    }, reduce ? 0 : 200);
+  }
+  const tabs = [...document.querySelectorAll('.verb button')];
+  tabs.forEach((t, i) => {
+    const pick = () => { if (t.getAttribute('aria-selected') === 'true') return; tabs.forEach(x => x.setAttribute('aria-selected', x === t)); show(t.dataset.k); };
+    t.addEventListener('click', pick);
+    t.addEventListener('mouseenter', () => { if (matchMedia('(hover:hover)').matches) pick(); });
+    t.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); const n = tabs[(i + (e.key === 'ArrowDown' ? 1 : tabs.length - 1)) % tabs.length]; n.focus(); n.click(); }
+    });
+  });
+  const tr = $('track'); tr.innerHTML += tr.innerHTML;
+  $('form').addEventListener('submit', e => { e.preventDefault(); $('ok').hidden = false; });
+})();
+</script>
+</body>
+</html>

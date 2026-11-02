@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autowebly Website Directions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a contact sheet. One row per direction: a miniature of its look on the left, what it is and why on the right. */
+:root{
+  --bg:#f4f5f8; --card:#ffffff; --fg:#15171c; --soft:#5f6573; --rule:#dfe2e9; --accent:#2448ff;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Instrument Sans",system-ui,sans-serif; --mono:"DM Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111318;--card:#1a1d24;--fg:#eceef3;--soft:#a1a7b4;--rule:#2b2f39;--accent:#8ea0ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111318;--card:#1a1d24;--fg:#eceef3;--soft:#a1a7b4;--rule:#2b2f39;--accent:#8ea0ff;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-block:48px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.label{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+h1{font:800 clamp(34px,5vw,56px)/1 var(--display);letter-spacing:-.035em;margin:10px 0 14px;text-wrap:balance}
+.intro{color:var(--soft);max-width:60ch;margin:0}
+.list{display:grid;gap:18px;margin-top:40px}
+.row{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:28px;background:var(--card);border:1px solid var(--rule);border-radius:18px;padding:18px;align-items:center}
+.row h2{font:700 26px/1.1 var(--display);letter-spacing:-.02em;margin:4px 0 8px}
+.row p{margin:0 0 12px;color:var(--soft);max-width:56ch}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 16px;font-size:14px}
+dt{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--soft);padding-top:2px}
+dd{margin:0}
+.open{display:inline-flex;gap:8px;align-items:center;font-weight:600;color:var(--card);background:var(--fg);padding:10px 16px;border-radius:999px;text-decoration:none}
+.open:hover{background:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.thumb{display:block;aspect-ratio:16/10;max-width:100%;border-radius:12px;overflow:hidden;position:relative;text-decoration:none}
+/* Miniatures: each uses its template's own fixed palette, so they look the same in either theme */
+.t-a{background:#0f2b46;background-image:linear-gradient(rgba(214,232,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(214,232,255,.12) 1px,transparent 1px);background-size:12px 12px;color:#e7f0fa}
+.t-a .h{position:absolute;left:16px;top:22px;font:800 26px/.95 var(--display);width:46%}
+.t-a .h b{color:#ffcf5c}
+.t-a .bx{position:absolute;border:1.5px solid rgba(214,232,255,.8);font:500 9px var(--mono);padding:5px 6px}
+.t-a .ln{position:absolute;border-top:1.5px dashed rgba(214,232,255,.8)}
+.t-b{background:#fff;color:#14161a}
+.t-b .h{position:absolute;left:16px;top:18px;right:16px;font:800 28px/.92 var(--display);letter-spacing:-.04em}
+.t-b .h span{background:linear-gradient(transparent 12%,#ffe45c 12%,#ffe45c 88%,transparent 88%);color:#2448ff}
+.t-b .bar{position:absolute;left:16px;height:5px;border-radius:3px;background:#e3e5ea;width:48%}
+.t-b .bar i{position:absolute;left:0;top:0;bottom:0;background:#2448ff;border-radius:3px}
+.t-b .n{position:absolute;right:18px;bottom:16px;font:800 44px var(--display);letter-spacing:-.04em}
+.t-c{background:#c6cbdc;background-image:radial-gradient(#b3b9cf 1px,transparent 1.2px);background-size:6px 6px}
+.t-c .w{position:absolute;background:#fbfbfd;border:1.5px solid #16171d;box-shadow:4px 4px 0 #16171d}
+.t-c .w::before{content:"";display:block;height:10px;background:#e9ebf3;border-bottom:1.5px solid #16171d}
+.t-c .h{position:absolute;left:12px;top:12px;font:800 20px/.95 var(--display);color:#16171d;letter-spacing:-.04em;width:52%}
+.t-d{background:#0f3a2d;color:#dff3e8}
+.t-d .h{position:absolute;left:16px;top:24px;font:400 23px/1.05 Georgia,serif;width:52%}
+.t-d .h i{color:#f6c768;font-style:normal}
+.t-d .ph{position:absolute;right:20px;top:14px;bottom:-10px;width:30%;background:#e9e3d9;border-radius:14px;border:5px solid #0a2a20;padding:16px 6px;display:grid;gap:5px;align-content:start}
+.t-d .ph i{height:12px;border-radius:5px;background:#fff;width:80%}
+.t-d .ph i:nth-child(even){background:#d4f7c5;justify-self:end;width:65%}
+.t-e{background:#1d3cff;color:#eef1ff}
+.t-e .v{position:absolute;left:14px;font:900 30px/1 var(--display);letter-spacing:-.05em;border-bottom:1px solid rgba(238,241,255,.25);right:14px;padding-bottom:3px}
+.t-e .v.on{color:#ffb48f;padding-left:12px}
+.note{margin-top:40px;padding-top:20px;border-top:1px solid var(--rule);color:var(--soft);font-size:15px;max-width:70ch}
+@media (max-width:760px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="label">Autowebly · Homepage directions · Round 1</div>
+  <h1>Five ways the new site could feel</h1>
+  <p class="intro">Each one is a full, working homepage with real Autowebly content and one interactive idea at its centre. Open them, click around, try them on your phone. Then tell me which one (or which parts of several) you want to build.</p>
+
+  <div class="list">
+    <article class="row">
+      <a class="thumb t-a" href="a-blueprint.html" aria-label="Open Blueprint">
+        <span class="h">Every enquiry, <b>handled in seconds.</b></span>
+        <span class="bx" style="right:118px;top:40px">TRIGGER</span><span class="ln" style="right:76px;top:51px;width:40px"></span>
+        <span class="bx" style="right:16px;top:40px">QUALIFY</span>
+        <span class="bx" style="right:44px;top:96px">CRM</span><span class="bx" style="right:16px;top:142px">WHATSAPP</span>
+      </a>
+      <div>
+        <div class="label">A · Blueprint</div>
+        <h2>Engineering drawing</h2>
+        <p>Blueprint paper, technical type, spec sheets. Says “we are engineers who build systems”, not “we are another agency”.</p>
+        <dl><dt>Interactive</dt><dd>Run a test enquiry through a live flow diagram and watch it reach the CRM and WhatsApp in 4 seconds.</dd><dt>Best for</dt><dd>Selling automation as the lead service; B2B and manufacturer clients.</dd></dl>
+        <a class="open" href="a-blueprint.html">Open Blueprint →</a>
+      </div>
+    </article>
+
+    <article class="row">
+      <a class="thumb t-b" href="b-hours.html" aria-label="Open Hours">
+        <span class="h">Your team loses <span>35 hours</span> a month.</span>
+        <span class="bar" style="top:118px"><i style="width:40%"></i></span>
+        <span class="bar" style="top:136px"><i style="width:25%"></i></span>
+        <span class="bar" style="top:154px"><i style="width:60%"></i></span>
+        <span class="n">28h</span>
+      </a>
+      <div>
+        <div class="label">B · Hours</div>
+        <h2>Swiss calculator</h2>
+        <p>Clean white grid, big numbers, highlighter marks. The visitor calculates their own wasted hours and rupees before they read anything else.</p>
+        <dl><dt>Interactive</dt><dd>Sliders for enquiries, minutes and staff cost; pick manual tasks and see hours and ₹ saved per month and year.</dd><dt>Best for</dt><dd>Owners who think in money. Strongest at turning visitors into calls.</dd></dl>
+        <a class="open" href="b-hours.html">Open Hours →</a>
+      </div>
+    </article>
+
+    <article class="row">
+      <a class="thumb t-c" href="c-desktop.html" aria-label="Open Desktop">
+        <span class="h">Run a small team like a bigger one.</span>
+        <span class="w" style="left:56%;top:14px;width:38%;height:44%"></span>
+        <span class="w" style="left:8%;top:56%;width:34%;height:34%"></span>
+        <span class="w" style="left:48%;top:62%;width:40%;height:30%"></span>
+      </a>
+      <div>
+        <div class="label">C · Desktop</div>
+        <h2>Operating system</h2>
+        <p>The site is a desktop. Each service is a window you can drag, close and reopen from the dock. Playful and memorable, stacks into cards on phones.</p>
+        <dl><dt>Interactive</dt><dd>Draggable windows, a live automation terminal, a sample pipeline spreadsheet and a search-result preview.</dd><dt>Best for</dt><dd>Standing out to founders, agencies and international clients.</dd></dl>
+        <a class="open" href="c-desktop.html">Open Desktop →</a>
+      </div>
+    </article>
+
+    <article class="row">
+      <a class="thumb t-d" href="d-conversation.html" aria-label="Open Conversation">
+        <span class="h">Every enquiry gets a reply. <i>Even at 2 a.m.</i></span>
+        <span class="ph"><i></i><i></i><i></i><i></i><i></i></span>
+      </a>
+      <div>
+        <div class="label">D · Conversation</div>
+        <h2>WhatsApp-first, editorial</h2>
+        <p>Deep green, a warm serif and a phone showing a real-feeling customer chat answered by automation. Calm and trustworthy.</p>
+        <dl><dt>Interactive</dt><dd>Animated WhatsApp conversation; switch between a manufacturer, a clinic and an online shop.</dd><dt>Best for</dt><dd>Indian small businesses who live on WhatsApp.</dd></dl>
+        <a class="open" href="d-conversation.html">Open Conversation →</a>
+      </div>
+    </article>
+
+    <article class="row">
+      <a class="thumb t-e" href="e-kinetic.html" aria-label="Open Kinetic">
+        <span class="v" style="top:16px">AUTOMATE</span>
+        <span class="v on" style="top:52px">BUILD</span>
+        <span class="v" style="top:88px">RANK</span>
+        <span class="v" style="top:124px">SELL</span>
+      </a>
+      <div>
+        <div class="label">E · Kinetic</div>
+        <h2>Bold brand, four verbs</h2>
+        <p>One saturated blue, huge type, a scrolling strip of tools. Confident and loud, like a product company rather than a service shop.</p>
+        <dl><dt>Interactive</dt><dd>Hover or tap AUTOMATE / BUILD / RANK / SELL and the panel turns into that service.</dd><dt>Best for</dt><dd>Building a strong, recognisable brand from day one.</dd></dl>
+        <a class="open" href="e-kinetic.html">Open Kinetic →</a>
+      </div>
+    </article>
+  </div>
+
+  <p class="note">All copy comes from Autowebly's existing service description. Names in demos (Shree Fabricators, Sample Exports…) are placeholders, and contact forms are demos that don't send anything yet. Colours, fonts and wording are all easy to change once you pick a direction.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autowebly — Hours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working calculator is the hero. Swiss grid, white paper, highlighter marks on the numbers that matter. */
+:root{
+  --bg:#ffffff; --ink:#14161a; --soft:#5d636e; --rule:#e3e5ea; --mark:#ffe45c; --blue:#2448ff; --tint:#f2f4fb;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Instrument Sans",system-ui,sans-serif; --mono:"DM Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.label{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+mark{background:linear-gradient(transparent 12%,var(--mark) 12%,var(--mark) 88%,transparent 88%);color:inherit;padding:0 .08em}
+
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:22px}
+.logo{font:800 22px var(--display);letter-spacing:-.03em;text-decoration:none}
+.logo span{color:var(--blue)}
+nav{display:flex;gap:28px;align-items:center}
+nav a{text-decoration:none;font-weight:500;color:var(--soft)}
+nav a:hover{color:var(--ink)}
+.btn{display:inline-block;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:600;padding:13px 20px;border-radius:999px;border:0;cursor:pointer;font-size:16px;font-family:var(--body)}
+.btn.blue{background:var(--blue);color:#fff}
+.btn:hover{transform:translateY(-1px)}
+
+.hero{padding-block:40px 72px}
+h1{font:800 clamp(42px,7vw,96px)/.92 var(--display);letter-spacing:-.045em;margin:14px 0 0;text-wrap:balance}
+h1 .num{font-variant-numeric:tabular-nums;color:var(--blue)}
+.hero-sub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;margin-top:40px;align-items:start}
+.hero-sub p{margin:0;font-size:20px;color:var(--soft);max-width:40ch}
+
+.calc{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);border-top:2px solid var(--ink);margin-top:48px}
+.inputs{padding:28px 32px 28px 0;display:grid;gap:28px;border-right:1px solid var(--rule)}
+.field{display:grid;gap:10px}
+.field-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.field label{font-weight:600}
+.val{font:500 22px var(--mono);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--rule);border-radius:3px;outline-offset:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--blue);border:4px solid #fff;box-shadow:0 0 0 1.5px var(--blue);cursor:grab}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--blue);border:4px solid #fff;box-shadow:0 0 0 1.5px var(--blue);cursor:grab}
+.tasks{display:flex;flex-wrap:wrap;gap:8px}
+.task{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:8px 14px;font:500 15px var(--body);cursor:pointer;color:var(--ink)}
+.task[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.result{padding:28px 0 28px 32px;display:grid;gap:22px;align-content:start}
+.big{font:800 clamp(56px,8vw,104px)/.9 var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.big small{font-size:.32em;letter-spacing:0;font-weight:600;color:var(--soft)}
+.row{display:flex;justify-content:space-between;border-top:1px solid var(--rule);padding-top:12px;gap:12px}
+.row b{font:500 18px var(--mono);font-variant-numeric:tabular-nums}
+.note{font-size:14px;color:var(--soft);margin:0}
+
+section{padding-block:80px;border-top:1px solid var(--rule)}
+h2{font:800 clamp(32px,4.6vw,60px)/1 var(--display);letter-spacing:-.035em;margin:10px 0 0;text-wrap:balance;max-width:18ch}
+.svc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:44px;border-top:2px solid var(--ink)}
+.svc article{padding:22px 22px 26px 0;display:grid;gap:12px;align-content:start;border-right:1px solid var(--rule);padding-left:22px}
+.svc article:first-child{padding-left:0}
+.svc article:last-child{border-right:0}
+.svc h3{font:700 24px/1.1 var(--display);letter-spacing:-.02em;margin:0}
+.svc p{margin:0;color:var(--soft);font-size:16px}
+.svc .from{font:500 13px var(--mono);color:var(--blue)}
+
+.own{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:start}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.checks li{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:16px 0;border-bottom:1px solid var(--rule);font-size:19px}
+.checks li::before{content:"";width:20px;height:20px;border-radius:50%;background:var(--mark);box-shadow:inset 0 0 0 1.5px var(--ink);margin-top:5px}
+
+.faq details{border-bottom:1px solid var(--rule);padding:18px 0}
+.faq summary{cursor:pointer;font:700 22px var(--display);letter-spacing:-.02em;list-style:none;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-weight:400;color:var(--blue)}
+.faq details[open] summary::after{content:"–"}
+.faq p{color:var(--soft);margin:12px 0 0;max-width:62ch}
+
+.cta{background:var(--tint)}
+.cta .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+form{display:grid;gap:12px}
+input[type=text],input[type=tel],textarea{font:17px var(--body);padding:14px 16px;border:1.5px solid var(--ink);border-radius:12px;background:var(--bg);color:var(--ink);width:100%}
+.ok{color:var(--blue);font-weight:600;margin:0}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:28px;flex-wrap:wrap;color:var(--soft);font-size:14px}
+.tpl-chip{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:20;font:500 12px var(--mono);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;text-decoration:none}
+
+@media (max-width:900px){
+  .hero-sub,.calc,.own,.cta .wrap{grid-template-columns:1fr}
+  .inputs{border-right:0;padding-right:0;border-bottom:1px solid var(--rule)}
+  .result{padding-left:0}
+  .svc{grid-template-columns:1fr 1fr}
+  .svc article{padding-left:0!important;border-right:0;border-bottom:1px solid var(--rule)}
+  .svc article:nth-child(odd){padding-right:22px}
+}
+@media (max-width:560px){ .svc{grid-template-columns:1fr} nav a:not(.btn){display:none} }
+@media (prefers-reduced-motion:reduce){ .btn:hover{transform:none} }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#">autowebly<span>.</span></a>
+  <nav aria-label="Main"><a href="#services">Services</a><a href="#faq">FAQ</a><a class="btn" href="#talk">Free call</a></nav>
+</div></header>
+
+<main>
+  <div class="wrap hero">
+    <div class="label">Move the sliders · it is your business</div>
+    <h1>Your team loses <mark><span class="num" id="h1Hours">35</span> hours</mark> a month to copy-paste.</h1>
+    <div class="hero-sub">
+      <p>Autowebly builds automations, websites and SEO so a small team runs like a bigger one. Fixed written quote. You own everything.</p>
+      <div><a class="btn blue" href="#talk">Get my hours back</a></div>
+    </div>
+
+    <div class="calc" aria-label="Time-saved calculator">
+      <div class="inputs">
+        <div class="field">
+          <div class="field-top"><label for="enq">Enquiries per week</label><span class="val" id="enqV">40</span></div>
+          <input type="range" id="enq" min="5" max="300" step="5" value="40">
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="mins">Minutes of manual work per enquiry</label><span class="val" id="minsV">12</span></div>
+          <input type="range" id="mins" min="2" max="45" step="1" value="12">
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="rate">Cost of one staff hour</label><span class="val" id="rateV">₹250</span></div>
+          <input type="range" id="rate" min="100" max="2000" step="50" value="250">
+        </div>
+        <div class="field">
+          <span style="font-weight:600">What do you do by hand today?</span>
+          <div class="tasks" role="group" aria-label="Manual tasks">
+            <button class="task" aria-pressed="true" data-w="0.35">Copy enquiry to sheet</button>
+            <button class="task" aria-pressed="true" data-w="0.3">WhatsApp follow-up</button>
+            <button class="task" aria-pressed="false" data-w="0.15">Send quote PDF</button>
+            <button class="task" aria-pressed="false" data-w="0.1">Update stock</button>
+            <button class="task" aria-pressed="false" data-w="0.1">Weekly report</button>
+          </div>
+        </div>
+      </div>
+      <div class="result" aria-live="polite">
+        <div class="label">You get back each month</div>
+        <div class="big"><span id="hrs">28</span><small> hours</small></div>
+        <div class="row"><span>Worth</span><b id="money">₹7,000</b></div>
+        <div class="row"><span>Per year</span><b id="year">₹84,000</b></div>
+        <div class="row"><span>Working days freed</span><b id="days">3.5</b></div>
+        <p class="note">Estimate: 4.33 weeks a month, 8-hour days, share of the work we can usually automate for the tasks you picked. Your quote is based on your real numbers.</p>
+      </div>
+    </div>
+  </div>
+
+  <section id="services"><div class="wrap">
+    <div class="label">What we build</div>
+    <h2>Four services, one promise: <mark>you own it.</mark></h2>
+    <div class="svc">
+      <article><div class="label">Automation</div><h3>Leads that follow themselves up</h3><p>Capture, qualify and reply on WhatsApp and email within seconds. Invoices, orders and stock kept in sync.</p><span class="from">Custom quote</span></article>
+      <article><div class="label">Websites</div><h3>Fast, mobile-first, built to convert</h3><p>Business sites, landing pages, online stores with admin and B2B quote-request systems on Next.js.</p><span class="from">Custom quote</span></article>
+      <article><div class="label">SEO + AI search</div><h3>Show up where buyers look</h3><p>Technical fixes, content, Google Business Profile and AI-answer visibility. Plain-language monthly reports.</p><span class="from">Custom quote</span></article>
+      <article><div class="label">B2B pipeline</div><h3>Qualified meetings, every week</h3><p>Managed prospect research, outreach, follow-ups and CRM so you don't need a full SDR team.</p><span class="from">From ₹1,00,000/mo</span></article>
+    </div>
+  </div></section>
+
+  <section><div class="wrap own">
+    <div><div class="label">At handover</div><h2>Everything is in your name.</h2></div>
+    <ul class="checks">
+      <li>Your accounts, logins and domain, never ours</li>
+      <li>The full code and every workflow</li>
+      <li>Written documentation and a recorded walkthrough</li>
+      <li>No lock-in contract; leave whenever you like</li>
+      <li>Replies within one working day, after launch too</li>
+    </ul>
+  </div></section>
+
+  <section id="faq" class="faq"><div class="wrap">
+    <div class="label">Questions</div><h2>Before you book</h2>
+    <div style="margin-top:32px">
+      <details open><summary>How much does it cost?</summary><p>Automation, website and SEO projects get a fixed written quote after a free call, in INR for India or USD abroad. The managed B2B pipeline starts at ₹1,00,000 a month plus setup.</p></details>
+      <details><summary>Which tools do you work with?</summary><p>n8n, Zapier, Make, Google Workspace, HubSpot, Zoho, WhatsApp, UPI, Next.js and custom code. We use what you already have when it does the job.</p></details>
+      <details><summary>Do you guarantee rankings?</summary><p>No. Anyone who does is guessing or taking risks with your site. We do the technical and content work properly and report what changed each month.</p></details>
+      <details><summary>Can we talk in Hindi?</summary><p>Yes. Calls in Hindi or English, async updates for international clients.</p></details>
+    </div>
+  </div></section>
+
+  <section id="talk" class="cta"><div class="wrap">
+    <div><div class="label">Free 30-minute call</div><h2>Bring your numbers. Leave with a plan.</h2></div>
+    <form id="form">
+      <label class="label" for="f-name">Name</label><input type="text" id="f-name" required placeholder="Your name">
+      <label class="label" for="f-wa">WhatsApp</label><input type="tel" id="f-wa" placeholder="+91 98xxx xxxxx">
+      <label class="label" for="f-msg">What takes the most time?</label><textarea id="f-msg" rows="3" placeholder="We copy every enquiry into Excel…"></textarea>
+      <button class="btn blue" type="submit">Book my call</button>
+      <p class="ok" id="ok" hidden>Got it. We'll message you within one working day.</p>
+    </form>
+  </div></section>
+</main>
+<footer><div class="wrap"><span>© Autowebly</span><span>India · UK · US · Europe</span></div></footer>
+<a class="tpl-chip" href="./">← All templates · B</a>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  function calc(){
+    const enq = +$('enq').value, mins = +$('mins').value, rate = +$('rate').value;
+    let share = 0; document.querySelectorAll('.task[aria-pressed="true"]').forEach(t => share += +t.dataset.w);
+    share = Math.min(share, 0.95);
+    const hrsRaw = enq * 4.33 * mins / 60;
+    const hrs = Math.round(hrsRaw * (share || 0) * 1.25 > hrsRaw ? hrsRaw : hrsRaw * share * 1.25);
+    $('enqV').textContent = enq; $('minsV').textContent = mins; $('rateV').textContent = inr(rate);
+    $('hrs').textContent = hrs; $('h1Hours').textContent = Math.round(hrsRaw);
+    $('money').textContent = inr(hrs * rate); $('year').textContent = inr(hrs * rate * 12);
+    $('days').textContent = (hrs / 8).toFixed(1);
+  }
+  ['enq','mins','rate'].forEach(id => $(id).addEventListener('input', calc));
+  document.querySelectorAll('.task').forEach(b => b.addEventListener('click', () => { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); calc(); }));
+  calc();
+  $('form').addEventListener('submit', e => { e.preventDefault(); $('ok').hidden = false; });
+})();
+</script>
+</body>
+</html>
