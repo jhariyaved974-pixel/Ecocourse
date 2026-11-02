@@ -3,118 +3,137 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lead System Builder</title>
+<title>Growth Plan Builder</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a floating 3D island fills the hero. Enquiries fly in; without a system, many fall off the edge.
-   The visitor answers four questions on the left panel, the island builds their system, and the result turns into a booked call. */
+/* Layout: a floating 3D island stays on screen for the whole page; the camera flies with the scroll.
+   Visitors pick Automation, Website or SEO, answer four questions, watch the island build their fix,
+   get a personal plan and leave their WhatsApp.
+   Palette "Midnight & Saffron": ice background, midnight ink for trust, saffron for the one action that matters,
+   sky blue for interaction, teal for won customers, rose for lost ones. */
 :root{
-  --mist:#e8ecf4; --mist-2:#dfe4ee; --surface:#ffffff; --ink:#0f1530; --soft:#5b6380; --line:rgba(15,21,48,.1);
-  --cobalt:#3346ff; --cobalt-soft:#e6e9ff; --coral:#ff6b4a; --mint:#18b892; --mint-soft:#dcf6ee;
+  --ice:#eef2f7; --ice-2:#e0e6ef; --surface:#ffffff; --ink:#0b1b33; --soft:#56637a; --line:rgba(11,27,51,.1);
+  --sky:#3d7bff; --sky-soft:#e5eeff; --saffron:#ffb020; --saffron-deep:#f59e0b; --teal:#0fa68a; --teal-soft:#d9f4ee; --rose:#f0506e;
   --sans:"Manrope",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
   --r:18px;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--mist);color:var(--ink);font:500 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--ice);color:var(--ink);font:500 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--cobalt);outline-offset:3px}
+:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
 .wrap{max-width:1320px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 .mono{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;border-radius:14px;padding:15px 22px;font:700 15px var(--sans);transition:transform .2s,box-shadow .2s,background .2s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;border-radius:14px;padding:15px 22px;font:800 15px var(--sans);transition:transform .2s,box-shadow .2s,background .2s}
 .btn:hover{transform:translateY(-1px)}
-.btn.primary{background:var(--cobalt);color:#fff;box-shadow:0 10px 24px -10px rgba(51,70,255,.7)}
-.btn.hot{background:var(--coral);color:#fff;box-shadow:0 10px 24px -10px rgba(255,107,74,.7)}
-.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line)}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--ink);color:#fff;box-shadow:0 10px 24px -12px rgba(11,27,51,.8)}
+.btn.hot{background:var(--saffron);color:var(--ink);box-shadow:0 10px 24px -10px rgba(245,158,11,.75)}
+.btn.hot:hover{background:var(--saffron-deep)}
+.btn.ghost{background:rgba(255,255,255,.6);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
 
-/* header */
 header{position:relative;z-index:5}
 header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:20px;gap:16px}
 .brand{font-weight:800;font-size:18px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
-.brand i{width:22px;height:22px;border-radius:7px;background:var(--cobalt);display:inline-block;box-shadow:inset -6px -6px 0 var(--coral)}
+.brand i{width:22px;height:22px;border-radius:7px;background:var(--ink);display:inline-block;box-shadow:inset -7px -7px 0 var(--saffron)}
 nav{display:flex;gap:28px;font-size:14px;color:var(--soft);font-weight:600}
 nav a:hover{color:var(--ink)}
 
-/* hero world */
-.hero{position:relative;min-height:max(760px,calc(100svh - 70px))}
+/* 3D world, fixed behind everything */
+.hero{position:relative;min-height:max(780px,calc(100svh - 70px))}
 #world{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y;z-index:0}
 #world:active{cursor:grabbing}
 .labels{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
 header,main,footer{position:relative;z-index:2}
 main{pointer-events:none}
 main .hero-grid > *,main .col,main .final{pointer-events:auto}
-.tag3d{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:var(--surface);border-radius:10px;padding:6px 10px;font:700 12px var(--sans);white-space:nowrap;box-shadow:0 6px 18px -8px rgba(15,21,48,.35);opacity:0;transition:opacity .4s}
+.tag3d{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:var(--surface);border-radius:10px;padding:6px 10px;font:700 12px var(--sans);white-space:nowrap;box-shadow:0 6px 18px -8px rgba(11,27,51,.35);opacity:0;transition:opacity .4s}
 .tag3d small{display:block;font:500 10px var(--mono);color:var(--soft);letter-spacing:.04em}
 .tag3d.on{opacity:1}
 .tag3d.src{background:var(--ink);color:#fff}
-.tag3d.src small{color:#aab0c6}
-.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:24px;padding-block:24px 40px;pointer-events:none}
+.tag3d.src small{color:#a9b4c8}
+.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,470px) minmax(0,1fr);gap:24px;padding-block:24px 40px;pointer-events:none}
 .stats{align-self:start;justify-self:end;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.stat{background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border-radius:14px;padding:10px 14px;min-width:120px}
+.stat{background:rgba(255,255,255,.78);backdrop-filter:blur(10px);border-radius:14px;padding:10px 14px;min-width:120px}
 .stat b{display:block;font:800 26px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.stat.lost b{color:var(--coral)} .stat.won b{color:var(--mint)}
+.stat.lost b{color:var(--rose)} .stat.won b{color:var(--teal)}
 .hint{position:absolute;right:max(20px,env(safe-area-inset-right,0px));bottom:20px;pointer-events:none}
 
-/* panel */
-.panel{background:rgba(255,255,255,.86);backdrop-filter:blur(16px);border-radius:24px;padding:28px;box-shadow:0 30px 60px -30px rgba(15,21,48,.35);display:grid;gap:18px}
+/* builder panel */
+.panel{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-radius:24px;padding:28px;box-shadow:0 30px 60px -30px rgba(11,27,51,.35);display:grid;gap:18px}
 h1{font:800 clamp(30px,3.4vw,44px)/1.05 var(--sans);letter-spacing:-.04em;margin:0;text-wrap:balance}
-h1 em{font-style:normal;color:var(--coral)}
+h1 em{font-style:normal;color:var(--rose)}
 .lede{margin:0;color:var(--soft);font-size:16px}
+.services{display:grid;gap:8px}
+.svc{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);transition:box-shadow .15s,transform .15s}
+.svc:hover{box-shadow:inset 0 0 0 2px var(--ink);transform:translateY(-1px)}
+.svc:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.svc .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+.svc .ico svg{width:22px;height:22px}
+.svc b{display:block;font-size:16px;letter-spacing:-.01em}
+.svc small{color:var(--soft);font-size:13px}
+.svc .go{font-weight:800;color:var(--soft)}
+.flow-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.chip{font:700 12px var(--sans);padding:5px 10px;border-radius:999px;background:var(--ink);color:#fff}
+.switch{all:unset;cursor:pointer;font:600 13px var(--sans);color:var(--soft)}
+.switch:hover{color:var(--ink)}
+.switch:focus-visible{outline:2px solid var(--sky)}
 .progress{display:flex;gap:6px}
-.progress i{flex:1;height:4px;border-radius:2px;background:var(--mist-2);transition:background .3s}
-.progress i.on{background:var(--cobalt)}
-.step{display:grid;gap:12px}
-.step[hidden]{display:none}
+.progress i{flex:1;height:4px;border-radius:2px;background:var(--ice-2);transition:background .3s}
+.progress i.on{background:var(--sky)}
 .q{font:800 20px/1.2 var(--sans);letter-spacing:-.02em;margin:0}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opts.one{grid-template-columns:1fr}
 .opt{all:unset;box-sizing:border-box;cursor:pointer;border-radius:14px;padding:12px 14px;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--line);font:600 14px/1.3 var(--sans);display:grid;gap:2px;transition:box-shadow .15s,background .15s}
 .opt small{font:500 12px var(--sans);color:var(--soft)}
-.opt:hover{box-shadow:inset 0 0 0 1.5px var(--cobalt)}
-.opt[aria-pressed="true"]{background:var(--cobalt-soft);box-shadow:inset 0 0 0 2px var(--cobalt)}
-.opt:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
-.opts.one{grid-template-columns:1fr}
+.opt:hover{box-shadow:inset 0 0 0 1.5px var(--sky)}
+.opt[aria-pressed="true"]{background:var(--sky-soft);box-shadow:inset 0 0 0 2px var(--sky)}
+.opt:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .range-row{display:flex;justify-content:space-between;align-items:baseline}
 .range-row b{font:800 34px var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--cobalt) var(--p,30%),var(--mist-2) var(--p,30%))}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--cobalt),0 4px 10px rgba(51,70,255,.4);cursor:grab}
-input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--cobalt);cursor:grab}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--sky) var(--p,30%),var(--ice-2) var(--p,30%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--sky),0 4px 10px rgba(61,123,255,.4);cursor:grab}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--sky);cursor:grab}
 .nav-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .back{all:unset;cursor:pointer;color:var(--soft);font-weight:600;font-size:14px}
 .back:hover{color:var(--ink)}
-.back:focus-visible{outline:2px solid var(--cobalt)}
+.back:focus-visible{outline:2px solid var(--sky)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-/* result */
+/* result + form */
 .result{display:grid;gap:14px}
 .nums{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .num{background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:inset 0 0 0 1.5px var(--line)}
 .num b{display:block;font:800 28px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.num.g b{color:var(--mint)}
+.num.g b{color:var(--teal)}
 .plan{background:var(--ink);color:#fff;border-radius:16px;padding:16px 18px;display:grid;gap:6px}
-.plan .mono{color:#aab0c6}
+.plan .mono{color:#a9b4c8}
 .plan b{font-size:18px;letter-spacing:-.01em}
-.plan ul{margin:4px 0 0;padding-left:18px;color:#d5d9e8;font-size:14px}
+.plan b span{color:var(--saffron)}
+.plan ul{margin:4px 0 0;padding-left:18px;color:#d3dbe8;font-size:14px}
 form{display:grid;gap:10px}
 .field{display:grid;gap:4px}
 .field label{font:600 13px var(--sans);color:var(--soft)}
 .field input{font:600 16px var(--sans);padding:13px 14px;border-radius:12px;border:0;box-shadow:inset 0 0 0 1.5px var(--line);background:var(--surface);color:var(--ink)}
-.field input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--cobalt)}
+.field input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--sky)}
 .slots{display:flex;gap:6px;flex-wrap:wrap}
 .slot{all:unset;cursor:pointer;font:600 13px var(--sans);padding:8px 12px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);background:var(--surface)}
 .slot[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}
-.slot:focus-visible{outline:2px solid var(--cobalt)}
+.slot:focus-visible{outline:2px solid var(--sky)}
 .fine{font-size:12px;color:var(--soft);margin:0}
-.err{color:var(--coral);font-size:13px;margin:0;font-weight:600}
-.done{background:var(--mint-soft);border-radius:16px;padding:18px;display:grid;gap:8px}
+.err{color:var(--rose);font-size:13px;margin:0;font-weight:700}
+.done{background:var(--teal-soft);border-radius:16px;padding:18px;display:grid;gap:8px}
 .done b{font-size:18px}
-.done pre{white-space:pre-wrap;font:500 12px/1.6 var(--mono);background:var(--surface);border-radius:10px;padding:12px;margin:0;max-height:180px;overflow:auto}
+.done pre{white-space:pre-wrap;font:500 12px/1.6 var(--mono);background:var(--surface);border-radius:10px;padding:12px;margin:0;max-height:200px;overflow:auto}
+.also{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.also .mono{margin-right:4px}
 
-/* scroll scenes: content on one side, the island flies to the other */
+/* scroll scenes */
 .scene{min-height:150vh;display:flex;align-items:center;padding-block:20vh}
 .scene .wrap{width:100%}
 .col{max-width:520px;display:grid;gap:14px}
@@ -123,40 +142,43 @@ form{display:grid;gap:10px}
 h2{font:800 clamp(30px,4vw,52px)/1.05 var(--sans);letter-spacing:-.04em;margin:0;text-wrap:balance}
 .say{margin:0;color:var(--soft);font-size:18px}
 .stack{display:grid;gap:10px;margin-top:10px}
-.card{background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-radius:var(--r);padding:22px 24px;display:grid;gap:8px;align-content:start}
+.card{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:var(--r);padding:22px 24px;display:grid;gap:8px;align-content:start}
 .card b{font-size:18px;letter-spacing:-.02em}
 .card p{margin:0;color:var(--soft)}
-.card .big{font:800 40px/1 var(--sans);letter-spacing:-.04em;color:var(--coral)}
+.card .big{font:800 40px/1 var(--sans);letter-spacing:-.04em;color:var(--rose)}
 .steps{counter-reset:s}
-.steps .card::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:500 12px var(--mono);color:var(--cobalt)}
+.steps .card::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:500 12px var(--mono);color:var(--sky)}
 .flow{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
-.flow li{background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-radius:14px;padding:14px 18px;display:grid;grid-template-columns:14px auto 1fr;gap:12px;align-items:center}
+.flow li{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:14px;padding:14px 18px;display:grid;grid-template-columns:14px auto 1fr;gap:12px;align-items:center}
 .flow i{width:12px;height:12px;border-radius:4px}
 .flow span{color:var(--soft);font-size:14px;text-align:right}
 .checks{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
-.checks li{background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-radius:14px;padding:16px 18px 16px 50px;position:relative;font-weight:600}
-.checks li::before{content:"";position:absolute;left:18px;top:19px;width:18px;height:18px;border-radius:50%;background:var(--mint);box-shadow:inset 0 0 0 5px var(--mint-soft)}
-details{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:14px;padding:18px 20px;margin-top:10px}
+.checks li{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-radius:14px;padding:16px 18px 16px 50px;position:relative;font-weight:600}
+.checks li::before{content:"";position:absolute;left:18px;top:19px;width:18px;height:18px;border-radius:50%;background:var(--teal);box-shadow:inset 0 0 0 5px var(--teal-soft)}
+details{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-radius:14px;padding:18px 20px;margin-top:10px}
 summary{cursor:pointer;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";color:var(--cobalt);font-weight:800}
+summary::after{content:"+";color:var(--sky);font-weight:800}
 details[open] summary::after{content:"–"}
 details p{margin:10px 0 0;color:var(--soft)}
 .final{background:var(--ink);color:#fff;border-radius:32px;padding:clamp(32px,5vw,60px);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end}
 .final h2{color:#fff;margin:0}
-.final p{color:#b6bbd0;margin:0 0 18px}
+.final h2 span{color:var(--saffron)}
+.final p{color:#b4bfd2;margin:0 0 18px}
+.final .row{display:flex;gap:8px;flex-wrap:wrap}
+.final .btn.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25)}
 .scroll-cue{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:3;pointer-events:none;display:grid;justify-items:center;gap:6px;transition:opacity .4s}
-.scroll-cue i{width:2px;height:28px;border-radius:2px;background:linear-gradient(var(--cobalt),transparent);animation:cue 1.6s infinite}
+.scroll-cue i{width:2px;height:28px;border-radius:2px;background:linear-gradient(var(--sky),transparent);animation:cue 1.6s infinite}
 @keyframes cue{0%{transform:scaleY(.2);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(.2);transform-origin:bottom}}
-footer{background:var(--mist)}
+footer{background:var(--ice)}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:28px;color:var(--soft);font-size:14px;flex-wrap:wrap}
 
-/* sticky bar + exit modal */
-.bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:30;background:var(--ink);color:#fff;border-radius:18px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 40px -16px rgba(15,21,48,.6);transition:transform .45s cubic-bezier(.2,.8,.2,1);width:max-content;max-width:calc(100% - 32px)}
+.bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:30;background:var(--ink);color:#fff;border-radius:18px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 20px 40px -16px rgba(11,27,51,.6);transition:transform .45s cubic-bezier(.2,.8,.2,1);width:max-content;max-width:calc(100% - 32px)}
 .bar.show{transform:translate(-50%,0)}
 .bar span{font-weight:600;font-size:14px}
-.bar .dot{width:8px;height:8px;border-radius:50%;background:var(--coral);flex:none;box-shadow:0 0 0 4px rgba(255,107,74,.25)}
-.modal{position:fixed;inset:0;z-index:40;background:rgba(15,21,48,.45);display:grid;place-items:center;padding:20px}
+.bar .dot{width:8px;height:8px;border-radius:50%;background:var(--rose);flex:none;box-shadow:0 0 0 4px rgba(240,80,110,.25)}
+.bar.good .dot{background:var(--teal);box-shadow:0 0 0 4px rgba(15,166,138,.25)}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(11,27,51,.45);display:grid;place-items:center;padding:20px}
 .modal .box{background:var(--surface);border-radius:24px;padding:28px;max-width:420px;display:grid;gap:14px}
 .modal h3{font:800 24px/1.1 var(--sans);letter-spacing:-.03em;margin:0}
 .modal p{margin:0;color:var(--soft)}
@@ -166,93 +188,76 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
   .hero{min-height:0}
   .hero-grid{grid-template-columns:minmax(0,1fr);padding-top:46vh;position:static}
   .scene{min-height:130vh;align-items:flex-end;padding-block:50vh 8vh}
-  .col{max-width:none;background:rgba(232,236,244,.72);backdrop-filter:blur(14px);border-radius:22px;padding:18px}
+  .col{max-width:none;background:rgba(238,242,247,.74);backdrop-filter:blur(14px);border-radius:22px;padding:18px}
   .scene.r .col{margin-left:0}
   .flow span{text-align:left;grid-column:2/4}
   .stats{position:absolute;top:12px;right:max(20px,env(safe-area-inset-right,0px));justify-self:auto}
   .stats .stat:first-child{display:none}
   .tag3d small{display:none}
   .tag3d{padding:4px 8px;font-size:11px}
-  .hint{display:none}
+  .hint,.scroll-cue{display:none}
   nav{display:none}
   .final{grid-template-columns:minmax(0,1fr)}
 }
-@media (max-width:480px){ .opts{grid-template-columns:1fr} .stat{min-width:0;padding:8px 10px} .stat b{font-size:20px} .panel{padding:22px} }
-@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .btn,.bar,.tag3d{transition:none} .scroll-cue i{animation:none} }
+@media (max-width:480px){ .opts{grid-template-columns:1fr} .stat{min-width:0;padding:8px 10px} .stat b{font-size:20px} .panel{padding:22px} .svc{grid-template-columns:40px 1fr} .svc .go{display:none} }
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .btn,.bar,.tag3d,.svc{transition:none} .scroll-cue i{animation:none} }
 </style>
 </head>
 <body>
-<canvas id="world" aria-label="Your business as a 3D island. Enquiries arrive from your channels; without a system some fall off the edge." role="img"></canvas>
+<canvas id="world" aria-label="Your business as a 3D island. Customers arrive from your channels; without the right system some fall off the edge." role="img"></canvas>
 <div class="labels" id="labels" aria-hidden="true"></div>
 <header><div class="wrap">
   <a class="brand" href="#"><i aria-hidden="true"></i>Your Brand</a>
   <nav aria-label="Main"><a href="#cost">What it costs you</a><a href="#how">How it works</a><a href="#faq">Questions</a></nav>
-  <a class="btn ghost" href="#build" style="padding:11px 16px">Build my system</a>
+  <a class="btn ghost" href="#build" data-jump style="padding:11px 16px">Get my free plan</a>
 </div></header>
 
 <main>
   <div class="hero" id="build" data-cam="hero">
     <div class="wrap hero-grid">
       <div class="panel" id="panel">
-        <div class="step" data-step="0">
-          <div class="mono">60-second lead check · free</div>
-          <h1>Your leads are arriving. <em>Some are falling off.</em></h1>
-          <p class="lede">Watch the island. Each dot is an enquiry. Answer four quick questions and we'll build the system that catches every one, live.</p>
-          <div class="nav-row"><button class="btn primary" data-next>Build my system →</button><span class="mono">No sign-up</span></div>
-        </div>
-
-        <div class="step" data-step="1" hidden>
-          <div class="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
-          <p class="q">What kind of business do you run?</p>
-          <div class="opts" role="group" aria-label="Business type" data-key="biz" data-single>
-            <button class="opt" data-v="maker">Manufacturer / Exporter<small>Bulk orders, quotes</small></button>
-            <button class="opt" data-v="service">Clinic / Local service<small>Bookings, calls</small></button>
-            <button class="opt" data-v="shop">Shop / Online store<small>Orders, stock</small></button>
-            <button class="opt" data-v="b2b">B2B services<small>Long sales cycle</small></button>
-          </div>
-          <div class="nav-row"><button class="back" data-back>← Back</button><button class="btn primary" data-next disabled>Next →</button></div>
-        </div>
-
-        <div class="step" data-step="2" hidden>
-          <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i></div>
-          <p class="q">Where do enquiries come from?</p>
-          <div class="opts" role="group" aria-label="Enquiry channels" data-key="src">
-            <button class="opt" data-v="Website">Website form</button>
-            <button class="opt" data-v="WhatsApp">WhatsApp</button>
-            <button class="opt" data-v="IndiaMART">IndiaMART / JustDial</button>
-            <button class="opt" data-v="Instagram">Instagram DMs</button>
-            <button class="opt" data-v="Calls">Phone calls</button>
-            <button class="opt" data-v="Email">Email</button>
-          </div>
-          <span class="mono">Pick all that apply · each appears on your island</span>
-          <div class="nav-row"><button class="back" data-back>← Back</button><button class="btn primary" data-next disabled>Next →</button></div>
-        </div>
-
-        <div class="step" data-step="3" hidden>
-          <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
-          <p class="q">How many enquiries a week?</p>
-          <div class="range-row"><b id="wkV">40</b><span class="mono">per week</span></div>
-          <label class="mono" for="wk" style="position:absolute;left:-9999px">Enquiries per week</label>
-          <input type="range" id="wk" min="5" max="300" step="5" value="40">
-          <p class="q" style="font-size:16px;margin-top:6px">And today, what usually happens to them?</p>
-          <div class="opts one" role="group" aria-label="Current handling" data-key="now" data-single>
-            <button class="opt" data-v="0.35">Someone copies them into Excel and replies<small>Slow, but most get handled</small></button>
-            <button class="opt" data-v="0.5">We reply when someone is free<small>Hours later, sometimes the next day</small></button>
-            <button class="opt" data-v="0.65">Honestly, many never get a reply<small>Too busy running the business</small></button>
-          </div>
-          <div class="nav-row"><button class="back" data-back>← Back</button><button class="btn hot" data-next id="buildBtn" disabled>Build it ↑</button></div>
-        </div>
-
-        <div class="step" data-step="4" hidden>
-          <div class="progress" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
-          <div class="result">
-            <div class="mono">Your system is live on the island</div>
-            <div class="nums">
-              <div class="num g"><b id="rLeads">0</b><span class="mono">leads saved / month</span></div>
-              <div class="num"><b id="rHours">0</b><span class="mono">hours freed / month</span></div>
+        <!-- step 0: choose a service -->
+        <div id="intro">
+          <div style="display:grid;gap:14px">
+            <div class="mono">Free 60-second growth plan</div>
+            <h1>Customers are arriving. <em>Some are falling off.</em></h1>
+            <p class="lede">Each dot on the island is a potential customer. Pick what you need, answer four quick questions and watch us build the fix, live.</p>
+            <div class="services" role="group" aria-label="What do you need?">
+              <button class="svc" data-flow="auto">
+                <span class="ico" style="background:var(--sky-soft);color:var(--sky)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+                <span><b>Automation</b><small>Reply to every enquiry in seconds</small></span><span class="go" aria-hidden="true">→</span>
+              </button>
+              <button class="svc" data-flow="web">
+                <span class="ico" style="background:#fff3dc;color:#c27803"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg></span>
+                <span><b>Website</b><small>A fast site that turns visitors into enquiries</small></span><span class="go" aria-hidden="true">→</span>
+              </button>
+              <button class="svc" data-flow="seo">
+                <span class="ico" style="background:var(--teal-soft);color:var(--teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+                <span><b>SEO</b><small>Get found on Google, Maps and AI answers</small></span><span class="go" aria-hidden="true">→</span>
+              </button>
             </div>
-            <div class="plan"><span class="mono">Recommended start</span><b id="rPlan">Lead capture + WhatsApp follow-up</b><ul id="rList"></ul></div>
-            <p class="fine" id="rNote">Estimate from your answers: about 80% of currently missed enquiries recovered, 8 minutes of manual work per enquiry.</p>
+            <span class="mono">No sign-up · Takes about a minute</span>
+          </div>
+        </div>
+
+        <!-- steps 1-4: rendered from the chosen flow -->
+        <div id="quiz" hidden style="display:grid;gap:16px">
+          <div class="flow-head"><span class="chip" id="flowChip">Automation</span><button class="switch" id="switchFlow">Change service</button></div>
+          <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div id="qBody" style="display:grid;gap:12px"></div>
+          <div class="nav-row"><button class="back" id="qBack">← Back</button><button class="btn primary" id="qNext" disabled>Next →</button></div>
+        </div>
+
+        <!-- result -->
+        <div id="result" hidden>
+          <div class="result">
+            <div class="flow-head"><span class="mono" id="rHead">Your system is live on the island</span><span class="chip" id="rChip">Automation</span></div>
+            <div class="nums">
+              <div class="num g"><b id="rN1">0</b><span class="mono" id="rL1">leads saved / month</span></div>
+              <div class="num"><b id="rN2">0</b><span class="mono" id="rL2">hours freed / month</span></div>
+            </div>
+            <div class="plan"><span class="mono">Recommended start</span><b id="rPlan">Plan</b><ul id="rList"></ul></div>
+            <p class="fine" id="rNote"></p>
 
             <form id="lead" novalidate>
               <p class="q" style="font-size:17px">Get this plan and a fixed written quote</p>
@@ -275,15 +280,16 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
               <span class="fine">This is what we received (demo form, not connected yet):</span>
               <pre id="summary"></pre>
             </div>
-            <button class="back" data-restart>↺ Start over</button>
+            <div class="also" id="also"></div>
+            <button class="back" id="restart">↺ Start over</button>
           </div>
         </div>
       </div>
 
-      <div class="stats" aria-live="off">
-        <div class="stat"><b id="sIn">0</b><span class="mono">Arrived</span></div>
-        <div class="stat won"><b id="sWon">0</b><span class="mono">Answered</span></div>
-        <div class="stat lost"><b id="sLost">0</b><span class="mono">Lost</span></div>
+      <div class="stats">
+        <div class="stat"><b id="sIn">0</b><span class="mono" id="sInL">Arrived</span></div>
+        <div class="stat won"><b id="sWon">0</b><span class="mono" id="sWonL">Answered</span></div>
+        <div class="stat lost"><b id="sLost">0</b><span class="mono" id="sLostL">Lost</span></div>
       </div>
     </div>
     <span class="hint mono">Drag to turn the island</span>
@@ -292,45 +298,39 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
 
   <section class="scene" data-cam="cost" id="cost"><div class="wrap"><div class="col">
     <div class="mono">01 · The leak</div>
-    <h2>The first business to reply usually wins the order.</h2>
-    <p class="say">Look closely at the edge. Every coral dot is a buyer who asked and never heard back.</p>
+    <h2>Every falling dot is a customer who went somewhere else.</h2>
+    <p class="say" id="leakSay">An unanswered enquiry, a slow website, a search you didn't show up in. They all end the same way.</p>
     <div class="stack">
-      <div class="card"><span class="big" id="cLost">—</span><b>Enquiries you may be missing each month</b><p>Based on your answers above. Build your system to see your number.</p></div>
-      <div class="card"><span class="big">2 a.m.</span><b>When buyers often message</b><p>Automation replies at any hour with prices, catalogue or a booking link.</p></div>
+      <div class="card"><span class="big" id="cLost">—</span><b id="cLostL">Customers you may be missing each month</b><p id="cLostP">Pick a service above and answer four questions to see your number.</p></div>
+      <div class="card"><span class="big" style="color:var(--ink)">24 / 7</span><b>Your fix keeps working while you sleep</b><p>Automations reply at 2 a.m., your website takes enquiries on Sunday, and search sends buyers to you every day.</p></div>
     </div>
   </div></div></section>
 
   <section class="scene r" data-cam="map" id="how"><div class="wrap"><div class="col">
     <div class="mono">02 · The whole picture</div>
     <h2>Every channel, mapped from above.</h2>
-    <p class="say">Website, WhatsApp, marketplaces, calls. We connect each one to a single place, so nothing slips through.</p>
+    <p class="say">Automation, website and search work best together: search brings buyers, the website converts them, automation answers them.</p>
     <div class="stack steps">
-      <div class="card"><b>15-minute call</b><p>Hindi or English. We look at your real enquiries and tools.</p></div>
+      <div class="card"><b>15-minute call</b><p>Hindi or English. We look at your real numbers and tools.</p></div>
       <div class="card"><b>Fixed written quote</b><p>Exact scope and price in INR or USD. Nothing starts until you approve.</p></div>
-      <div class="card"><b>Live in weeks</b><p>We build, test on real leads, then hand over with docs and a walkthrough.</p></div>
+      <div class="card"><b>Live in weeks</b><p>We build, test with real customers, then hand over with docs and a walkthrough.</p></div>
     </div>
   </div></div></section>
 
   <section class="scene" data-cam="inside"><div class="wrap"><div class="col">
-    <div class="mono">03 · Inside the system</div>
-    <h2>Five parts. Four seconds. Zero typing.</h2>
-    <ul class="flow">
-      <li><i style="background:var(--cobalt)"></i><b>Capture hub</b><span>Every enquiry lands in one place</span></li>
-      <li><i style="background:#c9cfe0"></i><b>Qualify</b><span>Budget, city and need checked automatically</span></li>
-      <li><i style="background:var(--mint)"></i><b>Instant reply</b><span>WhatsApp and email answer in seconds</span></li>
-      <li><i style="background:#c9cfe0"></i><b>CRM</b><span>Logged, tagged and assigned to a person</span></li>
-      <li><i style="background:var(--coral)"></i><b>Owner alert</b><span>Hot leads ping your phone</span></li>
-    </ul>
+    <div class="mono">03 · Inside your plan</div>
+    <h2 id="insideH">Five parts. Four seconds. Zero typing.</h2>
+    <ul class="flow" id="insideList"></ul>
   </div></div></section>
 
   <section class="scene r" data-cam="orbit"><div class="wrap"><div class="col">
     <div class="mono">04 · Our promise</div>
     <h2>Everything we build is yours.</h2>
     <ul class="checks">
-      <li>Your accounts, code and workflows, in your name</li>
+      <li>Your accounts, domain, code and workflows, in your name</li>
       <li>Works with what you use: WhatsApp, Sheets, Zoho, HubSpot, UPI</li>
       <li>No lock-in contract. Leave whenever you want</li>
-      <li>Plain-language reports, no tech jargon</li>
+      <li>Plain-language monthly reports, no jargon</li>
     </ul>
   </div></div></section>
 
@@ -338,28 +338,30 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     <div class="mono">05 · Before you ask</div>
     <h2>Questions owners ask us</h2>
     <div style="margin-top:24px">
-      <details open><summary>How much does it cost?</summary><p>Every project gets a fixed written quote after the free call, based on your plan above. Managed B2B outreach starts at ₹1,00,000 a month.</p></details>
-      <details><summary>Will my customers know it's automated?</summary><p>Replies use your tone, your name and your WhatsApp Business number. Anything complex is handed to a real person on your team immediately.</p></details>
-      <details><summary>We're a small team. Is this too much for us?</summary><p>Small teams gain the most. Most clients start with one flow, like WhatsApp follow-up, and add more later.</p></details>
+      <details open><summary>How much does it cost?</summary><p>Every project gets a fixed written quote after the free call, based on your plan. Managed B2B outreach starts at ₹1,00,000 a month.</p></details>
+      <details><summary>Do you guarantee Google rankings?</summary><p>No, and nobody honest can. We fix the technical side, build the right pages and content, set up your Google Business Profile and report progress every month in plain language.</p></details>
+      <details><summary>Will I be able to edit my website myself?</summary><p>Yes. You get an admin panel for the content you change often, and the code, domain and hosting are in your name.</p></details>
+      <details><summary>Will my customers know replies are automated?</summary><p>Replies use your tone, your name and your WhatsApp Business number. Anything complex goes to a real person on your team immediately.</p></details>
       <details><summary>What if we stop working together?</summary><p>Everything keeps running. It is all in your accounts, with documentation.</p></details>
     </div>
   </div></div></section>
 
   <section class="scene c" data-cam="final"><div class="wrap">
     <div class="final">
-      <h2>Stop losing enquiries you already paid to get.</h2>
-      <div><p>Your plan takes 60 seconds. The call takes 15 minutes.</p><a class="btn hot" href="#build" data-jump>Build my system →</a></div>
+      <h2>Stop losing customers you <span>already paid to get.</span></h2>
+      <div><p>Your plan takes 60 seconds. The call takes 15 minutes.</p>
+        <div class="row"><a class="btn hot" href="#build" data-jump data-flow-link="auto">Automation</a><a class="btn ghost" href="#build" data-jump data-flow-link="web">Website</a><a class="btn ghost" href="#build" data-jump data-flow-link="seo">SEO</a></div></div>
     </div>
   </div></section>
 </main>
 <footer><div class="wrap"><span>© Your Brand</span><span>India · Worldwide</span></div></footer>
 
-<div class="bar" id="bar" role="region" aria-label="Quick action"><i class="dot" aria-hidden="true"></i><span id="barText">Your island is losing enquiries right now</span><a class="btn hot" href="#build" data-jump style="padding:11px 16px">Fix it in 60 sec</a></div>
+<div class="bar" id="bar" role="region" aria-label="Quick action"><i class="dot" aria-hidden="true"></i><span id="barText">Your island is losing customers right now</span><a class="btn hot" href="#build" data-jump style="padding:11px 16px">Fix it in 60 sec</a></div>
 <div class="modal" id="exit" hidden role="dialog" aria-modal="true" aria-labelledby="exitT">
   <div class="box">
     <div class="mono">Before you go</div>
     <h3 id="exitT">Your plan is half built.</h3>
-    <p>Two more taps and you'll see how many enquiries you could save each month. No sign-up needed.</p>
+    <p>A few more taps and you'll see what you could gain each month. No sign-up needed.</p>
     <div class="row"><button class="btn primary" id="exitGo">Finish my plan</button><button class="btn ghost" id="exitNo">Maybe later</button></div>
   </div>
 </div>
@@ -369,97 +371,255 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
 (function(){
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const store = { get(){ try { return JSON.parse(localStorage.getItem('leadplan') || '{}'); } catch(e){ return {}; } }, set(v){ try { localStorage.setItem('leadplan', JSON.stringify(v)); } catch(e){} } };
+  const fmt = n => typeof n === 'string' ? n : Math.round(n).toLocaleString('en-IN');
 
-  /* ---------- state ---------- */
-  const S = Object.assign({ step:0, biz:null, src:[], wk:40, now:null, built:false, sent:false }, store.get());
+  /* ================= the three flows ================= */
+  const BIZ = { key:'biz', type:'single', q:'What kind of business do you run?', opts:[
+    ['maker','Manufacturer / Exporter','Bulk orders, quotes'],['service','Clinic / Local service','Bookings, calls'],
+    ['shop','Shop / Online store','Orders, stock'],['b2b','B2B services','Long sales cycle']] };
+  const FLOWS = {
+    auto:{
+      name:'Automation', counters:['Enquiries','Answered','Lost'], chKey:'src', chDefault:['Website','WhatsApp'],
+      channels:['Website','WhatsApp','IndiaMART','Instagram','Calls','Email'],
+      qs:[ BIZ,
+        { key:'src', type:'multi', q:'Where do enquiries come from?', hint:'Pick all that apply · each appears on your island', opts:[
+          ['Website','Website form'],['WhatsApp','WhatsApp'],['IndiaMART','IndiaMART / JustDial'],['Instagram','Instagram DMs'],['Calls','Phone calls'],['Email','Email']] },
+        { key:'vol', type:'range', q:'How many enquiries a week?', min:5, max:300, step:5, def:40, unit:'per week' },
+        { key:'now', type:'single', one:true, q:'Today, what usually happens to them?', opts:[
+          ['0.35','Someone copies them into Excel and replies','Slow, but most get handled'],
+          ['0.5','We reply when someone is free','Hours later, sometimes the next day'],
+          ['0.65','Honestly, many never get a reply','Too busy running the business']] } ],
+      loss: a => +a.now || .5,
+      every: a => Math.max(.25, 1.9 - (a.vol || 40) / 170),
+      mods:[
+        { name:'Capture hub', sub:'all enquiries, one place', shape:'cyl', h:1.6, r:.62, color:'sky' },
+        { name:'Qualify', sub:'budget · city · need', shape:'box', h:.8, r:.5, color:'white' },
+        { name:'Instant reply', sub:'WhatsApp + email', shape:'cyl', h:.7, r:.45, color:'teal' },
+        { name:'CRM', sub:'logged & assigned', shape:'box', h:1.0, r:.5, color:'white' },
+        { name:'Owner alert', sub:'hot leads to your phone', shape:'cyl', h:.55, r:.4, color:'saffron' } ],
+      inside:'Five parts. Four seconds. Zero typing.',
+      result(a){
+        const m = (a.vol || 40) * 4.33, lost = m * this.loss(a);
+        const plans = { maker:['Quote engine',['Capture website, IndiaMART and WhatsApp enquiries in one place','Instant WhatsApp reply with price sheet and catalogue','Auto-qualify by quantity and city, then alert the owner','Quote PDF and follow-ups until the buyer replies']],
+          service:['Booking autopilot',['Instant reply with available slots on WhatsApp','Bookings straight into your calendar','Reminders the day before to cut no-shows','Review request after every visit']],
+          shop:['Order & support autopilot',['Order status and tracking answered automatically','Stock synced across store and marketplaces','Abandoned-cart and UPI payment-link follow-ups','Weekly sales report, built by itself']],
+          b2b:['Pipeline system',['Every inbound lead scored and routed to the right person','CRM kept up to date without typing','Follow-up sequences until a meeting is booked','Optional managed outbound, from ₹1,00,000 / month']] };
+        const p = plans[a.biz || 'maker'];
+        return { n1:lost * .8, l1:'leads saved / month', n2:m * 8 / 60, l2:'hours freed / month', lost, lostLabel:'Enquiries you may be missing each month',
+          plan:p[0], tier:(a.vol > 150 ? 'Scale' : a.vol > 40 ? 'Growth' : 'Starter'), list:p[1],
+          note:'Estimate from your answers: about 80% of currently missed enquiries recovered, 8 minutes of manual work per enquiry.',
+          bar:`Your plan saves about ${fmt(lost * .8)} leads a month` };
+      }
+    },
+    web:{
+      name:'Website', counters:['Visitors','Enquired','Bounced'], chKey:null, chDefault:['Google','Instagram','Ads','Referrals'],
+      channels:['Google','Instagram','Ads','Referrals'],
+      qs:[ BIZ,
+        { key:'have', type:'single', one:true, q:'What do you have today?', opts:[
+          ['none','No website yet','Customers can only call or message'],['old','An old or slow website','Hard to update, slow on phones'],
+          ['few','A website, but few enquiries','Visitors come, then leave'],['store','I need an online store','Sell and take payments online']] },
+        { key:'need', type:'multi', q:'What must your new site have?', hint:'Each one appears on your island', opts:[
+          ['form','Quote / enquiry form'],['wa','WhatsApp button'],['pay','UPI & card payments'],['cat','Product catalogue'],['book','Booking calendar'],['lang','Hindi + English']] },
+        { key:'vol', type:'range', q:'Visitors a month? A rough guess is fine.', min:100, max:20000, step:100, def:1500, unit:'per month' } ],
+      loss: a => ({ none:.75, old:.62, few:.55, store:.6 })[a.have] || .6,
+      every: a => Math.max(.25, 1.6 - (a.vol || 1500) / 9000),
+      mods:[
+        { name:'Your website', sub:'mobile-first, Next.js', shape:'screen', h:1.5, r:.9, color:'white' },
+        { name:'Loads in < 2 s', sub:'fast on every phone', shape:'torus', h:.9, r:.4, color:'sky' },
+        { name:'Enquiry form', sub:'every visitor can ask', shape:'box', h:.6, r:.42, color:'teal', need:'form' },
+        { name:'WhatsApp button', sub:'one tap to chat', shape:'cyl', h:.5, r:.32, color:'teal', need:'wa' },
+        { name:'UPI checkout', sub:'take payments', shape:'box', h:.45, r:.42, color:'saffron', need:'pay' },
+        { name:'Catalogue', sub:'products & prices', shape:'plates', h:.6, r:.5, color:'white', need:'cat' },
+        { name:'Booking', sub:'slots & reminders', shape:'cyl', h:.6, r:.38, color:'sky', need:'book' },
+        { name:'Hindi + English', sub:'two languages', shape:'box', h:.4, r:.34, color:'white', need:'lang' } ],
+      inside:'A website built to turn visitors into enquiries.',
+      result(a){
+        const v = a.vol || 1500, cur = ({ none:0, old:.006, few:.004, store:.008 })[a.have] ?? .005, target = .025;
+        const extra = v * (target - cur);
+        const need = a.need || [];
+        const plan = a.have === 'store' || need.includes('pay') ? 'Online store with admin panel' : (a.biz === 'maker' || a.biz === 'b2b' || need.includes('form')) ? 'Quote-request website' : 'Business website';
+        const map = { form:'Enquiry / quote form on every page', wa:'WhatsApp button that opens a chat with your number', pay:'UPI and card checkout', cat:'Product catalogue you can edit yourself', book:'Online booking with reminders', lang:'Hindi and English versions' };
+        const list = ['Mobile-first design that loads in under 2 seconds'].concat(need.map(k => map[k])).concat(['Admin panel, domain and code in your name']);
+        return { n1:extra, l1:'extra enquiries / month', n2:'< 2 s', l2:'load time target', lost:v * this.loss(a), lostLabel:'Visitors who may leave without contacting you each month',
+          plan, tier:(v > 8000 ? 'Scale' : v > 2000 ? 'Growth' : 'Starter'), list,
+          note:`Estimate: a well-built business site often turns about 2–3% of visitors into enquiries; we used 2.5% against your ${a.have === 'none' ? 'current zero' : 'current site'}.`,
+          bar:`Your new site could bring about ${fmt(extra)} extra enquiries a month` };
+      }
+    },
+    seo:{
+      name:'SEO', counters:['Searches','Found you','Went elsewhere'], chKey:'where', chDefault:['Google'],
+      channels:['Google','Maps','AI answers','Marketplaces'],
+      qs:[ BIZ,
+        { key:'where', type:'multi', q:'Where should customers find you?', hint:'Each one appears on your island', opts:[
+          ['Google','Google search'],['Maps','Google Maps'],['AI answers','AI answers','ChatGPT, Gemini, Perplexity'],['Marketplaces','IndiaMART / marketplaces']] },
+        { key:'area', type:'single', one:true, q:'Which area do you serve?', opts:[
+          ['1','One city','Local customers'],['3','A few cities','Regional'],['10','All of India','National'],['20','International','India and abroad']] },
+        { key:'rank', type:'single', one:true, q:'Where do you show up on Google today?', opts:[
+          ['0.45','Page 1 for a few searches','Some visibility'],['0.7','Not on page 1','Hard to find'],['0.8',"I don't know",'Never checked']] } ],
+      loss: a => +a.rank || .65,
+      every: a => Math.max(.3, 1.6 - (+a.area || 1) * .06),
+      mods:[
+        { name:'Your listing', sub:'ranked & trusted', shape:'podium', h:1.5, r:.5, color:'sky' },
+        { name:'Technical fixes', sub:'speed · structure · indexing', shape:'torus', h:.8, r:.4, color:'white' },
+        { name:'City pages', sub:'one page per area', shape:'plates', h:.6, r:.5, color:'white' },
+        { name:'Maps profile', sub:'Google Business Profile', shape:'pin', h:1.0, r:.3, color:'rose', need:'Maps' },
+        { name:'AI answers', sub:'cited by ChatGPT & Gemini', shape:'bubble', h:.9, r:.42, color:'teal', need:'AI answers' },
+        { name:'Content plan', sub:'articles buyers search for', shape:'box', h:.5, r:.42, color:'saffron' } ],
+      inside:'Everything search engines and AI need to recommend you.',
+      result(a){
+        const area = +a.area || 1, searches = ({1:1200, 3:4000, 10:25000, 20:60000})[area] || 1200;
+        const plan = area >= 10 ? 'National SEO + AI answers' : area >= 3 ? 'Multi-city SEO' : 'Local SEO';
+        const w = a.where || [];
+        const list = ['Technical audit and fixes', area > 1 ? `Pages for each city or region you serve` : 'A strong page for your city and service']
+          .concat(w.includes('Maps') ? ['Google Business Profile set up and kept active'] : [])
+          .concat(w.includes('AI answers') ? ['Content structured so AI answers can cite you'] : [])
+          .concat(w.includes('Marketplaces') ? ['Marketplace listings cleaned up and linked'] : [])
+          .concat(['Plain-language monthly report, no ranking promises']);
+        return { n1:searches, l1:'searches to compete for / month', n2:String(area === 20 ? '20+' : area), l2:area === 1 ? 'city targeted' : 'areas targeted', lost:searches * this.loss(a), lostLabel:'Searches that may go to competitors each month',
+          plan, tier:'', list,
+          note:'Rough estimate of monthly searches for businesses like yours in the area you chose. Your call includes real keyword numbers for your service.',
+          bar:`About ${fmt(searches)} searches a month you could be found in` };
+      }
+    }
+  };
+
+  /* ================= state ================= */
+  const KEY = 'growthplan';
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ return {}; } };
+  const S = Object.assign({ flow:null, step:0, built:false, a:{ auto:{}, web:{}, seo:{} } }, load());
   S.sent = false;
-  const save = () => store.set({ step:S.step, biz:S.biz, src:S.src, wk:S.wk, now:S.now, built:S.built });
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ flow:S.flow, step:S.step, built:S.built, a:S.a })); } catch(e){} };
+  const A = () => S.a[S.flow] || (S.a[S.flow] = {});
+  const F = () => FLOWS[S.flow];
 
-  /* ---------- builder UI ---------- */
-  const steps = $$('.step');
-  function show(n){
-    S.step = n; steps.forEach(s => s.hidden = +s.dataset.step !== n); save();
-    if (n === 4) result();
-    world.update();
+  /* ================= panel rendering ================= */
+  const intro = $('#intro'), quiz = $('#quiz'), resultEl = $('#result');
+  function view(){
+    intro.hidden = !!S.flow && S.step > 0 ? true : false;
+    if (!S.flow || S.step === 0){ intro.hidden = false; quiz.hidden = true; resultEl.hidden = true; }
+    else if (S.step <= F().qs.length){ intro.hidden = true; quiz.hidden = false; resultEl.hidden = true; renderQ(); }
+    else { intro.hidden = true; quiz.hidden = true; resultEl.hidden = false; renderResult(); }
+    labels(); save(); world.update(); bar();
+  }
+  function labels(){
+    const f = F() || FLOWS.auto;
+    $('#sInL').textContent = f.counters[0]; $('#sWonL').textContent = f.counters[1]; $('#sLostL').textContent = f.counters[2];
+    $('#flowChip').textContent = f.name; $('#rChip').textContent = f.name;
+    $('#insideH').textContent = f.inside;
+    const list = $('#insideList'); list.innerHTML = '';
+    const col = { sky:'var(--sky)', teal:'var(--teal)', saffron:'var(--saffron)', rose:'var(--rose)', white:'#c9d2e0' };
+    f.mods.forEach(m => { const li = document.createElement('li'); li.innerHTML = `<i style="background:${col[m.color]}"></i><b></b><span></span>`; li.children[1].textContent = m.name; li.children[2].textContent = m.sub; list.appendChild(li); });
+  }
+  function renderQ(){
+    const f = F(), q = f.qs[S.step - 1], a = A(), body = $('#qBody'), flowAt = S.flow;
+    $$('#progress i').forEach((i, k) => i.classList.toggle('on', k < S.step));
+    body.innerHTML = '';
+    const h = document.createElement('p'); h.className = 'q'; h.textContent = q.q; body.appendChild(h);
+    if (q.type === 'range'){
+      if (a[q.key] == null) a[q.key] = q.def;
+      const row = document.createElement('div'); row.className = 'range-row'; row.innerHTML = `<b id="rv"></b><span class="mono"></span>`; row.lastChild.textContent = q.unit;
+      const lab = document.createElement('label'); lab.className = 'sr'; lab.htmlFor = 'rng'; lab.textContent = q.q;
+      const r = document.createElement('input'); Object.assign(r, { type:'range', id:'rng', min:q.min, max:q.max, step:q.step, value:a[q.key] });
+      const paint = () => { row.firstChild.textContent = fmt(+r.value); r.style.setProperty('--p', ((r.value - q.min) / (q.max - q.min) * 100) + '%'); };
+      r.addEventListener('input', () => { a[q.key] = +r.value; paint(); save(); world.update(); });
+      body.append(row, lab, r); paint();
+    } else {
+      const g = document.createElement('div'); g.className = 'opts' + (q.one ? ' one' : ''); g.setAttribute('role', 'group'); g.setAttribute('aria-label', q.q);
+      q.opts.forEach(([v, label, small]) => {
+        const b = document.createElement('button'); b.className = 'opt'; b.type = 'button'; b.textContent = label;
+        if (small){ const s = document.createElement('small'); s.textContent = small; b.appendChild(s); }
+        const on = q.type === 'multi' ? (a[q.key] || []).includes(v) : a[q.key] === v;
+        b.setAttribute('aria-pressed', on);
+        b.addEventListener('click', () => {
+          if (q.type === 'multi'){ const arr = a[q.key] || (a[q.key] = []), i = arr.indexOf(v); i < 0 ? arr.push(v) : arr.splice(i, 1); b.setAttribute('aria-pressed', i < 0); }
+          else { a[q.key] = v; g.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', x === b)); const st = S.step; if (!reduce && st < f.qs.length) setTimeout(() => { if (S.step === st && S.flow === flowAt) next(); }, 280); }
+          validate(); save(); world.update();
+        });
+        g.appendChild(b);
+      });
+      body.appendChild(g);
+      if (q.hint){ const hi = document.createElement('span'); hi.className = 'mono'; hi.textContent = q.hint; body.appendChild(hi); }
+    }
+    const last = S.step === f.qs.length;
+    $('#qNext').textContent = last ? 'Build it ↑' : 'Next →';
+    $('#qNext').className = 'btn ' + (last ? 'hot' : 'primary');
+    validate();
   }
   function validate(){
-    steps[1].querySelector('[data-next]').disabled = !S.biz;
-    steps[2].querySelector('[data-next]').disabled = !S.src.length;
-    $('#buildBtn').disabled = !S.now;
+    const q = F().qs[S.step - 1], v = A()[q.key];
+    $('#qNext').disabled = !(q.type === 'range' || (q.type === 'multi' ? v && v.length : v));
   }
-  $$('[data-next]').forEach(b => b.addEventListener('click', () => {
-    if (S.step === 3){ S.built = true; world.build(); if (innerWidth < 980) hero.scrollIntoView({behavior: reduce ? "auto" : "smooth"}); }
-    show(Math.min(4, S.step + 1)); validate();
-  }));
-  $$('[data-back]').forEach(b => b.addEventListener('click', () => show(Math.max(0, S.step - 1))));
-  $('[data-restart]').addEventListener('click', () => { Object.assign(S, {biz:null, src:[], now:null, built:false, wk:40}); syncOpts(); world.unbuild(); show(1); validate(); });
-  $$('.opts').forEach(g => g.addEventListener('click', e => {
-    const o = e.target.closest('.opt'); if (!o) return; const k = g.dataset.key;
-    if ('single' in g.dataset){ S[k] = o.dataset.v; g.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', x === o)); }
-    else { const v = o.dataset.v, i = S.src.indexOf(v); i < 0 ? S.src.push(v) : S.src.splice(i, 1); o.setAttribute('aria-pressed', i < 0); }
-    validate(); save(); world.update();
-  }));
-  function syncOpts(){
-    $$('.opts').forEach(g => g.querySelectorAll('.opt').forEach(o => {
-      const k = g.dataset.key; o.setAttribute('aria-pressed', k === 'src' ? S.src.includes(o.dataset.v) : S[k] === o.dataset.v);
-    }));
-    $('#wk').value = S.wk; paintRange();
+  function next(){
+    const f = F();
+    if (S.step === f.qs.length){ S.built = true; world.build(); if (innerWidth < 980) $('.hero').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'}); }
+    S.step++; view();
   }
-  function paintRange(){ const r = $('#wk'); $('#wkV').textContent = r.value; r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'); }
-  $('#wk').addEventListener('input', e => { S.wk = +e.target.value; paintRange(); save(); world.update(); });
+  $('#qNext').addEventListener('click', next);
+  $('#qBack').addEventListener('click', () => { S.step = Math.max(0, S.step - 1); view(); });
+  function startFlow(k){
+    if (S.flow !== k){ world.unbuild(); S.built = false; }
+    S.flow = k; S.step = S.built ? F().qs.length + 1 : 1; view();
+  }
+  $$('.svc').forEach(b => b.addEventListener('click', () => startFlow(b.dataset.flow)));
+  $('#switchFlow').addEventListener('click', () => { S.step = 0; view(); });
+  $('#restart').addEventListener('click', () => { S.a[S.flow] = {}; S.built = false; world.unbuild(); S.step = 1; $('#lead').hidden = false; $('#done').hidden = true; view(); });
 
-  /* ---------- result + plan ---------- */
-  const PLANS = {
-    maker:{name:'Quote engine', list:['Capture website, IndiaMART and WhatsApp enquiries in one place','Instant WhatsApp reply with price sheet and catalogue','Auto-qualify by quantity and city, then alert the owner','Quote PDF and follow-ups until the buyer replies']},
-    service:{name:'Booking autopilot', list:['Instant reply with available slots on WhatsApp','Bookings straight into your calendar','Reminders the day before to cut no-shows','Review request after every visit']},
-    shop:{name:'Order & support autopilot', list:['Order status and tracking answered automatically','Stock synced across store and marketplaces','Abandoned-cart and UPI payment-link follow-ups','Weekly sales report, built by itself']},
-    b2b:{name:'Pipeline system', list:['Every inbound lead scored and routed to the right person','CRM kept up to date without typing','Follow-up sequences until a meeting is booked','Optional managed outbound, from ₹1,00,000 / month']}
-  };
-  const fmt = n => Math.round(n).toLocaleString('en-IN');
-  function countTo(el, to){ if (reduce){ el.textContent = fmt(to); return; } const t0 = performance.now(), from = 0; (function f(t){ const k = Math.min(1, (t - t0) / 900); el.textContent = fmt(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0); }
-  function numbers(){ const m = S.wk * 4.33, lost = m * (+S.now || .5); return { lost, saved: lost * .8, hours: m * 8 / 60 }; }
-  function result(){
-    const n = numbers(), p = PLANS[S.biz || 'maker'];
-    countTo($('#rLeads'), n.saved); countTo($('#rHours'), n.hours);
-    $('#rPlan').textContent = p.name + (S.wk > 150 ? ' · Scale' : S.wk > 40 ? ' · Growth' : ' · Starter');
-    $('#rList').innerHTML = ''; p.list.forEach(t => { const li = document.createElement('li'); li.textContent = t; $('#rList').appendChild(li); });
-    $('#cLost').textContent = fmt(n.lost);
-    bar();
+  /* ================= result ================= */
+  function countTo(el, to){ if (typeof to === 'string' || reduce){ el.textContent = fmt(to); return; } const t0 = performance.now(); (function f(t){ const k = Math.min(1, (t - t0) / 900); el.textContent = fmt(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0); }
+  let R0 = null;
+  function renderResult(){
+    const r = R0 = F().result(A());
+    countTo($('#rN1'), r.n1); countTo($('#rN2'), r.n2); $('#rL1').textContent = r.l1; $('#rL2').textContent = r.l2;
+    $('#rPlan').innerHTML = ''; $('#rPlan').append(r.plan); if (r.tier){ const s = document.createElement('span'); s.textContent = ' · ' + r.tier; $('#rPlan').appendChild(s); }
+    $('#rList').innerHTML = ''; r.list.forEach(t => { const li = document.createElement('li'); li.textContent = t; $('#rList').appendChild(li); });
+    $('#rNote').textContent = r.note;
+    $('#rHead').textContent = S.flow === 'web' ? 'Your website is live on the island' : S.flow === 'seo' ? 'Your search presence is live on the island' : 'Your system is live on the island';
+    $('#cLost').textContent = fmt(r.lost); $('#cLostL').textContent = r.lostLabel; $('#cLostP').textContent = 'Based on your answers above.';
+    const also = $('#also'); also.innerHTML = '<span class="mono">Also plan</span>';
+    Object.keys(FLOWS).filter(k => k !== S.flow).forEach(k => { const b = document.createElement('button'); b.className = 'slot'; b.type = 'button'; b.textContent = FLOWS[k].name + ' →'; b.addEventListener('click', () => { S.built = false; world.unbuild(); S.flow = k; S.step = 1; $('#lead').hidden = false; $('#done').hidden = true; view(); }); also.appendChild(b); });
   }
-  $$('.slot').forEach(s => s.addEventListener('click', () => $$('.slot').forEach(x => x.setAttribute('aria-pressed', x === s))));
+  $$('.slot').forEach(s => s.addEventListener('click', () => s.closest('.slots') && $$('.slots .slot').forEach(x => x.setAttribute('aria-pressed', x === s))));
   $('#lead').addEventListener('submit', e => {
     e.preventDefault();
-    const name = $('#f-name').value.trim(), wa = $('#f-wa').value.replace(/[^\d+]/g, '');
-    const err = $('#err');
+    const name = $('#f-name').value.trim(), wa = $('#f-wa').value.replace(/[^\d+]/g, ''), err = $('#err');
     if (!name){ err.textContent = 'Add your name so we know who to ask for.'; err.hidden = false; $('#f-name').focus(); return; }
     if (wa.replace(/\D/g, '').length < 10){ err.textContent = 'Enter a WhatsApp number with at least 10 digits.'; err.hidden = false; $('#f-wa').focus(); return; }
     err.hidden = true; S.sent = true;
-    const n = numbers();
-    $('#summary').textContent = `Name: ${name}\nWhatsApp: ${wa}\nBest time: ${$('.slot[aria-pressed="true"]').textContent}\nBusiness: ${$('[data-key="biz"] [aria-pressed="true"]')?.firstChild.textContent.trim()}\nChannels: ${S.src.join(', ')}\nEnquiries/week: ${S.wk}\nEst. leads saved/month: ${fmt(n.saved)}\nPlan: ${$('#rPlan').textContent}`;
+    const f = F(), a = A(), lines = [`Service: ${f.name}`, `Name: ${name}`, `WhatsApp: ${wa}`, `Best time: ${$('.slots .slot[aria-pressed="true"]').textContent}`];
+    f.qs.forEach(q => { const v = a[q.key]; if (v == null) return; const txt = q.type === 'range' ? fmt(v) + ' ' + q.unit : [].concat(v).map(x => (q.opts.find(o => o[0] === x) || [x, x])[1]).join(', '); lines.push(`${q.q.replace(/\?.*$/, '?')} ${txt}`); });
+    lines.push(`Plan: ${$('#rPlan').textContent}`, `${R0.l1}: ${fmt(R0.n1)}`);
+    $('#summary').textContent = lines.join('\n');
     $('#lead').hidden = true; $('#done').hidden = false; bar();
   });
 
-  /* ---------- sticky bar + exit intent ---------- */
+  /* ================= sticky bar, deep links, exit intent ================= */
   function bar(){
-    const t = $('#barText'), a = $('#bar a');
+    const t = $('#barText'), a = $('#bar a'), b = $('#bar');
+    b.classList.toggle('good', S.built || S.sent);
     if (S.sent){ t.textContent = 'Plan received. We reply within one working day.'; a.hidden = true; }
-    else if (S.built){ t.textContent = `Your plan saves about ${fmt(numbers().saved)} leads a month`; a.textContent = 'Claim free call'; a.hidden = false; }
-    else { t.textContent = 'Your island is losing enquiries right now'; a.textContent = 'Fix it in 60 sec'; a.hidden = false; }
+    else if (S.built && R0){ t.textContent = R0.bar; a.textContent = 'Claim free call'; a.hidden = false; }
+    else { t.textContent = 'Your island is losing customers right now'; a.textContent = 'Fix it in 60 sec'; a.hidden = false; }
   }
   const hero = $('.hero');
   new IntersectionObserver(([e]) => $('#bar').classList.toggle('show', !e.isIntersecting), {threshold:.15}).observe(hero);
-  $$('[data-jump]').forEach(a => a.addEventListener('click', () => { if (S.step === 0) setTimeout(() => show(1), 300); else if (S.built && !S.sent) setTimeout(() => $('#f-name').focus({preventScroll:true}), 600); }));
+  $$('[data-jump]').forEach(el => el.addEventListener('click', () => {
+    const k = el.dataset.flowLink;
+    if (k) setTimeout(() => startFlow(k), 250);
+    else if (S.built && !S.sent) setTimeout(() => $('#f-name') && $('#f-name').focus({preventScroll:true}), 600);
+  }));
+  const HASH = { automation:'auto', website:'web', seo:'seo' };
+  function fromHash(){ const k = HASH[location.hash.slice(1)]; if (k) startFlow(k); }
+  addEventListener('hashchange', fromHash);
   let exitShown = false;
   document.addEventListener('mouseout', e => {
-    if (exitShown || S.sent || e.relatedTarget || e.clientY > 4 || S.step < 1 || S.built) return;
+    if (exitShown || S.sent || e.relatedTarget || e.clientY > 4 || !S.flow || S.step < 1 || S.built) return;
     exitShown = true; $('#exit').hidden = false; $('#exitGo').focus();
   });
   $('#exitNo').addEventListener('click', () => $('#exit').hidden = true);
   $('#exitGo').addEventListener('click', () => { $('#exit').hidden = true; hero.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'}); });
   addEventListener('keydown', e => { if (e.key === 'Escape') $('#exit').hidden = true; });
 
-  /* ---------- 3D world ---------- */
+  /* ================= 3D world ================= */
   const counters = { in:0, won:0, lost:0 };
   const paintCounters = () => { $('#sIn').textContent = fmt(counters.in); $('#sWon').textContent = fmt(counters.won); $('#sLost').textContent = fmt(counters.lost); };
   const world = { update(){}, build(){}, unbuild(){} };
@@ -470,11 +630,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     let R; try { R = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ canvas.remove(); return; }
     R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputEncoding = THREE.sRGBEncoding; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
     R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
-    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xe8ecf4, 30, 70);
+    const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xeef2f7, 30, 70);
     const cam = new THREE.PerspectiveCamera(32, 1, .1, 100);
-    const C = { top:0xf7f8fc, side:0xd3d9e8, cobalt:0x3346ff, coral:0xff6b4a, mint:0x18b892, ink:0x0f1530, white:0xffffff };
+    const C = { top:0xfafbfd, side:0xd5dde9, sky:0x3d7bff, saffron:0xffb020, teal:0x0fa68a, rose:0xf0506e, ink:0x0b1b33, white:0xffffff };
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xc9d0e6, .75));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xc8d2e4, .78));
     const sun = new THREE.DirectionalLight(0xffffff, 1.1); sun.position.set(-6, 12, 6); sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, {left:-9, right:9, top:9, bottom:-9}); sun.shadow.radius = 5; scene.add(sun);
 
@@ -485,178 +645,183 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     top.receiveShadow = true; top.castShadow = true; isl.add(top);
     const under = new THREE.Mesh(new THREE.ConeGeometry(RAD * .96, 2.4, 96, 1, true), new THREE.MeshStandardMaterial({color:C.side, roughness:1, side:THREE.DoubleSide}));
     under.rotation.x = Math.PI; under.position.y = -1.45; isl.add(under);
-    // fine rings on the surface
-    [1.4, 2.6, 3.7].forEach(r => { const ring = new THREE.Mesh(new THREE.RingGeometry(r - .01, r + .01, 128), new THREE.MeshBasicMaterial({color:0xc4cbdd})); ring.rotation.x = -Math.PI / 2; ring.position.y = .252; isl.add(ring); });
+    [1.4, 2.6, 3.7].forEach(r => { const ring = new THREE.Mesh(new THREE.RingGeometry(r - .01, r + .01, 128), new THREE.MeshBasicMaterial({color:0xc6cfdd})); ring.rotation.x = -Math.PI / 2; ring.position.y = .252; isl.add(ring); });
 
-    // labels
     const labelsEl = $('#labels'), tags = [];
-    function tag(html, obj, offY, cls){ const el = document.createElement('div'); el.className = 'tag3d ' + (cls || ''); el.innerHTML = html; labelsEl.appendChild(el); const t = {el, obj, offY, on:false}; tags.push(t); return t; }
+    function tag(html, obj, offY, cls){ const el = document.createElement('div'); el.className = 'tag3d ' + (cls || ''); el.innerHTML = html; labelsEl.appendChild(el); const t = {el, obj, offY}; tags.push(t); return t; }
+    const std = (c, extra) => new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:.45, metalness:.05}, extra || {}));
 
-    // channel portals
-    const CH = ['Website','WhatsApp','IndiaMART','Instagram','Calls','Email'];
+    /* channel portals: one ring of arches per flow */
     const portals = {};
-    CH.forEach((name, i) => {
-      const a = (i / CH.length) * Math.PI * 2 + .3;
+    Object.entries(FLOWS).forEach(([fk, f]) => f.channels.forEach((name, i) => {
+      const a = (i / f.channels.length) * Math.PI * 2 + .3;
       const g = new THREE.Group(); g.position.set(Math.cos(a) * (RAD + .1), .25, Math.sin(a) * (RAD + .1)); g.rotation.y = -a + Math.PI / 2;
-      const arch = new THREE.Mesh(new THREE.TorusGeometry(.42, .07, 12, 40, Math.PI), new THREE.MeshStandardMaterial({color:C.ink, roughness:.4}));
-      arch.castShadow = true; g.add(arch); g.scale.setScalar(.001); isl.add(g);
-      portals[name] = { g, a, on:false, s:0, tag: tag(`${name}<small>channel</small>`, g, .75, 'src') };
-    });
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(.42, .07, 12, 40, Math.PI), std(C.ink, {roughness:.35})); arch.castShadow = true; g.add(arch);
+      g.scale.setScalar(.001); g.visible = false; isl.add(g);
+      portals[fk + ':' + name] = { flow:fk, name, g, a, on:false, s:0, tag: tag(`${name}<small>${fk === 'auto' ? 'channel' : fk === 'web' ? 'traffic' : 'search'}</small>`, g, .75, 'src') };
+    }));
 
-    // modules of the system
-    const MODS = [
-      { key:'hub', name:'Capture hub', sub:'all enquiries, one place', pos:[0,0], h:1.6, r:.62, color:C.cobalt, shape:'cyl' },
-      { key:'q', name:'Qualify', sub:'budget · city · need', pos:[2.1,-.9], h:.8, r:.5, color:C.white, shape:'box' },
-      { key:'crm', name:'CRM', sub:'logged & assigned', pos:[-1.9,-1.2], h:1.0, r:.5, color:C.white, shape:'box' },
-      { key:'wa', name:'Instant reply', sub:'WhatsApp + email', pos:[1.3,1.9], h:.7, r:.45, color:C.mint, shape:'cyl' },
-      { key:'alert', name:'Owner alert', sub:'hot leads to your phone', pos:[-1.6,1.7], h:.55, r:.4, color:C.coral, shape:'cyl' }
-    ];
-    MODS.forEach(m => {
-      const mat = new THREE.MeshStandardMaterial({color:m.color, roughness:.45, metalness:.05});
-      const geo = m.shape === 'cyl' ? new THREE.CylinderGeometry(m.r, m.r, m.h, 48) : new THREE.BoxGeometry(m.r * 2, m.h, m.r * 2);
-      const mesh = new THREE.Mesh(geo, mat); mesh.castShadow = mesh.receiveShadow = true;
-      const g = new THREE.Group(); g.add(mesh); mesh.position.y = m.h / 2;
-      if (m.shape === 'box'){ const cap = new THREE.Mesh(new THREE.BoxGeometry(m.r * 2.02, .06, m.r * 2.02), new THREE.MeshStandardMaterial({color:C.cobalt})); cap.position.y = m.h; g.add(cap); }
-      g.position.set(m.pos[0], .25, m.pos[1]); g.scale.set(1, .001, 1); g.visible = false; isl.add(g);
-      m.g = g; m.k = 0; m.tag = tag(`${m.name}<small>${m.sub}</small>`, g, m.h + .35);
+    /* module shapes */
+    function shape(m){
+      const g = new THREE.Group(), col = C[m.color], add = (geo, mat, y) => { const me = new THREE.Mesh(geo, mat); me.castShadow = me.receiveShadow = true; me.position.y = y; g.add(me); return me; };
+      switch (m.shape){
+        case 'cyl': add(new THREE.CylinderGeometry(m.r, m.r, m.h, 48), std(col), m.h / 2); break;
+        case 'box': add(new THREE.BoxGeometry(m.r * 2, m.h, m.r * 2), std(col), m.h / 2); add(new THREE.BoxGeometry(m.r * 2.02, .06, m.r * 2.02), std(m.color === 'white' ? C.sky : C.ink), m.h); break;
+        case 'screen': { add(new THREE.BoxGeometry(m.r * 2.6, m.h, .14), std(C.white), m.h / 2 + .15); add(new THREE.BoxGeometry(m.r * 2.6, .2, .16), std(C.ink), m.h + .05);
+          const scr = add(new THREE.BoxGeometry(m.r * 2.3, m.h * .62, .02), std(C.sky, {emissive:C.sky, emissiveIntensity:.15}), m.h * .5 + .05); scr.position.z = .08;
+          const btn = add(new THREE.BoxGeometry(m.r * .9, .16, .03), std(C.saffron), m.h * .3); btn.position.z = .09;
+          add(new THREE.BoxGeometry(.5, .15, .5), std(C.side), .075); break; }
+        case 'torus': { const t = add(new THREE.TorusGeometry(m.r, .1, 16, 48, Math.PI * 1.5), std(col), m.h * .6); t.rotation.z = Math.PI * .25;
+          add(new THREE.CylinderGeometry(.06, .06, m.h * .6, 12), std(C.ink), m.h * .3); add(new THREE.CylinderGeometry(.25, .25, .08, 32), std(C.side), .04); break; }
+        case 'plates': for (let i = 0; i < 3; i++){ const p = add(new THREE.BoxGeometry(m.r * 2, .12, m.r * 1.5), std(i === 2 ? col : C.white), .1 + i * .22); p.rotation.y = i * .12; } break;
+        case 'podium': [[-.62, .7, C.white], [0, m.h, col], [.62, .45, C.white]].forEach(([x, h, c]) => { const b = add(new THREE.BoxGeometry(.56, h, .56), std(c), h / 2); b.position.x = x; }); break;
+        case 'pin': { add(new THREE.ConeGeometry(m.r * .8, m.h * .55, 32), std(col), m.h * .3).rotation.x = Math.PI; add(new THREE.SphereGeometry(m.r, 32, 20), std(col), m.h * .7); add(new THREE.SphereGeometry(m.r * .38, 20, 12), std(C.white), m.h * .7).position.z = m.r * .72; break; }
+        case 'bubble': { const s = add(new THREE.SphereGeometry(m.r, 32, 20), std(col), m.h * .65); s.scale.set(1.35, .9, .9); const t = add(new THREE.ConeGeometry(.14, .3, 16), std(col), m.h * .3); t.position.x = -.25; t.rotation.z = -.5;
+          [-.22, 0, .22].forEach(x => { const d = add(new THREE.SphereGeometry(.06, 12, 8), std(C.white), m.h * .65); d.position.set(x, m.h * .65, m.r * .85); }); break; }
+      }
+      return g;
+    }
+    const sets = {};
+    Object.entries(FLOWS).forEach(([fk, f]) => {
+      sets[fk] = f.mods.map((d, i) => {
+        const m = Object.assign({}, d), n = f.mods.length - 1;
+        const ang = i === 0 ? 0 : ((i - 1) / n) * Math.PI * 2 + .5, rr = i === 0 ? 0 : 2.35;
+        m.pos = [Math.cos(ang) * rr, Math.sin(ang) * rr];
+        m.g = shape(m); m.g.position.set(m.pos[0], .25, m.pos[1]); if (m.shape === 'screen') m.g.rotation.y = .35;
+        m.g.scale.set(1, .001, 1); m.g.visible = false; isl.add(m.g);
+        m.k = 0; m.target = 0; m.tag = tag(`${m.name}<small>${m.sub}</small>`, m.g, m.h + .45);
+        if (i > 0){ const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, .3, 0), new THREE.Vector3(m.pos[0] / 2, .9, m.pos[1] / 2), new THREE.Vector3(m.pos[0], .3, m.pos[1]));
+          m.beam = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, .025, 8), new THREE.MeshBasicMaterial({color:C.sky, transparent:true, opacity:0})); isl.add(m.beam); }
+        return m;
+      });
     });
-    const hub = MODS[0];
-    // beams from hub to modules
-    const beams = MODS.slice(1).map(m => {
-      const pts = [new THREE.Vector3(0, .3, 0), new THREE.Vector3(m.pos[0] / 2, .9, m.pos[1] / 2), new THREE.Vector3(m.pos[0], .3, m.pos[1])];
-      const curve = new THREE.QuadraticBezierCurve3(...pts);
-      const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, .025, 8), new THREE.MeshBasicMaterial({color:C.cobalt, transparent:true, opacity:0}));
-      isl.add(line); return line;
-    });
+    const enabled = (fk, m) => !m.need || [].concat(S.a[fk][FLOWS[fk].chKey === 'where' ? 'where' : 'need'] || []).includes(m.need);
 
-    // enquiry orbs
-    const orbGeo = new THREE.SphereGeometry(.16, 20, 14), POOL = 70, orbs = [];
-    for (let i = 0; i < POOL; i++){ const m = new THREE.Mesh(orbGeo, new THREE.MeshStandardMaterial({color:C.ink, roughness:.3, emissive:0x000000})); m.castShadow = true; m.visible = false; isl.add(m); orbs.push({m, live:false}); }
+    /* customer orbs */
+    const orbGeo = new THREE.SphereGeometry(.16, 20, 14), orbs = [];
+    for (let i = 0; i < 70; i++){ const m = new THREE.Mesh(orbGeo, std(C.ink, {roughness:.3})); m.castShadow = true; m.visible = false; isl.add(m); orbs.push({m, live:false}); }
     const tmp = new THREE.Vector3();
+    const curFlow = () => S.flow || 'auto';
     function spawn(){
-      const live = Object.values(portals).filter(p => p.on); const pool = live.length ? live : [portals.Website, portals.WhatsApp];
-      const p = pool[Math.floor(Math.random() * pool.length)], o = orbs.find(o => !o.live); if (!o) return;
+      const fk = curFlow(), live = Object.values(portals).filter(p => p.flow === fk && p.on);
+      if (!live.length) return;
+      const p = live[Math.floor(Math.random() * live.length)], o = orbs.find(o => !o.live); if (!o) return;
       const start = new THREE.Vector3(Math.cos(p.a) * (RAD + 3.2), 2.4, Math.sin(p.a) * (RAD + 3.2));
       const gate = new THREE.Vector3(Math.cos(p.a) * (RAD - .2), .4, Math.sin(p.a) * (RAD - .2));
-      const lose = !S.built && Math.random() < (+S.now || .5);
+      const built = S.built, set = sets[fk], hub = set[0];
+      const lose = !built && Math.random() < FLOWS[fk].loss(S.a[fk]);
       let path;
-      if (S.built){ const via = MODS[1 + Math.floor(Math.random() * 4)];
+      if (built){ const vis = set.slice(1).filter(m => m.target); const via = vis[Math.floor(Math.random() * vis.length)] || hub;
         path = [start, gate, new THREE.Vector3(via.pos[0], .45 + via.h, via.pos[1]), new THREE.Vector3(0, .45 + hub.h, 0)]; }
-      else if (lose){ const b = p.a + (Math.random() - .5) * 2.2; const off = new THREE.Vector3(Math.cos(b) * (RAD + .3), .4, Math.sin(b) * (RAD + .3));
+      else if (lose){ const b = p.a + (Math.random() - .5) * 2.2, off = new THREE.Vector3(Math.cos(b) * (RAD + .3), .4, Math.sin(b) * (RAD + .3));
         path = [start, gate, new THREE.Vector3(Math.cos(b) * 2, .4, Math.sin(b) * 2), off, off.clone().setY(-6)]; }
       else { const b = Math.random() * Math.PI * 2, r = Math.random() * 1.6; path = [start, gate, new THREE.Vector3(Math.cos(b) * r, .37, Math.sin(b) * r)]; }
-      Object.assign(o, { live:true, t:0, path, lose, built:S.built, dur: path.length * .55 });
-      o.m.material.color.setHex(C.ink); o.m.material.emissive.setHex(0); o.m.scale.setScalar(1); o.m.visible = true;
+      Object.assign(o, { live:true, t:0, path, lose, built, dur:path.length * .55 });
+      o.m.material.color.setHex(C.ink); o.m.scale.setScalar(1); o.m.visible = true;
       counters.in++;
     }
-    function along(path, k){ const seg = (path.length - 1) * k, i = Math.min(path.length - 2, Math.floor(seg)), f = seg - i; const a = path[i], b = path[i + 1];
-      tmp.lerpVectors(a, b, f); if (i === 0) tmp.y += Math.sin(f * Math.PI) * .8; return tmp; }
+    function along(path, k){ const seg = (path.length - 1) * k, i = Math.min(path.length - 2, Math.floor(seg)), f = seg - i;
+      tmp.lerpVectors(path[i], path[i + 1], f); if (i === 0) tmp.y += Math.sin(f * Math.PI) * .8; return tmp; }
 
-    // camera, sizing
     let narrow = false;
-    function resize(){
-      const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h;
-      narrow = w < 980; cam.updateProjectionMatrix();
-    }
+    function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; narrow = innerWidth < 980; cam.updateProjectionMatrix(); }
     addEventListener('resize', resize); resize();
 
-    /* scroll choreography: one camera keyframe per scene.
-       rx = where the island sits (left/right of the text), look = target relative to the island,
-       dist/h/az = how far, how high and from which side the camera looks, fov = lens. */
+    /* scroll choreography: one camera keyframe per scene */
     const KF = {
       hero:   { rx: 3.6, look:[-2.4, 0, 0],   dist:13.8, h:8.8, az:-.09, fov:32, tags:true },
       cost:   { rx: 3.0, look:[-.6, .2, 3.4], dist:5.2,  h:1.3, az:.6,   fov:42, tags:false },
       map:    { rx:-3.8, look:[2.6, 0, .2],   dist:1.2,  h:19,  az:0,    fov:34, tags:true },
-      inside: { rx: 3.2, look:[-1.5, 1.1, 0], dist:7.2,  h:3.0, az:-.75, fov:36, tags:true },
+      inside: { rx: 3.2, look:[-1.5, 1.1, 0], dist:7.6,  h:3.2, az:-.75, fov:38, tags:true },
       orbit:  { rx:-3.6, look:[2.3, .3, 0],   dist:11.5, h:3.6, az:1.1,  fov:34, tags:false },
       far:    { rx: 4.4, look:[-3.8, -1, 0],  dist:27,   h:15,  az:-.35, fov:30, tags:false },
       final:  { rx: 0,   look:[0, -3.4, 0],   dist:12,   h:6.5, az:0,    fov:36, tags:false }
     };
     const MOB = { hero:{look:[0,-3.4,0],dist:20,h:11}, cost:{look:[0,-.6,3.4],dist:7.5,h:2.4}, map:{look:[0,-.5,4.2],dist:1.5,h:24},
       inside:{look:[0,-.8,0],dist:11,h:5}, orbit:{look:[0,-2.6,0],dist:17,h:5}, far:{look:[0,-6,0],dist:34,h:16}, final:{look:[0,-4.4,0],dist:17,h:8} };
-    const scenesEl = [...document.querySelectorAll('[data-cam]')];
+    const scenesEl = $$('[data-cam]');
     const lerp = (a, b, t) => a + (b - a) * t, sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-    function keyOf(name){ const k = Object.assign({}, KF[name]); if (narrow){ Object.assign(k, MOB[name]); k.rx = 0; k.fov = Math.max(k.fov, 40); } return k; }
+    function keyOf(n){ const k = Object.assign({}, KF[n]); if (narrow){ Object.assign(k, MOB[n]); k.rx = 0; k.fov = Math.max(k.fov, 40); } return k; }
     function targetCam(){
       const mid = innerHeight * .55; let i = 0;
       scenesEl.forEach((el, k) => { if (el.getBoundingClientRect().top <= mid) i = k; });
       const r = scenesEl[i].getBoundingClientRect(), f = Math.min(1, Math.max(0, (mid - r.top) / r.height));
       const j = Math.min(scenesEl.length - 1, i + 1), t = i === j ? 0 : sm(.42, 1, f);
-      const A = keyOf(scenesEl[i].dataset.cam), B = keyOf(scenesEl[j].dataset.cam);
-      return { idx: t < .5 ? i : j, tags: (t < .5 ? A : B).tags, rx: lerp(A.rx, B.rx, t), dist: lerp(A.dist, B.dist, t), h: lerp(A.h, B.h, t), az: lerp(A.az, B.az, t), fov: lerp(A.fov, B.fov, t),
-        look: [0,1,2].map(n => lerp(A.look[n], B.look[n], t)) };
+      const P = keyOf(scenesEl[i].dataset.cam), Q = keyOf(scenesEl[j].dataset.cam);
+      return { idx: t < .5 ? i : j, tags:(t < .5 ? P : Q).tags, rx:lerp(P.rx, Q.rx, t), dist:lerp(P.dist, Q.dist, t), h:lerp(P.h, Q.h, t), az:lerp(P.az, Q.az, t), fov:lerp(P.fov, Q.fov, t), look:[0,1,2].map(n => lerp(P.look[n], Q.look[n], t)) };
     }
-    const cur = Object.assign({}, targetCam(), { look: targetCam().look.slice() });
-    let tagsOn = true, previewMods = false;
-    const cue = document.getElementById('cue');
+    const cur = targetCam();
+    let tagsOn = true, preview = false;
+    const cue = $('#cue');
 
-    // drag to turn
     let yaw = -.4, vy = 0, drag = false, lx = 0, px = 0, py = 0;
     canvas.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener('pointermove', e => { if (drag){ vy = (e.clientX - lx) * .006; yaw += vy; lx = e.clientX; } });
     canvas.addEventListener('pointerup', () => drag = false);
     addEventListener('pointermove', e => { px = e.clientX / innerWidth - .5; py = e.clientY / innerHeight - .5; });
 
-    // public hooks
+    function setMods(on){
+      Object.entries(sets).forEach(([fk, set]) => set.forEach((m, i) => {
+        const want = on && fk === curFlow() && enabled(fk, m);
+        if (want && !m.target){ m.g.visible = true; m.delay = performance.now() + i * 220; }
+        m.target = want ? 1 : 0;
+      }));
+    }
     world.update = () => {
-      const want = S.step >= 2 || S.src.length ? S.src : [];
-      CH.forEach(n => { portals[n].on = want.includes(n) || (!want.length && (n === 'Website' || n === 'WhatsApp')); });
+      const fk = curFlow(), f = FLOWS[fk], picked = f.chKey ? (S.a[fk][f.chKey] || []) : [];
+      Object.values(portals).forEach(p => { p.on = p.flow === fk && (f.chKey ? (picked.length ? picked.includes(p.name) : f.chDefault.includes(p.name)) : true); });
+      if (S.built || preview) setMods(true); else setMods(false);
     };
-    world.build = () => { MODS.forEach((m, i) => { m.g.visible = true; m.delay = performance.now() + i * 260; m.target = 1; }); counters.lost = counters.lost; };
-    world.unbuild = () => { MODS.forEach(m => { m.target = 0; }); };
-    world.update(); if (S.built){ world.build(); }
+    world.build = () => setMods(true);
+    world.unbuild = () => { preview = false; setMods(false); };
+    world.update();
 
-    // labels projection
     const v = new THREE.Vector3();
     function placeTags(){
       const w = innerWidth, h = innerHeight;
       tags.forEach(t => {
-        const vis = tagsOn && t.obj.visible !== false && t.obj.scale.y > .6 && t.obj.scale.x > .6;
+        const vis = tagsOn && t.obj.visible && t.obj.scale.y > .6 && t.obj.scale.x > .6;
         t.obj.getWorldPosition(v); v.y += t.offY; v.project(cam);
-        const front = v.z < 1;
-        t.el.classList.toggle('on', vis && front);
+        t.el.classList.toggle('on', vis && v.z < 1);
         t.el.style.transform = `translate(${(v.x * .5 + .5) * w}px, ${(-v.y * .5 + .5) * h}px) translate(-50%,-100%)`;
       });
     }
 
-    let last = performance.now(), acc = 0, hubPulse = 0;
+    let last = performance.now(), acc = 0, pulse = 0;
     const ease = x => 1 - Math.pow(1 - x, 3), back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
     (function loop(now){
       const dt = Math.min(.05, (now - last) / 1000); last = now;
-      // spawn rate follows enquiries per week
-      acc += dt; const every = Math.max(.25, 1.9 - S.wk / 170);
-      if (acc > every){ acc = 0; spawn(); }
-      // portals
+      const fk = curFlow();
+      acc += dt; if (acc > FLOWS[fk].every(S.a[fk])){ acc = 0; spawn(); }
       Object.values(portals).forEach(p => { p.s += ((p.on ? 1 : 0) - p.s) * .12; p.g.scale.setScalar(Math.max(.001, back(Math.min(1, p.s)))); p.g.visible = p.s > .02; });
-      // modules rise
-      MODS.forEach(m => { if (m.target === undefined) return; if (m.target && now < m.delay) return;
-        m.k += ((m.target) - m.k) * .1; const sY = m.target ? back(Math.min(1, m.k)) : m.k; m.g.scale.set(1, Math.max(.001, sY), 1); if (!m.target && m.k < .02) m.g.visible = false; });
-      beams.forEach((b, i) => { b.material.opacity += (((MODS[i + 1].k > .9 && S.built) ? .55 : 0) - b.material.opacity) * .08; });
-      hubPulse *= .9; hub.g.children[0].material.emissive.setRGB(hubPulse * .2, hubPulse * .25, hubPulse * .9);
-      // orbs
+      Object.values(sets).forEach(set => set.forEach(m => {
+        if (m.target && now < m.delay) return;
+        m.k += (m.target - m.k) * .1; const sY = m.target ? back(Math.min(1, m.k)) : m.k;
+        m.g.scale.set(1, Math.max(.001, sY), 1); if (!m.target && m.k < .02) m.g.visible = false;
+        if (m.beam) m.beam.material.opacity += ((m.target && m.k > .9 ? .5 : 0) - m.beam.material.opacity) * .08;
+      }));
+      pulse *= .9; const hubMesh = sets[fk][0].g.children.find(c => c.material && c.material.emissive);
+      if (hubMesh && sets[fk][0].shape !== 'screen') hubMesh.material.emissive.setRGB(pulse * .25, pulse * .45, pulse * 1);
       orbs.forEach(o => { if (!o.live) return; o.t += dt / o.dur; const k = Math.min(1, o.t);
         o.m.position.copy(along(o.path, o.built ? ease(k) : k));
-        if (o.lose && k > (o.path.length - 2) / (o.path.length - 1)){ o.m.material.color.setHex(C.coral); }
-        if (o.built && k > .5){ o.m.material.color.setHex(C.mint); }
-        if (k >= 1){ o.live = false; o.m.visible = false;
-          if (o.lose) counters.lost++; else { counters.won++; if (o.built) hubPulse = 1; } }
-        else if (!o.lose && !o.built && k > .9){ o.m.scale.setScalar(Math.max(.01, (1 - k) * 10)); }
+        if (o.lose && k > (o.path.length - 2) / (o.path.length - 1)) o.m.material.color.setHex(C.rose);
+        if (o.built && k > .5) o.m.material.color.setHex(C.teal);
+        if (k >= 1){ o.live = false; o.m.visible = false; if (o.lose) counters.lost++; else { counters.won++; if (o.built) pulse = 1; } }
+        else if (!o.lose && !o.built && k > .9) o.m.scale.setScalar(Math.max(.01, (1 - k) * 10));
       });
-      // camera feel: follow the scroll keyframes, smoothed
       if (!drag){ vy *= .94; yaw += vy + (reduce ? 0 : .0012); }
       isl.rotation.y = yaw + scrollY * .0007;
       const T = targetCam(), d = reduce ? 1 : .07;
       ['rx','dist','h','az','fov'].forEach(k => cur[k] += (T[k] - cur[k]) * d);
-      cur.look.forEach((v, n) => cur.look[n] += (T.look[n] - v) * d);
+      cur.look.forEach((x, n) => cur.look[n] += (T.look[n] - x) * d);
       tagsOn = T.tags;
       root.position.set(cur.rx, reduce ? 0 : Math.sin(now / 1400) * .12, 0);
       const lx0 = cur.rx + cur.look[0], ly0 = cur.look[1], lz0 = cur.look[2];
       cam.position.set(lx0 + Math.sin(cur.az) * cur.dist + (narrow ? 0 : px * 1.2), ly0 + cur.h - (narrow ? 0 : py * .8), lz0 + Math.cos(cur.az) * cur.dist);
       cam.lookAt(lx0, ly0, lz0);
       if (Math.abs(cam.fov - cur.fov) > .01){ cam.fov = cur.fov; cam.updateProjectionMatrix(); }
-      // show the system as a preview once the visitor scrolls into "the whole picture"
       const want = T.idx >= 2;
-      if (!S.built && want !== previewMods){ previewMods = want; want ? world.build() : world.unbuild(); }
+      if (!S.built && want !== preview){ preview = want; setMods(want); }
       if (cue) cue.style.opacity = scrollY > 60 ? 0 : 1;
       R.render(scene, cam); placeTags();
       if (Math.floor(now / 200) !== Math.floor((now - dt * 1000) / 200)) paintCounters();
@@ -664,8 +829,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;padding-block:2
     })(performance.now());
   })();
 
-  /* ---------- boot ---------- */
-  syncOpts(); validate(); show(S.step); bar();
+  /* ================= boot ================= */
+  if (S.flow && !FLOWS[S.flow]) S.flow = null;
+  view();
+  fromHash();
 })();
 </script>
 </body>
