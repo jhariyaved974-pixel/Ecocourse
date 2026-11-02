@@ -14,7 +14,7 @@
 
   const foot = document.createElement('footer'); foot.className = 'site-foot';
   foot.innerHTML = `<div class="wrap">
-    <div><a class="brand" href="./"><i aria-hidden="true"></i>Your Brand</a><p>Automation, websites and SEO for small teams in India and worldwide. Fixed written quotes. You own everything we build.</p></div>
+    <div><a class="brand" href="./"><i aria-hidden="true"></i>Your Brand</a><p>Automation, websites and SEO that turn visitors into customers, for businesses in India and worldwide. Fixed written quotes. You own everything we build.</p></div>
     <div><h4>Services</h4><ul><li><a href="services.html#automation">Automation</a></li><li><a href="services.html#website">Websites</a></li><li><a href="services.html#seo">SEO &amp; AI search</a></li><li><a href="services.html#pipeline">B2B pipeline</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="about.html">About Us</a></li><li><a href="enquiry.html">Enquiry</a></li><li><a href="./#plan">Free plan</a></li></ul></div>
     <div><h4>Legal</h4><ul><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div>
