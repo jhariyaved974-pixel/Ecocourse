@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>About — WeberAct</title>
+<meta name="description" content="WeberAct is a studio for premium websites, web systems and automations, run by its founder and co-founder.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.story{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:70px;align-items:start;padding-block:40px 100px}
+.story p{font-size:19px;line-height:1.65;color:#2c2a30;margin:0 0 18px}
+.story .arch{aspect-ratio:4/5}
+.story .arch .big{position:absolute;inset:0;display:grid;place-items:center;color:var(--gold)}
+.story .arch .big svg{width:46%;height:auto}
+.people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px;margin-top:40px}
+.person{display:grid;gap:16px}
+.person .ph{aspect-ratio:1/1;border-radius:999px 999px 6px 6px;background:var(--cream);display:grid;place-items:center;font:600 64px var(--sans);color:var(--maroon);letter-spacing:-.04em;box-shadow:inset 0 0 0 1px var(--hair)}
+.person h3{font:600 24px/1.1 var(--sans);letter-spacing:-.03em;margin:0;color:var(--maroon)}
+.person .role{font:500 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-2)}
+.person p{margin:0;color:var(--soft);font-size:15px}
+.values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair);margin-top:40px}
+.values div{padding:28px 24px 30px 0;border-right:1px solid var(--hair);display:grid;gap:10px;align-content:start}
+.values div + div{padding-left:24px}
+.values div:last-child{border-right:0}
+.values b{font:600 20px/1.15 var(--sans);letter-spacing:-.03em;color:var(--maroon)}
+.values p{margin:0;font-size:14.5px;color:#3a363d}
+@media (max-width:900px){ .story,.people{grid-template-columns:minmax(0,1fr);gap:40px} .values{grid-template-columns:1fr 1fr} .values div{padding-left:0!important;border-right:0;border-bottom:1px solid var(--hair)} .story .arch{max-width:420px} .person .ph{max-width:320px} }
+@media (max-width:560px){ .values{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-page="about">
+<main>
+  <section class="page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>About</span></nav>
+    <h1 class="display"><span class="line-mask"><span>Built on</span></span><span class="line-mask"><span style="transition-delay:.12s">a promise.</span></span></h1>
+  </div></section>
+
+  <div class="wrap story">
+    <div>
+      <p class="rv">WeberAct was started by a founder and co-founder who kept seeing the same thing: good businesses judged by websites that didn't do them justice, and enquiries lost because nobody had time to reply.</p>
+      <p class="rv">So we build the opposite. Websites that make a business look as established as it really is, the systems behind them, and the automations that answer every enquiry in seconds.</p>
+      <p class="rv">Every project begins with a promise in writing: a fixed scope, a fixed fee and a date you can plan around. Then we keep it.</p>
+      <a class="btn solid rv" href="proposal.html" style="margin-top:10px">Request a proposal</a>
+    </div>
+    <div class="arch rv" role="img" aria-label="The WeberAct mark in gold inside the brand arch"><svg class="inner" viewBox="0 0 100 125" preserveAspectRatio="none" aria-hidden="true"><path d="M1 124V50A49 49 0 0 1 99 50V124Z"/></svg><div class="big" data-mark></div></div>
+  </div>
+
+  <section style="padding-block:20px 100px"><div class="wrap">
+    <h2 class="h2 rv">The people you'll work with</h2>
+    <div class="people">
+      <div class="person rv"><div class="ph" aria-hidden="true">F</div><span class="role">Founder</span><h3>[Founder name]</h3><p>[Two lines: background, what they lead at WeberAct, and what clients rely on them for.]</p></div>
+      <div class="person rv"><div class="ph" aria-hidden="true">CF</div><span class="role">Co-founder</span><h3>[Co-founder name]</h3><p>[Two lines: background, what they lead at WeberAct, and how clients reach them.]</p></div>
+    </div>
+  </div></section>
+
+  <section style="padding-block:0 100px"><div class="wrap">
+    <h2 class="h2 rv">What we promise, every time</h2>
+    <div class="values">
+      <div class="rv"><b>In writing</b><p>Scope, fee and date agreed on paper before any work begins.</p></div>
+      <div class="rv"><b>Yours to keep</b><p>Code, domain, accounts and workflows in your name from day one.</p></div>
+      <div class="rv"><b>Honest numbers</b><p>Plain monthly reports. No ranking guarantees, no inflated claims.</p></div>
+      <div class="rv"><b>One working day</b><p>Every message answered within a working day, before and after launch.</p></div>
+    </div>
+  </div></section>
+
+  <section class="band"><div class="wrap grid">
+    <div class="rv"><blockquote>“[A line from a client, in their own words, about working with WeberAct.]”</blockquote><cite>[Client name], [Company]</cite></div>
+    <div class="steps-list"><div class="rv"><span class="n">I</span><div><b>Analyse</b><p>We learn the business and agree, in writing, the one result the site must deliver.</p></div></div><div class="rv"><span class="n">II</span><div><b>Create</b><p>We design and build only what serves that result.</p></div></div><div class="rv"><span class="n">III</span><div><b>Track</b><p>After launch we measure it, report it and refine what moves it.</p></div></div></div>
+  </div></section>
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

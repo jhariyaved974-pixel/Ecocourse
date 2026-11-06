@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Work — WeberAct</title>
+<meta name="description" content="Selected websites, web systems, automations and search projects by WeberAct.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:34px 0 10px}
+.filters button{border:0;cursor:pointer;font:500 14px var(--sans);padding:9px 16px;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--hair);transition:background .3s,color .3s}
+.filters button[aria-pressed="true"]{background:var(--maroon);color:#fff;box-shadow:none}
+.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 30px}
+.wcard{transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.wcard.out{opacity:0;transform:scale(.97);pointer-events:none;position:absolute;visibility:hidden}
+.wcard .shot{aspect-ratio:16/10}
+.note{margin-top:60px;padding:22px 24px;border-radius:10px;background:var(--cream);font-size:14.5px;color:var(--soft);border-left:3px solid var(--gold)}
+@media (max-width:700px){ .cards{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-page="work">
+<main>
+  <section class="page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Work</span></nav>
+    <h1 class="display"><span class="line-mask"><span>Selected work.</span></span><span class="line-mask"><span style="transition-delay:.12s">Judged by results.</span></span></h1>
+    <p class="lede rv">Each project starts with one result agreed in writing. Here is what we built, and what it changed.</p>
+    <div class="filters rv" role="group" aria-label="Filter work">
+      <button aria-pressed="true" data-f="all">All</button><button aria-pressed="false" data-f="web">Premium websites</button><button aria-pressed="false" data-f="sys">Web systems</button><button aria-pressed="false" data-f="auto">Automations</button><button aria-pressed="false" data-f="seo">Search and growth</button>
+    </div>
+    <div class="rule"></div>
+  </div></section>
+
+  <section style="padding-top:10px"><div class="wrap">
+    <div class="cards" id="cards" style="position:relative">
+      <a class="wcard rv" data-c="web" href="proposal.html"><div class="shot" style="background:linear-gradient(160deg,#f6efe4,#ead9bb)"><div class="scr"><i></i><i></i><div class="hero-b" style="background:linear-gradient(135deg,#7a1c33,#94263f)"></div></div></div><div class="meta"><h3>[Project name]</h3><span class="tag">Premium website</span></div><p>[The result, in one line: e.g. enquiries per month before and after.]</p></a>
+      <a class="wcard rv" data-c="sys" href="proposal.html"><div class="shot" style="background:linear-gradient(160deg,#e9eef6,#cfd9ea)"><div class="scr"><i></i><i></i><div class="hero-b" style="background:linear-gradient(135deg,#0f1b33,#17264a)"></div></div></div><div class="meta"><h3>[Project name]</h3><span class="tag">Web system</span></div><p>[The result, in one line: e.g. quotes sent the same day.]</p></a>
+      <a class="wcard rv" data-c="auto" href="proposal.html"><div class="shot" style="background:linear-gradient(160deg,#eef6f3,#d4ebe4)"><div class="scr"><i></i><i></i><div class="hero-b" style="background:linear-gradient(135deg,#1f6f63,#3fd0b6)"></div></div></div><div class="meta"><h3>[Project name]</h3><span class="tag">Automation</span></div><p>[The result, in one line: e.g. hours of copy-paste removed each week.]</p></a>
+      <a class="wcard rv" data-c="seo" href="proposal.html"><div class="shot" style="background:linear-gradient(160deg,#f7f1e1,#e8d7a9)"><div class="scr"><i></i><i></i><div class="hero-b" style="background:linear-gradient(135deg,#a8862f,#c6a24e)"></div></div></div><div class="meta"><h3>[Project name]</h3><span class="tag">Search and growth</span></div><p>[The result, in one line: e.g. calls from Google Maps per month.]</p></a>
+      <a class="wcard rv" data-c="web" href="proposal.html"><div class="shot" style="background:linear-gradient(160deg,#f3e9ec,#e3c9d0)"><div class="scr"><i></i><i></i><div class="hero-b" style="background:linear-gradient(135deg,#5f1427,#7a1c33)"></div></div></div><div class="meta"><h3>[Project name]</h3><span class="tag">Premium website</span></div><p>[The result, in one line.]</p></a>
+      <a class="wcard rv" data-c="auto" href="proposal.html"><div class="shot" style="background:linear-gradient(160deg,#e6ecf5,#c9d6e8)"><div class="scr"><i></i><i></i><div class="hero-b" style="background:linear-gradient(135deg,#17264a,#3fd0b6)"></div></div></div><div class="meta"><h3>[Project name]</h3><span class="tag">Automation</span></div><p>[The result, in one line.]</p></a>
+    </div>
+    <p class="note rv">Case studies are being written up with our clients' permission. Replace each [Project name] with a real project, its screenshot and its result.</p>
+  </div></section>
+
+  <section class="closing"><div class="wrap">
+    <div class="mark rv" data-mark></div>
+    <h2 class="rv">Your project could be next on this page.</h2>
+    <div class="row rv"><a class="btn solid" href="proposal.html">Request a proposal</a></div>
+  </div></section>
+</main>
+<script src="assets/site.js"></script>
+<script>
+(function(){
+  const btns = [...document.querySelectorAll('.filters button')], cards = [...document.querySelectorAll('#cards .wcard')];
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(x => x.setAttribute('aria-pressed', x === b));
+    cards.forEach(c => c.classList.toggle('out', b.dataset.f !== 'all' && c.dataset.c !== b.dataset.f));
+  }));
+})();
+</script>
+</body>
+</html>

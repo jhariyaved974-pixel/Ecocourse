@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Method — WeberAct</title>
+<meta name="description" content="Analyse, create, track: how every WeberAct project runs, from a written spec to monthly numbers.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.mhero{background:var(--navy);color:#fff;padding-block:90px 100px}
+.mhero .crumbs{font-size:12.5px;color:var(--mint);display:flex;gap:8px;margin-bottom:24px}
+.mhero .crumbs a{text-decoration:none}
+.mhero .big-cond{color:#fff;font-size:clamp(64px,10vw,150px)}
+.mhero .big-cond span:nth-child(2){color:var(--teal)}
+.mhero p{color:#c9d4e4;max-width:52ch;font-size:18px;margin:26px 0 0}
+.phase{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:60px;padding-block:90px;border-bottom:1px solid var(--hair);align-items:start}
+.phase .k{font:800 120px/.8 var(--cond);color:var(--gold-soft)}
+.phase h2{font:800 clamp(48px,5vw,72px)/.9 var(--cond);text-transform:uppercase;color:var(--navy);margin:14px 0 18px}
+.phase p{margin:0;color:#3a4252;max-width:44ch}
+.phase ul{list-style:none;margin:0;padding:0;border-top:1px solid var(--hair)}
+.phase li{display:grid;grid-template-columns:1fr auto;gap:16px;padding-block:16px;border-bottom:1px solid var(--hair)}
+.phase li b{font-weight:600}
+.phase li span{font:500 13px var(--mono);color:var(--soft)}
+.term.small{min-height:0;margin-top:22px;font-size:14px}
+@media (max-width:900px){ .phase{grid-template-columns:minmax(0,1fr);gap:24px} .phase .k{font-size:80px} }
+</style>
+</head>
+<body data-page="method">
+<main>
+  <section class="mhero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Method</span></nav>
+    <h1 class="big-cond"><span class="line-mask"><span>Analyse.</span></span><span class="line-mask"><span style="transition-delay:.12s">Create.</span></span><span class="line-mask"><span style="transition-delay:.24s">Track.</span></span></h1>
+    <p class="rv">Every project runs the same pipeline. You see the spec before we build and the numbers after we launch. Nothing starts until you sign it off.</p>
+  </div></section>
+
+  <div class="wrap">
+    <section class="phase" id="analyse">
+      <div class="rv"><div class="k">01</div><h2>Analyse</h2><p>We learn the business, your customers and your numbers, then agree in writing the one result the work must deliver.</p>
+        <div class="term small" role="img" aria-label="weberact analyse"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><div class="cmd" data-cmd="weberact analyse --goal=enquiries"><b>$</b> weberact analyse --goal=enquiries</div><div class="out">agreed in writing, signed off</div></div></div>
+      <ul class="rv"><li><b>Consultation call</b><span>30 min</span></li><li><b>Customer and competitor review</b><span>written</span></li><li><b>The one result, agreed</b><span>signed off</span></li><li><b>Proposal: scope, fee, date</b><span>fixed</span></li></ul>
+    </section>
+    <section class="phase" id="create">
+      <div class="rv"><div class="k">02</div><h2>Create</h2><p>Design, copy, build and automations, shown to you every week on real content. No surprises at launch.</p>
+        <div class="term small" role="img" aria-label="weberact create"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><div class="cmd" data-cmd="weberact create --scope=fixed --fee=fixed"><b>$</b> weberact create --scope=fixed --fee=fixed</div><div class="out">design, build, launch on [DATE]</div></div></div>
+      <ul class="rv"><li><b>Copy and design</b><span>weekly review</span></li><li><b>Build and automations</b><span>staging link</span></li><li><b>Testing on real enquiries</b><span>before launch</span></li><li><b>Launch and handover</b><span>on the date</span></li></ul>
+    </section>
+    <section class="phase" id="track" style="border-bottom:0">
+      <div class="rv"><div class="k">03</div><h2>Track</h2><p>After launch we measure what the work delivers, report it plainly every month, and refine what moves the number.</p>
+        <div class="term small" role="img" aria-label="weberact track"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><div class="cmd" data-cmd="weberact track --report=monthly"><b>$</b> weberact track --report=monthly</div><div class="out">enquiries, calls, orders <span class="ok">✓</span></div></div></div>
+      <ul class="rv"><li><b>Enquiries, calls and orders</b><span>tracked</span></li><li><b>Monthly report</b><span>plain language</span></li><li><b>Refinements</b><span>what moves it</span></li><li><b>Support</b><span>1 working day</span></li></ul>
+    </section>
+  </div>
+
+  <section class="closing" style="border-top:1px solid var(--hair)"><div class="wrap">
+    <div class="mark rv" data-mark></div>
+    <h2 class="rv">See the spec before we build.</h2>
+    <div class="row rv"><a class="btn solid" href="proposal.html">Request a proposal</a></div>
+  </div></section>
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

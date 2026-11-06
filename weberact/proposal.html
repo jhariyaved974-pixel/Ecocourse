@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Request a proposal — WeberAct</title>
+<meta name="description" content="Tell us about your business in two minutes. We reply within one working day with next steps and a written proposal.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:48px;align-items:start;padding-bottom:100px}
+.formbox{border-top:1px solid var(--hair);padding-top:26px}
+.prog{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:26px}
+.prog .steps{display:flex;gap:6px;flex:1}
+.prog .steps i{flex:1;height:3px;border-radius:2px;background:var(--gold-soft);transition:background .5s}
+.prog .steps i.on{background:var(--maroon)}
+.prog span{font:500 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-2);white-space:nowrap}
+.pane{display:grid;gap:20px;animation:paneIn .7s var(--ease)}
+@keyframes paneIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.pane h2{font:600 clamp(28px,3vw,40px)/1.05 var(--sans);letter-spacing:-.045em;color:var(--maroon);margin:0}
+.pane .hint{margin:-8px 0 0;color:var(--soft);font-size:15px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choices.one{grid-template-columns:1fr}
+.choice{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:3px;padding:16px 18px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(23,22,26,.14);transition:box-shadow .25s,background .25s}
+.choice b{font-weight:600;font-size:16px}
+.choice small{color:var(--soft);font-size:13.5px}
+.choice:hover{box-shadow:inset 0 0 0 1px var(--maroon)}
+.choice[aria-pressed="true"]{background:#fbf3f5;box-shadow:inset 0 0 0 2px var(--maroon)}
+.choice:focus-visible{outline:2px solid var(--maroon);outline-offset:2px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:grid;gap:6px}
+.field.full{grid-column:1/-1}
+.field label,.field .label{font:600 13px var(--sans);color:#3a363d}
+.field input,.field select,.field textarea{font:500 16px var(--sans);padding:14px 2px;border:0;border-bottom:1.5px solid rgba(23,22,26,.2);background:transparent;color:var(--ink);border-radius:0;width:100%;transition:border-color .3s}
+.field textarea{resize:vertical;min-height:110px;border:1.5px solid rgba(23,22,26,.2);border-radius:8px;padding:12px 14px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--maroon)}
+.field [aria-invalid="true"]{border-color:var(--maroon)}
+.field .msg{font-size:13px;font-weight:600;color:var(--maroon)}
+.req{color:var(--maroon)}
+.consent{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:14px;color:var(--soft);align-items:start}
+.consent input{width:18px;height:18px;accent-color:var(--maroon);margin-top:3px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:8px}
+.back{all:unset;cursor:pointer;font-weight:600;font-size:15px;color:var(--soft)}
+.back:hover{color:var(--maroon)}
+.back:focus-visible{outline:2px solid var(--maroon)}
+.saved{font-size:12.5px;color:var(--faint)}
+.side{position:sticky;top:120px;display:grid;gap:18px}
+.next{background:var(--maroon);color:#fff;border-radius:10px;padding:28px}
+.next h3{font:600 22px var(--sans);letter-spacing:-.03em;margin:0 0 6px;color:var(--gold-soft)}
+.contact{border-top:1px solid var(--hair);padding-top:18px;display:grid;gap:10px;scroll-margin-top:120px}
+.contact .line{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:15px}
+.contact .line span{font-weight:600;user-select:all}
+.copy{all:unset;cursor:pointer;font:600 12px var(--sans);color:var(--maroon)}
+.copy:focus-visible{outline:2px solid var(--maroon)}
+.done{display:grid;gap:18px;justify-items:start;animation:paneIn .8s var(--ease)}
+.done .seal{width:84px;height:84px;color:var(--gold)}
+.done .seal circle,.done .seal path{fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.done .seal circle{stroke-dasharray:240;stroke-dashoffset:240;animation:draw 1s var(--ease) forwards}
+.done .seal path{stroke:var(--maroon);stroke-dasharray:50;stroke-dashoffset:50;animation:draw .6s var(--ease) .7s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.brief{width:100%;background:var(--cream);border-radius:10px;padding:20px 22px;font:400 14px/1.8 var(--mono);white-space:pre-wrap;margin:0}
+@media (max-width:980px){ .layout{grid-template-columns:minmax(0,1fr)} .side{position:static} }
+@media (max-width:600px){ .choices,.fields{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-page="proposal">
+<main>
+  <section class="page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Request a proposal</span></nav>
+    <h1 class="display"><span class="line-mask"><span>Tell us the result</span></span><span class="line-mask"><span style="transition-delay:.12s">you need.</span></span></h1>
+    <p class="lede rv">Five short steps, about two minutes. We read every request ourselves and reply within one working day with next steps and a time for a consultation.</p>
+  </div></section>
+
+  <div class="wrap layout">
+    <div class="formbox">
+      <form id="pf" novalidate>
+        <div class="prog"><div class="steps" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><span id="stepLabel">Step 1 of 5</span></div>
+        <div id="paneHost"></div>
+        <div class="nav"><button type="button" class="back" id="back">← Back</button><span class="saved" id="saved">Progress saved on this device</span><button type="submit" class="btn solid" id="next">Continue</button></div>
+      </form>
+      <div class="done" id="done" hidden tabindex="-1">
+        <svg class="seal" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38"/><path d="M27 43l10 10 21-23"/></svg>
+        <h2 class="h2" style="color:var(--maroon)">Thank you. Your request is with us.</h2>
+        <p class="lede">We'll reply within one working day by your chosen method with next steps and a time for your consultation. Here is the brief we received (demo form, not connected yet):</p>
+        <pre class="brief" id="brief"></pre>
+        <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap"><a class="btn solid" href="work.html">See selected work</a><button class="ulink" id="again" style="background:none;border:0;cursor:pointer">Send another request</button></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div class="next rv">
+        <h3>What happens next</h3>
+        <div class="steps-list">
+          <div><span class="n">I</span><div><b>We read it</b><p>Within one working day, a founder replies with questions or a time to talk.</p></div></div>
+          <div><span class="n">II</span><div><b>Consultation</b><p>Thirty minutes, Hindi or English, about your business and the result you need.</p></div></div>
+          <div style="border-bottom:0"><span class="n">III</span><div><b>Written proposal</b><p>Fixed scope, fixed fee and a launch date. Nothing starts until you sign it.</p></div></div>
+        </div>
+      </div>
+      <div class="contact rv" id="contact">
+        <span class="eyebrow">Prefer to write directly?</span>
+        <div class="line"><span id="c1">[EMAIL]</span><button class="copy" data-copy="c1">Copy</button></div>
+        <div class="line"><span id="c2">[WHATSAPP NUMBER]</span><button class="copy" data-copy="c2">Copy</button></div>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="assets/site.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s), KEY = 'weberact-proposal';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const D = Object.assign({ need:[], result:'', budget:'', when:'', via:'WhatsApp' }, (() => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ return {}; } })());
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch(e){} };
+  const H = { websites:'Premium website', systems:'Web system', automations:'Automations', search:'Search and growth' };
+  if (H[location.hash.slice(1)] && !D.need.includes(H[location.hash.slice(1)])) D.need.push(H[location.hash.slice(1)]);
+  let step = 0;
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const choice = (key, v, label, sub, multi) => `<button type="button" class="choice" data-k="${key}" data-v="${esc(v)}" data-multi="${multi ? 1 : ''}" aria-pressed="${multi ? D[key].includes(v) : D[key] === v}"><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</button>`;
+  const input = (id, label, opts = {}) => `<div class="field${opts.full ? ' full' : ''}"><label for="${id}">${label}${opts.req ? ' <span class="req">*</span>' : ''}</label><input id="${id}" ${opts.type ? `type="${opts.type}"` : ''} ${opts.mode ? `inputmode="${opts.mode}"` : ''} autocomplete="${opts.ac || 'off'}" placeholder="${opts.ph || ''}" value="${esc(D[id] || '')}"><span class="msg" hidden></span></div>`;
+  const select = (id, label, list) => `<div class="field"><label for="${id}">${label}</label><select id="${id}"><option value="">Choose one</option>${list.map(o => `<option${D[id] === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>`;
+
+  const STEPS = [
+    { title:'What do you need?', hint:'Pick everything that applies.', html:() => `<div class="choices">${[
+        ['Premium website','A site that looks established and brings enquiries'],['Web system','Quotes, catalogues, bookings, portals'],
+        ['Automations','Instant replies, CRM, follow-ups, syncing'],['Search and growth','Google, Maps and AI answers'],['Not sure yet','Help me choose']
+      ].map(([v, s]) => choice('need', v, v, s, true)).join('')}</div><span class="msg field" id="m-need" hidden style="font-size:13px;font-weight:600;color:var(--maroon)">Pick at least one.</span>`,
+      ok:() => D.need.length ? '' : 'need' },
+    { title:'About your business', hint:'So we can come prepared.', html:() => `<div class="fields">${input('biz','Business name',{ac:'organization',ph:'e.g. Shree Fabricators'})}${select('type','Type of business',['Manufacturer / Exporter','Clinic / Healthcare','Retail / Online store','Professional services','Education','Hospitality','Other'])}${input('city','City',{ac:'address-level2',ph:'e.g. Pune'})}${input('site','Current website (if any)',{mode:'url',ph:'yourbusiness.in'})}</div>`, ok:() => '' },
+    { title:'The one result', hint:'What should the work change for your business?', html:() => `<div class="choices one">${[
+        ['More enquiries','More people asking for prices, quotes or bookings'],['Sell online','Take orders and payments on the site'],['Save staff time','Stop copying, chasing and replying by hand'],
+        ['Get found on Google','Show up when buyers search for what you do'],['A better first impression','Look as established as the business really is']
+      ].map(([v, s]) => choice('result', v, v, s)).join('')}</div><div class="field full"><label for="detail">Anything we should know? <span class="req">*</span></label><textarea id="detail" placeholder="e.g. We get 40 enquiries a week on IndiaMART and WhatsApp and reply late to most of them.">${esc(D.detail || '')}</textarea><span class="msg" hidden></span></div>`,
+      ok:() => !D.result ? 'result' : !(D.detail || '').trim() ? 'detail' : '' },
+    { title:'Budget and timing', hint:'A range is fine. It helps us propose the right scope.', html:() => `<div class="field"><span class="label">Budget</span></div><div class="choices">${['Under ₹50,000','₹50,000 – ₹1,50,000','₹1,50,000 – ₹5,00,000','₹5,00,000+','Monthly retainer','Not sure yet'].map(v => choice('budget', v, v)).join('')}</div><div class="field"><span class="label">When should it launch?</span></div><div class="choices">${['As soon as possible','Within a month','In 1–3 months','Just exploring'].map(v => choice('when', v, v)).join('')}</div>`, ok:() => '' },
+    { title:'How do we reach you?', hint:'We reply within one working day.', html:() => `<div class="fields">${input('name','Your name',{req:1,ac:'name'})}${input('wa','WhatsApp number',{req:1,mode:'tel',ac:'tel',ph:'+91 98xxx xxxxx'})}${input('email','Email',{type:'email',ac:'email',ph:'you@business.com'})}<div class="field"><span class="label">Contact me by</span><div class="choices" style="grid-template-columns:repeat(3,1fr)">${['WhatsApp','Call','Email'].map(v => choice('via', v, v)).join('')}</div></div></div>
+      <label class="consent" for="ok"><input type="checkbox" id="ok"${D.ok ? ' checked' : ''}><span>I agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a> and to be contacted about this request. <span class="req">*</span></span></label><span class="msg" id="m-ok" hidden style="font-size:13px;font-weight:600;color:var(--maroon)">Please tick the box so we can contact you.</span>`,
+      ok:() => !(D.name || '').trim() ? 'name' : (D.wa || '').replace(/\D/g, '').length < 10 ? 'wa' : (D.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(D.email)) ? 'email' : !D.ok ? 'ok' : '' }
+  ];
+  const MSG = { name:'Add your name so we know who to ask for.', wa:'Enter a WhatsApp number with at least 10 digits.', email:'This email looks incomplete. Check it or leave it empty.', detail:'Add a sentence or two about what you need.' };
+
+  function render(){
+    const s = STEPS[step];
+    $('#paneHost').innerHTML = `<div class="pane"><h2>${s.title}</h2><p class="hint">${s.hint}</p>${s.html()}</div>`;
+    document.querySelectorAll('.prog .steps i').forEach((i, k) => i.classList.toggle('on', k <= step));
+    $('#stepLabel').textContent = `Step ${step + 1} of ${STEPS.length}`;
+    $('#back').style.visibility = step ? 'visible' : 'hidden';
+    $('#next').textContent = step === STEPS.length - 1 ? 'Send request' : 'Continue';
+    document.querySelectorAll('.choice').forEach(c => c.addEventListener('click', () => {
+      const k = c.dataset.k, v = c.dataset.v;
+      if (c.dataset.multi){ const i = D[k].indexOf(v); i < 0 ? D[k].push(v) : D[k].splice(i, 1); c.setAttribute('aria-pressed', i < 0); }
+      else { D[k] = v; document.querySelectorAll(`.choice[data-k="${k}"]`).forEach(x => x.setAttribute('aria-pressed', x === c)); }
+      document.querySelectorAll('.msg').forEach(m => m.hidden = true); save();
+    }));
+    document.querySelectorAll('#paneHost input, #paneHost select, #paneHost textarea').forEach(el => {
+      const upd = () => { D[el.id] = el.type === 'checkbox' ? el.checked : el.value; save(); el.removeAttribute('aria-invalid'); const m = el.parentElement.querySelector('.msg'); if (m) m.hidden = true; };
+      el.addEventListener('input', upd); el.addEventListener('change', upd);
+    });
+  }
+  function fail(key){
+    const el = document.getElementById(key);
+    if (key === 'need' || key === 'ok'){ const m = $('#m-' + key); m.hidden = false; (key === 'ok' ? el : document.querySelector('.choice')).focus(); return; }
+    if (key === 'result'){ document.querySelector('.choice').focus(); return; }
+    el.setAttribute('aria-invalid', 'true'); const m = el.parentElement.querySelector('.msg'); m.textContent = MSG[key]; m.hidden = false; el.focus();
+  }
+  $('#pf').addEventListener('submit', e => {
+    e.preventDefault();
+    const bad = STEPS[step].ok(); if (bad) return fail(bad);
+    if (step < STEPS.length - 1){ step++; render(); const f = document.querySelector('#paneHost .choice, #paneHost input'); if (f) f.focus({ preventScroll:true }); return; }
+    const lines = [`Services:  ${D.need.join(', ')}`, `Business:  ${[D.biz, D.type, D.city].filter(Boolean).join(' · ') || '—'}`, `Website:   ${D.site || '—'}`, `Result:    ${D.result}`, `Budget:    ${D.budget || '—'}`, `Launch:    ${D.when || '—'}`, `Name:      ${D.name}`, `WhatsApp:  ${D.wa}`, `Email:     ${D.email || '—'}`, `Contact:   ${D.via}`, '', D.detail];
+    $('#brief').textContent = lines.join('\n');
+    $('#pf').hidden = true; $('#done').hidden = false; $('#done').focus();
+    try { localStorage.removeItem(KEY); } catch(e){}
+  });
+  $('#back').addEventListener('click', () => { if (step){ step--; render(); } });
+  $('#again').addEventListener('click', () => { Object.keys(D).forEach(k => delete D[k]); Object.assign(D, { need:[], result:'', budget:'', when:'', via:'WhatsApp' }); step = 0; $('#done').hidden = true; $('#pf').hidden = false; render(); });
+  document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', () => {
+    const el = document.getElementById(b.dataset.copy), done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500); };
+    const sel = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; };
+    try { navigator.clipboard.writeText(el.textContent).then(done, sel); } catch(e){ sel(); }
+  }));
+  render();
+})();
+</script>
+</body>
+</html>
