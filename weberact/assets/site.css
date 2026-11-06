@@ -245,3 +245,95 @@ button{font:inherit;color:inherit}
 .note{background:var(--cream);border-left:3px solid var(--gold);border-radius:6px;padding:14px 16px;font-size:14px;margin-bottom:28px}
 @media (max-width:900px){ .legal{grid-template-columns:minmax(0,1fr)} .toc{position:static;grid-template-columns:1fr 1fr} }
 section[id],article[id]{scroll-margin-top:110px}
+
+/* ---------- little animations ---------- */
+/* logo: the three strokes glide in on load and lean apart on hover */
+.head .logo svg path{animation:logoIn 1s var(--ease) both}
+.head .logo svg path:nth-child(2){animation-delay:.09s}
+.head .logo svg path:nth-child(3){animation-delay:.18s}
+@keyframes logoIn{from{opacity:0;transform:translateY(40%)}to{opacity:1;transform:none}}
+.logo svg path{transition:transform .5s var(--ease)}
+.logo:hover svg path:nth-child(1){transform:translateX(-18px)}
+.logo:hover svg path:nth-child(3){transform:translateX(18px)}
+.head .logo b{animation:fadeUp 1s var(--ease) .25s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* reading progress hairline */
+.progress-line{position:fixed;left:0;right:0;top:0;height:2px;z-index:60;background:linear-gradient(90deg,var(--gold),var(--maroon));transform-origin:left;transform:scaleX(0);pointer-events:none}
+
+/* arch: a slow sheen passes over the maroon; the site card floats and its content builds */
+.arch::before{content:"";position:absolute;inset:-20%;z-index:1;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.09) 50%,transparent 60%);transform:translateX(-60%);animation:sheen 7s var(--ease) 2.2s infinite;pointer-events:none}
+@keyframes sheen{0%{transform:translateX(-60%)}45%,100%{transform:translateX(60%)}}
+.arch .mock{z-index:2}
+.arch .mock .bar,.arch .mock .body{animation:float 6s ease-in-out 2s infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.mock .t1,.mock .t2,.mock .p,.mock .b,.mock .b2{transform-origin:left;animation:grow 1s var(--ease) both}
+.mock .t1{animation-delay:1.1s}.mock .t2{animation-delay:1.2s}.mock .p{animation-delay:1.3s}.mock .b{animation-delay:1.45s}.mock .b2{animation-delay:1.55s}
+@keyframes grow{from{transform:scaleX(0)}to{transform:none}}
+.mock .tiles i{animation:tile 1s var(--ease) both}
+.mock .tiles i:nth-child(1){animation-delay:1.6s}.mock .tiles i:nth-child(2){animation-delay:1.7s}.mock .tiles i:nth-child(3){animation-delay:1.8s}
+@keyframes tile{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mock .b{animation:grow 1s var(--ease) 1.45s both,pulse 3.2s ease-in-out 3s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(122,28,51,.35)}50%{box-shadow:0 0 0 6px rgba(122,28,51,0)}}
+
+/* service icons draw their strokes */
+.js .col .ic svg *{stroke-dasharray:100;stroke-dashoffset:100}
+.js .col.in .ic svg *{animation:drawIc 1.4s var(--ease) forwards;animation-delay:calc(var(--d,0ms) + .25s)}
+@keyframes drawIc{to{stroke-dashoffset:0}}
+.col .ic{transition:transform .5s var(--ease)}
+.col:hover .ic{transform:translateY(-3px) rotate(-4deg)}
+.col .new{animation:ring 2.6s ease-out 1.5s infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(198,162,78,.6)}70%,100%{box-shadow:0 0 0 8px rgba(198,162,78,0)}}
+
+/* links nudge their arrow */
+.ulink::after{content:"→";display:inline-block;margin-left:6px;text-decoration:none;transition:transform .4s var(--ease)}
+.ulink:hover::after{transform:translateX(5px)}
+.btn.solid::after,.btn.gold::after{content:"→";display:inline-block;margin-left:2px;max-width:0;opacity:0;overflow:hidden;transition:max-width .45s var(--ease),opacity .3s,margin .45s var(--ease)}
+.btn.solid:hover::after,.btn.gold:hover::after{max-width:1.2em;opacity:1;margin-left:4px}
+
+/* selected-work cards: a soft light passes over the screen on hover */
+.wcard .shot::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.5) 50%,transparent 65%);transform:translateX(-100%);transition:transform 1s var(--ease)}
+.wcard:hover .shot::after{transform:translateX(100%)}
+
+/* closing mark: a gold shine sweeps through the logo */
+@supports ((-webkit-mask-image:url(x)) or (mask-image:url(x))){
+  .closing .mark{background:linear-gradient(110deg,var(--gold) 38%,#f6e3a8 50%,var(--gold) 62%);background-size:260% 100%;-webkit-mask:url(logo.svg) center/contain no-repeat;mask:url(logo.svg) center/contain no-repeat;animation:shine 4.5s ease-in-out infinite}
+  .closing .mark svg{opacity:0}
+}
+@keyframes shine{0%,20%{background-position:120% 0}70%,100%{background-position:-20% 0}}
+
+/* ---------- testimonials carousel (maroon band) ---------- */
+.tcar{position:relative;display:grid;gap:26px;outline:none}
+.tcar .qmark{width:54px;height:auto;color:var(--gold)}
+.tcar .qmark path{fill:none;stroke:currentColor;stroke-width:2;stroke-dasharray:120;stroke-dashoffset:120;transition:stroke-dashoffset 1.6s var(--ease)}
+.tcar.in .qmark path,.band .rv.in .qmark path,.tcar .qmark.show path{stroke-dashoffset:0}
+.tslides{display:grid;outline:none}
+.tslides:focus-visible{outline:2px solid var(--gold);outline-offset:8px;border-radius:4px}
+.tslide{grid-area:1/1;margin:0;display:grid;gap:18px;align-content:start;opacity:0;transform:translateY(18px);filter:blur(6px);transition:opacity .8s var(--ease),transform .8s var(--ease),filter .8s var(--ease);pointer-events:none}
+.tslide.on{opacity:1;transform:none;filter:none;pointer-events:auto}
+.tslide .tag{justify-self:start;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--maroon);background:var(--gold-soft);padding:5px 10px;border-radius:99px}
+.tslide blockquote{margin:0;font:600 clamp(24px,2.4vw,34px)/1.18 var(--sans);letter-spacing:-.035em;color:var(--gold-soft)}
+.tslide figcaption{display:flex;align-items:center;gap:14px}
+.tslide .av{width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--gold);display:grid;place-items:center;font:600 14px var(--sans);color:var(--gold)}
+.tslide figcaption b{display:block;font-weight:600;font-size:15px;color:#fff}
+.tslide figcaption span{font-size:13px;color:#f0d7dd}
+.tctl{display:flex;align-items:center;gap:14px}
+.tctl .arr{width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;background:transparent;color:var(--gold-soft);box-shadow:inset 0 0 0 1px rgba(198,162,78,.6);font-size:18px;transition:background .3s,color .3s,transform .3s var(--ease)}
+.tctl .arr:hover{background:var(--gold);color:var(--maroon);transform:scale(1.06)}
+.tctl .arr:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.tdots{display:flex;gap:8px;flex:1;max-width:220px}
+.tdots button{flex:1;height:3px;border:0;padding:0;border-radius:2px;background:rgba(239,228,198,.25);cursor:pointer;overflow:hidden;position:relative}
+.tdots button i{position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left}
+.tdots button.on i{transform:scaleX(1)}
+.tdots button.run i{transform:scaleX(0);animation:fill linear forwards}
+.tcar.paused .tdots button.run i{animation-play-state:paused}
+@keyframes fill{to{transform:scaleX(1)}}
+.tdots button:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.tcount{font:500 12px var(--mono);color:var(--gold-soft);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  .head .logo svg path,.head .logo b,.arch::before,.arch .mock .bar,.arch .mock .body,.mock *,.col .new,.closing .mark,.tdots button.run i{animation:none!important}
+  .js .col .ic svg *{stroke-dashoffset:0}
+  .tslide{transition:none;filter:none}
+  .tcar .qmark path{stroke-dashoffset:0;transition:none}
+}

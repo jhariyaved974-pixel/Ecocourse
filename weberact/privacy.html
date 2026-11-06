@@ -4,74 +4,180 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Privacy Policy — WeberAct</title>
-<meta name="description" content="What personal data WeberAct collects, why, and how you control it.">
+<meta name="description" content="How WeberAct collects, uses, shares and protects personal data, and how you can see, correct or delete yours.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/site.css">
+<style>
+.glance{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin:10px 0 70px}
+.glance div{padding:26px 22px 28px 0;border-right:1px solid var(--hair);display:grid;gap:10px;align-content:start}
+.glance div + div{padding-left:22px}
+.glance div:last-child{border-right:0}
+.glance svg{width:26px;height:26px;fill:none;stroke:var(--gold-2);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.glance b{font:600 19px/1.15 var(--sans);letter-spacing:-.03em;color:var(--maroon)}
+.glance p{margin:0;font-size:14.5px;color:#3a363d}
+.dtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:6px 0 10px}
+.dtable th{text-align:left;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-2);padding:10px 12px 10px 0;border-bottom:1px solid var(--hair)}
+.dtable td{padding:14px 12px 14px 0;border-bottom:1px solid var(--line);vertical-align:top;color:#2c2a30}
+.dtable td:first-child{font-weight:600;color:var(--ink)}
+.tablewrap{overflow-x:auto}
+.rights{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.rights div{background:var(--cream);border-radius:8px;padding:14px 16px}
+.rights b{display:block;color:var(--maroon);font-weight:600}
+.rights span{font-size:14px;color:var(--soft)}
+.req{margin-top:30px;background:var(--maroon);color:#fff;border-radius:10px;padding:28px;display:grid;gap:16px}
+.req h3{margin:0;font:600 24px var(--sans);letter-spacing:-.03em;color:var(--gold-soft)}
+.req p{margin:0;color:#f0d7dd;font-size:15px}
+.req .fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.req label{font:600 13px var(--sans);color:#f7e6ea;display:grid;gap:6px}
+.req input,.req select,.req textarea{font:500 16px var(--sans);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(239,228,198,.35);border-radius:8px;padding:12px 14px;width:100%}
+.req select option{color:#17161a}
+.req textarea{min-height:90px;resize:vertical}
+.req input:focus,.req select:focus,.req textarea:focus{outline:none;border-color:var(--gold)}
+.req .full{grid-column:1/-1}
+.req .err{font-size:13px;font-weight:600;color:var(--gold-soft);margin:0}
+.req .ok{background:rgba(255,255,255,.08);border-radius:8px;padding:16px;font-size:15px}
+.contactcard{display:grid;gap:4px;background:var(--cream);border-radius:8px;padding:18px 20px;margin-top:10px;font-size:15px}
+@media (max-width:900px){ .glance{grid-template-columns:1fr 1fr} .glance div{padding-left:0!important;border-right:0;border-bottom:1px solid var(--hair)} .glance div:nth-child(odd){padding-right:16px} }
+@media (max-width:600px){ .glance,.rights,.req .fields{grid-template-columns:1fr} }
+</style>
 </head>
 <body data-page="privacy">
 <main>
   <section class="page-hero"><div class="wrap">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Privacy Policy</span></nav>
     <h1 class="display"><span class="line-mask"><span>Privacy Policy</span></span></h1>
-    <p class="lede rv">We collect only what we need to reply to you and deliver your project. We never sell your data.</p>
-    <p class="small rv" style="margin-top:14px">Last updated: [date]</p>
+    <p class="lede rv">We collect only what we need to reply to you and deliver your project. We never sell your data, and you can ask us to see, correct or delete it at any time.</p>
+    <p class="small rv" style="margin-top:14px">Effective from: [date] · Last updated: [date]</p>
   </div></section>
+
+  <div class="wrap">
+    <div class="glance" aria-label="Privacy at a glance">
+      <div class="rv"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><b>Only what we need</b><p>Your name, contact details and what you tell us about your project.</p></div>
+      <div class="rv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg><b>Never sold</b><p>We do not sell, rent or trade personal data. Ever.</p></div>
+      <div class="rv"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><b>Drafts stay with you</b><p>Form drafts are saved in your own browser until you press send.</p></div>
+      <div class="rv"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><b>Delete on request</b><p>Ask us to delete your data and we act within the time the law requires.</p></div>
+    </div>
+  </div>
+
   <div class="wrap legal">
     <nav class="toc" aria-label="On this page">
       <a href="#p1">1. Who we are</a><a href="#p2">2. What we collect</a><a href="#p3">3. Why we use it</a><a href="#p4">4. Who we share it with</a>
-      <a href="#p5">5. How long we keep it</a><a href="#p6">6. Your rights</a><a href="#p7">7. Cookies &amp; storage</a><a href="#p8">8. Client data we process</a>
-      <a href="#p9">9. Security</a><a href="#p10">10. Changes</a><a href="#p11">11. Contact</a>
+      <a href="#p5">5. Storage and transfers</a><a href="#p6">6. How long we keep it</a><a href="#p7">7. Your rights</a><a href="#p8">8. Children</a>
+      <a href="#p9">9. Cookies and local storage</a><a href="#p10">10. Client data</a><a href="#p11">11. Security</a><a href="#p12">12. Changes</a><a href="#p13">13. Contact and grievances</a>
     </nav>
     <article class="doc">
-      <p class="note">Template text prepared for this website, written with India's Digital Personal Data Protection Act, 2023 in mind. Have it reviewed by a qualified lawyer and fill in the bracketed details before publishing.</p>
+      <p class="note">Template prepared for the WeberAct website and written with India's Digital Personal Data Protection Act, 2023 in mind. Fill in the bracketed details and have it reviewed by a qualified lawyer before publishing.</p>
 
       <h2 id="p1">1. Who we are</h2>
-      <p><b>[WeberAct legal name]</b>, <b>[registered address]</b>, is responsible for the personal data described here.</p>
+      <p><b>[WeberAct legal name]</b> ("WeberAct", "we", "us"), of <b>[registered address]</b>, decides how and why your personal data is used when you visit this website or work with us. Under Indian law this makes us the Data Fiduciary for that data.</p>
 
       <h2 id="p2">2. What we collect</h2>
-      <ul>
-        <li><b>Details you give us:</b> name, business name, WhatsApp or phone number, email, city, website and the message you send through our forms.</li>
-        <li><b>Plan builder answers:</b> the answers you choose on our proposal form (business type, channels, volumes) when you ask for a plan.</li>
-        <li><b>Basic usage data:</b> pages visited and device type, if analytics is enabled.</li>
-      </ul>
+      <div class="tablewrap"><table class="dtable">
+        <thead><tr><th>Data</th><th>When we collect it</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Name, WhatsApp or phone number, email</td><td>When you send a proposal request or contact us</td><td>To reply and arrange a consultation</td></tr>
+          <tr><td>Business details: name, type, city, website</td><td>In the proposal form</td><td>To prepare for the call and the proposal</td></tr>
+          <tr><td>Your project brief, budget range and timing</td><td>In the proposal form</td><td>To propose the right scope and fee</td></tr>
+          <tr><td>Messages and call notes</td><td>When we talk on WhatsApp, phone or email</td><td>To deliver and support your project</td></tr>
+          <tr><td>Billing details</td><td>When you become a client</td><td>To invoice you and meet tax law</td></tr>
+          <tr><td>Basic usage data: pages visited, device type</td><td>When you browse, only if analytics is enabled</td><td>To understand which pages help visitors</td></tr>
+        </tbody>
+      </table></div>
+      <p>We do not ask for sensitive information such as health, financial account or government ID numbers through this website. Please do not send it.</p>
 
       <h2 id="p3">3. Why we use it</h2>
       <ul>
-        <li>To reply to your enquiry and arrange a call, with your consent.</li>
-        <li>To prepare quotes and deliver the work you approve.</li>
-        <li>To meet legal and tax obligations such as invoicing.</li>
+        <li><b>With your consent:</b> to reply to your request and contact you about it. You give consent by ticking the box on our forms, and you can withdraw it at any time.</li>
+        <li><b>To perform a contract:</b> to deliver the work in a proposal you have signed.</li>
+        <li><b>To meet legal duties:</b> such as keeping invoices for tax purposes.</li>
       </ul>
-      <p>We do not send marketing messages unless you ask for them, and you can stop them at any time.</p>
+      <p>We do not send marketing messages unless you ask for them, and every marketing message lets you stop them.</p>
 
       <h2 id="p4">4. Who we share it with</h2>
-      <p>Only service providers that help us run the business, such as email, WhatsApp Business, hosting and CRM providers, and only as needed. We do not sell or rent personal data.</p>
+      <p>Only with service providers who help us run WeberAct, under contracts that require them to protect it, and only as much as they need:</p>
+      <ul>
+        <li>Website hosting: <b>[hosting provider, e.g. Vercel]</b></li>
+        <li>Email and messaging: <b>[email provider]</b> and WhatsApp Business</li>
+        <li>CRM and documents: <b>[CRM provider]</b>, <b>[document storage]</b></li>
+        <li>Payments and accounting: <b>[payment and accounting providers]</b></li>
+      </ul>
+      <p>We may also disclose data when the law requires it, for example to a court or regulator. We never sell or rent personal data.</p>
 
-      <h2 id="p5">5. How long we keep it</h2>
-      <p>Enquiries that don't become projects are deleted after <b>[12]</b> months. Client records are kept for as long as the law requires for accounting and tax purposes.</p>
+      <h2 id="p5">5. Storage and transfers</h2>
+      <p>Some of our providers store data on servers outside India. Where that happens, we use providers with strong security commitments and transfer data only to countries the Government of India has not restricted.</p>
 
-      <h2 id="p6">6. Your rights</h2>
-      <p>You can ask to see, correct or delete your personal data, withdraw consent, or raise a complaint. Write to <b>[email address]</b> and we will reply within one working day and act within the time the law requires. You may also contact the Data Protection Board of India.</p>
+      <h2 id="p6">6. How long we keep it</h2>
+      <ul>
+        <li>Requests that do not become projects: deleted after <b>[12]</b> months.</li>
+        <li>Client project records: for the length of the project plus <b>[3]</b> years, for support.</li>
+        <li>Invoices and accounting records: as long as tax law requires, currently up to <b>[8]</b> years.</li>
+      </ul>
 
-      <h2 id="p7">7. Cookies and local storage</h2>
-      <p>This website saves your form drafts and plan answers in your own browser so you don't lose them. That data stays on your device and is not sent to us until you submit a form. Analytics cookies, if used, are listed here: <b>[analytics tool]</b>.</p>
+      <h2 id="p7">7. Your rights</h2>
+      <p>Under the Digital Personal Data Protection Act, 2023 you have the right to:</p>
+      <div class="rights">
+        <div><b>Access</b><span>Get a summary of the personal data we hold about you and how we use it.</span></div>
+        <div><b>Correct and update</b><span>Fix anything that is wrong or out of date.</span></div>
+        <div><b>Erase</b><span>Ask us to delete your data when we no longer need it.</span></div>
+        <div><b>Withdraw consent</b><span>Stop us using data we hold on the basis of your consent.</span></div>
+        <div><b>Raise a grievance</b><span>Complain to our Grievance Officer and get a reply.</span></div>
+        <div><b>Nominate</b><span>Name someone to exercise these rights for you if you cannot.</span></div>
+      </div>
+      <p>If you are not satisfied with our response, you can complain to the Data Protection Board of India.</p>
 
-      <h2 id="p8">8. Client data we process</h2>
-      <p>When we build automations or websites for you, we may process your customers' data on your behalf. In that case you decide how it is used, and we handle it only to deliver and support the work, as agreed in your quote.</p>
+      <form class="req" id="req" novalidate>
+        <h3>Make a privacy request</h3>
+        <p>Tell us what you need and how to reach you. We reply within one working day and act within the time the law requires.</p>
+        <div class="fields">
+          <label for="r-type">Request<select id="r-type"><option>See my data</option><option>Correct my data</option><option>Delete my data</option><option>Withdraw consent</option><option>Raise a grievance</option></select></label>
+          <label for="r-name">Your name<input id="r-name" autocomplete="name"></label>
+          <label class="full" for="r-contact">Email or WhatsApp number we have on file<input id="r-contact" autocomplete="email"></label>
+          <label class="full" for="r-msg">Details (optional)<textarea id="r-msg"></textarea></label>
+        </div>
+        <p class="err" id="r-err" hidden></p>
+        <div><button class="btn gold" type="submit">Send request</button></div>
+        <div class="ok" id="r-ok" hidden></div>
+      </form>
 
-      <h2 id="p9">9. Security</h2>
-      <p>We use access controls, two-factor authentication on our accounts and encrypted connections. Logins you share with us are stored securely and removed when the project ends.</p>
+      <h2 id="p8">8. Children</h2>
+      <p>Our services are for businesses. We do not knowingly collect personal data from anyone under 18. If you believe a child has sent us their data, contact us and we will delete it.</p>
 
-      <h2 id="p10">10. Changes</h2>
-      <p>We will update this page if our practices change and show the new date at the top.</p>
+      <h2 id="p9">9. Cookies and local storage</h2>
+      <p>This website saves your proposal form draft in your own browser, so you don't lose your answers. It stays on your device and is not sent to us until you press send; it is cleared once you do. If we enable analytics, it will use <b>[analytics tool]</b> and we will list its cookies here. We do not use advertising cookies.</p>
 
-      <h2 id="p11">11. Contact</h2>
-      <p>Privacy questions or requests: <b>[email address]</b> · <b>[WhatsApp number]</b>. Or use our <a href="proposal.html">proposal form</a>.</p>
+      <h2 id="p10">10. Client data we process for you</h2>
+      <p>When we build websites or automations for a client, we may handle that client's own customer data, for example enquiries flowing into a CRM. In that case the client decides how the data is used, and we act only on their instructions, as set out in the signed proposal.</p>
+
+      <h2 id="p11">11. Security</h2>
+      <p>We use encrypted connections, access controls and two-factor authentication on our accounts. Logins you share with us are stored securely and removed when the project ends. If a personal data breach affects you, we will tell you and the Data Protection Board as the law requires.</p>
+
+      <h2 id="p12">12. Changes to this policy</h2>
+      <p>If we change how we use personal data, we will update this page and the dates at the top. For important changes we will also tell clients directly.</p>
+
+      <h2 id="p13">13. Contact and grievances</h2>
+      <div class="contactcard"><b>Grievance Officer: [name]</b><span>[email address] · [WhatsApp number]</span><span>[registered address]</span><span class="small">We acknowledge every grievance within one working day.</span></div>
+      <p style="margin-top:18px">You can also use the request form above or our <a href="proposal.html">proposal page</a>.</p>
     </article>
   </div>
 </main>
 <script src="assets/site.js"></script>
+<script>
+(function(){
+  const f = document.getElementById('req'), err = document.getElementById('r-err'), ok = document.getElementById('r-ok');
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('r-name').value.trim(), c = document.getElementById('r-contact').value.trim();
+    const validContact = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c) || c.replace(/\D/g, '').length >= 10;
+    if (!name){ err.textContent = 'Add your name so we can find your records.'; err.hidden = false; document.getElementById('r-name').focus(); return; }
+    if (!validContact){ err.textContent = 'Enter the email or a WhatsApp number with at least 10 digits that we have on file.'; err.hidden = false; document.getElementById('r-contact').focus(); return; }
+    err.hidden = true;
+    ok.textContent = `Thank you, ${name}. Your request to "${document.getElementById('r-type').value.toLowerCase()}" is noted. We'll reply to ${c} within one working day. (Demo form, not connected yet.)`;
+    ok.hidden = false; f.querySelectorAll('input,select,textarea,button').forEach(el => el.disabled = true);
+  });
+})();
+</script>
 </body>
 </html>
