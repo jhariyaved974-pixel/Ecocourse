@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pricing — WeberAct</title>
+<meta name="description" content="What a website, web system or automation costs with WeberAct: packages, monthly plans, third-party costs and a live estimate. Every project then gets a fixed fee in writing.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.num{font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+.chips a{text-decoration:none;font-size:14px;font-weight:500;padding:9px 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--hair);transition:background .3s,color .3s}
+.chips a:hover{background:var(--maroon);color:#fff;box-shadow:none}
+.layers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair);margin-top:46px}
+.layers div{padding:22px 22px 24px 0;border-right:1px solid var(--hair);display:grid;gap:6px;align-content:start}
+.layers div + div{padding-left:22px}
+.layers div:last-child{border-right:0}
+.layers span{font:500 12px var(--mono);color:var(--gold-2)}
+.layers b{font:600 18px/1.2 var(--sans);letter-spacing:-.02em;color:var(--maroon)}
+.layers p{margin:0;font-size:14px;color:var(--soft)}
+.sec{padding-block:90px;border-top:1px solid var(--hair)}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:end;margin-bottom:40px}
+.sec-head p{margin:0;color:#2c2a30;max-width:52ch}
+.sec-head .eyebrow{display:block;margin-bottom:14px}
+
+/* packages */
+.packs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.pack{border-radius:14px;padding:26px 24px 24px;box-shadow:inset 0 0 0 1px var(--hair);display:grid;gap:16px;align-content:start;position:relative;transition:transform .5s var(--ease),box-shadow .5s}
+.pack:hover{transform:translateY(-4px);box-shadow:inset 0 0 0 1px var(--gold),0 24px 50px -30px rgba(122,28,51,.35)}
+.pack .name{font:600 13px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-2)}
+.pack h3{font:600 22px/1.15 var(--sans);letter-spacing:-.03em;margin:0;color:var(--maroon)}
+.pack .price{font:600 clamp(26px,2.3vw,32px)/1 var(--sans);letter-spacing:-.04em}
+.pack .price small{display:block;font:500 12px var(--sans);letter-spacing:.02em;color:var(--soft);margin-top:8px}
+.pack ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14.5px;border-top:1px solid var(--hair);padding-top:16px}
+.pack li{display:grid;grid-template-columns:16px 1fr;gap:8px;color:#2c2a30}
+.pack li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);margin-top:8px}
+.pack .meta{display:grid;gap:4px;font-size:13px;color:var(--soft);border-top:1px solid var(--hair);padding-top:14px}
+.pack .meta b{color:var(--ink);font-weight:600}
+.pack .btn{justify-self:start;padding:11px 20px;font-size:14px}
+.pack.feat{background:var(--maroon);color:#fff;box-shadow:none}
+.pack.feat:hover{box-shadow:0 30px 60px -30px rgba(122,28,51,.7)}
+.pack.feat h3,.pack.feat .name{color:var(--gold-soft)}
+.pack.feat .price small,.pack.feat .meta{color:#f0d7dd}
+.pack.feat li{color:#fff}
+.pack.feat .meta b{color:#fff}
+.pack.feat ul,.pack.feat .meta{border-color:rgba(198,162,78,.4)}
+.pack .flag{position:absolute;top:22px;right:20px;font:600 10px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--maroon);background:var(--gold-soft);padding:4px 8px;border-radius:99px}
+
+/* automations (navy) */
+.auto{background:var(--navy);color:#fff;padding-block:100px;position:relative;overflow:hidden}
+.auto::before{content:"";position:absolute;left:-14%;bottom:-50%;width:55%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(63,208,182,.18)}
+.auto .sec-head h2{color:#fff}
+.auto .sec-head p{color:#c9d4e4}
+.auto .eyebrow{color:var(--teal)}
+.atiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;position:relative}
+.atier{border-radius:14px;padding:24px;background:var(--navy-2);box-shadow:inset 0 0 0 1px rgba(159,179,200,.2);display:grid;gap:14px;align-content:start;transition:box-shadow .4s,transform .5s var(--ease)}
+.atier:hover{box-shadow:inset 0 0 0 1px var(--teal);transform:translateY(-4px)}
+.atier .k{font:500 12px var(--mono);color:var(--teal)}
+.atier h3{font:600 21px/1.15 var(--sans);letter-spacing:-.03em;margin:0}
+.atier .price{font:600 28px/1 var(--sans);letter-spacing:-.04em;color:#fff}
+.atier .price small{display:block;font:500 12px var(--sans);color:var(--mint);margin-top:8px;letter-spacing:0}
+.atier p{margin:0;font-size:14.5px;color:#c9d4e4}
+.atier .eg{font:400 12.5px/1.6 var(--mono);color:var(--mint);border-top:1px solid rgba(159,179,200,.2);padding-top:12px}
+.auto .foot-note{position:relative;margin-top:26px;font-size:14px;color:var(--mint);max-width:80ch}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{font:500 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-2);text-align:left;padding:0 16px 12px 0;border-bottom:1px solid var(--hair)}
+.tbl td{padding:16px 16px 16px 0;border-bottom:1px solid var(--hair);vertical-align:top;color:#2c2a30}
+.tbl td:first-child{font-weight:600;color:var(--ink);width:24%}
+.tbl td:last-child,.tbl th:last-child{text-align:right;padding-right:0;white-space:nowrap;font-weight:600;color:var(--maroon)}
+.tbl tr{transition:background .3s}
+.tbl tbody tr:hover{background:linear-gradient(90deg,rgba(239,228,198,.35),transparent)}
+.tbl .tot td{font-weight:700;color:var(--ink);background:var(--cream);border-bottom:0;padding-block:18px}
+.tbl .tot td:first-child{padding-left:14px}
+.tbl .tot td:last-child{padding-right:14px;color:var(--maroon)}
+.tbl.ex td:first-child{width:auto}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:60px}
+.two h3{font:600 24px/1.15 var(--sans);letter-spacing:-.03em;color:var(--maroon);margin:0 0 18px}
+.plain > div{border-color:var(--hair)}
+.plain b{color:var(--ink)}
+.plain p{color:var(--soft)}
+.aside-note{font-size:14px;color:var(--soft);margin:16px 0 0}
+
+/* estimator */
+.est{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;align-items:start}
+.q{border-top:1px solid var(--hair);padding-block:24px}
+.q:first-child{border-top:0;padding-top:0}
+.q h3{font:600 19px var(--sans);letter-spacing:-.02em;margin:0 0 4px}
+.q .hint{margin:0 0 14px;font-size:14px;color:var(--soft)}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:2px;padding:14px 16px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(23,22,26,.14);transition:box-shadow .25s,background .25s}
+.opt b{font-weight:600;font-size:15px}
+.opt small{color:var(--soft);font-size:13px}
+.opt:hover{box-shadow:inset 0 0 0 1px var(--maroon)}
+.opt[aria-pressed="true"],.opt[aria-checked="true"]{background:#fbf3f5;box-shadow:inset 0 0 0 2px var(--maroon)}
+.opt:focus-visible{outline:2px solid var(--maroon);outline-offset:2px}
+.sum{position:sticky;top:110px;background:var(--maroon);color:#fff;border-radius:16px;padding:30px 28px;display:grid;gap:20px;overflow:hidden;isolation:isolate}
+.sum::before{content:"";position:absolute;right:-30%;top:-30%;width:80%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(198,162,78,.3);z-index:-1}
+.sum .eyebrow{color:var(--gold-soft)}
+.sum .row{display:grid;gap:4px;border-bottom:1px solid rgba(198,162,78,.35);padding-bottom:16px}
+.sum .row span{font:500 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#f0d7dd}
+.sum .row b{font:600 clamp(26px,2.6vw,34px)/1.05 var(--sans);letter-spacing:-.04em;color:var(--gold-soft)}
+.sum .row b.sm{font-size:20px;color:#fff}
+.sum .picked{font-size:14px;color:#f0d7dd;min-height:1.6em}
+.sum .fine{font-size:12.5px;color:#f0d7dd;margin:0}
+.sum .btn{justify-self:start}
+.sum .empty{color:#f0d7dd;font-size:15px}
+
+/* faq */
+.faq .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:60px}
+details{border-bottom:1px solid var(--hair);padding-block:22px}
+details:first-child{border-top:1px solid var(--hair)}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font:600 19px/1.3 var(--sans);letter-spacing:-.02em}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--maroon);font-weight:400;font-size:24px;line-height:1;transition:transform .4s var(--ease)}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:12px 0 0;color:var(--soft);max-width:60ch}
+
+@media (max-width:1100px){ .packs,.atiers{grid-template-columns:1fr 1fr} }
+@media (max-width:980px){
+  .sec-head,.two,.est,.faq .grid{grid-template-columns:minmax(0,1fr);gap:28px}
+  .sum{position:relative;top:auto}
+  .layers{grid-template-columns:1fr 1fr}
+  .layers div{padding-left:0!important;border-right:0;border-bottom:1px solid var(--hair);padding-right:16px}
+}
+@media (max-width:640px){
+  .packs,.atiers,.layers{grid-template-columns:1fr}
+  .tbl thead{display:none}
+  .tbl tr{display:grid;grid-template-columns:1fr auto;gap:4px 16px;padding-block:14px;border-bottom:1px solid var(--hair)}
+  .tbl td{border:0;padding:0}
+  .tbl td:first-child{width:auto}
+  .tbl td:nth-child(2){grid-column:1/-1;grid-row:2;font-size:14px;color:var(--soft)}
+  .tbl .tot{padding-inline:14px;background:var(--cream)}
+  .tbl.ex thead{display:block}
+  .tbl.ex thead tr{padding-block:0 10px;border-bottom:1px solid var(--hair)}
+  .tbl.ex th{border:0;padding:0}
+  .tbl.ex td:nth-child(2){grid-column:auto;grid-row:auto;font-size:15px;color:var(--maroon)}
+  .tbl .tot td{background:none;padding:0!important}
+}
+</style>
+</head>
+<body data-page="pricing">
+<main>
+  <section class="page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="./">Home</a><span>/</span><span>Pricing</span></nav>
+    <h1 class="display"><span class="line-mask"><span>Every cost,</span></span><span class="line-mask"><span style="transition-delay:.12s">up front.</span></span></h1>
+    <p class="lede rv">We would rather show you every cost now than surprise you later. These are the ranges we work in, in US dollars. After a short consultation you get one fixed fee, in writing, before any work begins.</p>
+    <div class="chips rv"><a href="#packages">Websites</a><a href="#automations">Automations</a><a href="#monthly">After launch</a><a href="#third-party">Third-party costs</a><a href="#estimate">Estimate yours</a></div>
+    <div class="layers">
+      <div class="rv"><span>01</span><b>The build</b><p>Paid once: strategy, design, development and launch.</p></div>
+      <div class="rv"><span>02</span><b>Tools and licences</b><p>Domain, hosting, email and software, paid to those companies at cost.</p></div>
+      <div class="rv"><span>03</span><b>Running costs</b><p>Care, updates and security, so the site stays fast and safe.</p></div>
+      <div class="rv"><span>04</span><b>Growth</b><p>Search work that keeps new customers arriving. Optional.</p></div>
+    </div>
+  </div></section>
+
+  <section class="sec" id="packages"><div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow rv">Websites and web systems</span><h2 class="h2 rv">Four starting points.</h2></div><p class="rv">Where your project sits in each range depends on pages, features and how soon you need it. Every package includes a mobile-first build, the legal pages and launch.</p></div>
+    <div class="packs">
+      <article class="pack rv">
+        <span class="name">Starter</span><h3>Freelancers, local services, portfolios</h3>
+        <div class="price num">$1,500 – $3,500<small>one-time build</small></div>
+        <ul><li>5–7 pages built on our tested layouts, styled to your brand</li><li>Contact form and click-to-call</li><li>Basic SEO set-up</li><li>Mobile-first and fast</li></ul>
+        <div class="meta"><span>Timeline <b>2–4 weeks</b></span><span>Payment <b>50% upfront, 50% at launch</b></span></div>
+        <a class="btn line" href="#estimate" data-pick="starter">Estimate this</a>
+      </article>
+      <article class="pack feat rv">
+        <span class="flag">Fully custom</span>
+        <span class="name">Business</span><h3>Growing companies, clinics, consultants</h3>
+        <div class="price num">$4,000 – $10,000<small>one-time build</small></div>
+        <ul><li>10–20 pages, custom design</li><li>Editable pages and blog</li><li>Lead forms and analytics</li><li>On-page SEO and integrations</li></ul>
+        <div class="meta"><span>Timeline <b>6–10 weeks</b></span><span>Payment <b>40% upfront, 30% at design approval, 30% at launch</b></span></div>
+        <a class="btn gold" href="#estimate" data-pick="business">Estimate this</a>
+      </article>
+      <article class="pack rv">
+        <span class="name">E-commerce</span><h3>Online stores</h3>
+        <div class="price num">$6,000 – $20,000<small>one-time build</small></div>
+        <ul><li>Custom store, up to 100 products</li><li>Payments, shipping and stock</li><li>Order emails</li><li>An admin your team can run</li></ul>
+        <div class="meta"><span>Timeline <b>8–14 weeks</b></span><span>Payment <b>40% upfront, 30% at design approval, 30% at launch</b></span></div>
+        <a class="btn line" href="#estimate" data-pick="store">Estimate this</a>
+      </article>
+      <article class="pack rv">
+        <span class="name">Web system</span><h3>Portals, marketplaces, booking platforms</h3>
+        <div class="price num">$20,000+<small>usually $20,000 – $100,000</small></div>
+        <ul><li>User accounts and dashboards</li><li>Database and admin panel</li><li>APIs and custom features</li><li>Built in phases you approve</li></ul>
+        <div class="meta"><span>Timeline <b>3–9 months</b></span><span>Payment <b>Milestones, usually monthly</b></span></div>
+        <a class="btn line" href="#estimate" data-pick="system">Estimate this</a>
+      </article>
+    </div>
+  </div></section>
+
+  <section class="auto" id="automations"><div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow rv">Automations · new</span><h2 class="h2 rv">Priced by the work they take off your hands.</h2></div><p class="rv">Every automation is built in your accounts, documented, and handed over. Start with one workflow and add more once it has paid for itself.</p></div>
+    <div class="atiers">
+      <article class="atier rv"><span class="k">01</span><h3>One workflow</h3><div class="price num">$300 – $800<small>one-time · about 1–2 weeks</small></div><p>A single job done for you, every time, in seconds.</p><div class="eg">website form → WhatsApp reply → Google Sheet</div></article>
+      <article class="atier rv"><span class="k">02</span><h3>Enquiry autopilot</h3><div class="price num">$1,500 – $3,500<small>one-time · about 2–4 weeks</small></div><p>Every channel captured, answered, qualified, logged in your CRM and followed up, with hot leads sent to your phone.</p><div class="eg">website · WhatsApp · Instagram · email → CRM → follow-ups</div></article>
+      <article class="atier rv"><span class="k">03</span><h3>Operations</h3><div class="price num">$3,500 – $10,000+<small>one-time · about 4–8 weeks</small></div><p>Orders, invoices, stock and reports kept in sync across the tools you already use.</p><div class="eg">order → invoice → stock → weekly report</div></article>
+      <article class="atier rv"><span class="k">04</span><h3>Automation care</h3><div class="price num">$50 – $300<small>per month · optional</small></div><p>Monitoring, fixes when a connected app changes, and small new steps.</p><div class="eg">uptime checks · error alerts · monthly tweaks</div></article>
+    </div>
+    <p class="foot-note rv">Tool costs are separate and paid to those companies: automation platforms (n8n, Zapier or Make) from $0 to about $600 a year, CRM and booking tools from $0 to about $1,200 a year, and WhatsApp Business messaging charged by Meta per conversation.</p>
+  </div></section>
+
+  <section class="sec" id="monthly"><div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow rv">After launch</span><h2 class="h2 rv">Monthly, only if you want it.</h2></div><p class="rv">No lock-in: end any monthly plan with notice. Bundle care and search into a yearly plan and it costs about 10–15% less.</p></div>
+    <table class="tbl rv">
+      <thead><tr><th>Plan</th><th>What it covers</th><th>Per month</th></tr></thead>
+      <tbody>
+        <tr><td>Care plan</td><td>Updates, daily backups, uptime and security monitoring, minor fixes, quarterly speed and security checks.</td><td class="num">$50 – $400</td></tr>
+        <tr><td>Content updates</td><td>Text and image changes, new posts, new products, bundled or by the hour.</td><td class="num">$75 – $500</td></tr>
+        <tr><td>Search and growth</td><td>Keyword tracking, content improvements, local and AI-answer visibility, and a plain-language monthly report.</td><td class="num">$400 – $3,000</td></tr>
+        <tr><td>Automation care</td><td>Monitoring and fixes for your automations, plus small new steps.</td><td class="num">$50 – $300</td></tr>
+        <tr><td>Extra developer time</td><td>New features after launch, quoted before we start.</td><td class="num">$50 – $150 / hour</td></tr>
+      </tbody>
+    </table>
+  </div></section>
+
+  <section class="sec" id="third-party"><div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow rv">Paid to other companies</span><h2 class="h2 rv">Third-party costs, in your name.</h2></div><p class="rv">We set these accounts up in your name so you always own them. Where we pay on your behalf, we pass the cost through with no mark-up.</p></div>
+    <table class="tbl rv">
+      <thead><tr><th>Item</th><th>Details</th><th>Typical cost</th></tr></thead>
+      <tbody>
+        <tr><td>Domain name</td><td>Your web address (.com, .in, .co and others).</td><td class="num">$10 – $25 / year</td></tr>
+        <tr><td>Hosting</td><td>Shared $5–15 a month, managed $25–60 a month, cloud $50–300 a month.</td><td class="num">$60 – $3,600 / year</td></tr>
+        <tr><td>SSL certificate</td><td>Free with most hosts; premium certificates cost extra.</td><td class="num">$0 – $200 / year</td></tr>
+        <tr><td>Business email</td><td>Google Workspace or Microsoft 365.</td><td class="num">$72 – $168 / user / year</td></tr>
+        <tr><td>Premium tools and plugins</td><td>Forms, search, security, backup or membership tools, only if the build needs them.</td><td class="num">$100 – $800 / year</td></tr>
+        <tr><td>CDN and security</td><td>Cloudflare Pro, firewall and DDoS protection.</td><td class="num">$0 – $300 / year</td></tr>
+        <tr><td>Images, fonts, icons</td><td>Stock licences when your own photos are not enough.</td><td class="num">$0 – $400 / year</td></tr>
+        <tr><td>Email marketing</td><td>Mailchimp, Klaviyo or Brevo; grows with your list.</td><td class="num">$0 – $600 / year</td></tr>
+        <tr><td>CRM, booking, chat</td><td>HubSpot, Zoho, Calendly, Tidio and similar.</td><td class="num">$0 – $1,200 / year</td></tr>
+        <tr><td>Store platform</td><td>Shopify $29–299 a month; WooCommerce is free but needs hosting.</td><td class="num">$350 – $3,600 / year</td></tr>
+        <tr><td>Payment fees</td><td>Stripe, PayPal or Razorpay: about 2.5–3% plus a fixed fee per transaction.</td><td class="num">Per sale</td></tr>
+      </tbody>
+    </table>
+  </div></section>
+
+  <section class="sec" id="estimate" style="background:var(--cream)"><div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow rv">Estimate yours</span><h2 class="h2 rv">Build your range in a minute.</h2></div><p class="rv">Pick what you need and see the one-time build, the monthly cost and a first-year total. Send it to us and we turn it into a fixed fee.</p></div>
+    <div class="est">
+      <div id="qs">
+        <div class="q"><h3>Website or system</h3><p class="hint">Choose one.</p><div class="opts" data-group="pk" role="group" aria-label="Website or system"></div></div>
+        <div class="q"><h3>Automations</h3><p class="hint">Choose one.</p><div class="opts" data-group="au" role="group" aria-label="Automations"></div></div>
+        <div class="q"><h3>Add to the build</h3><p class="hint">Pick any that apply.</p><div class="opts" data-group="ex" data-multi="1" role="group" aria-label="Add to the build"></div></div>
+        <div class="q"><h3>After launch</h3><p class="hint">Monthly plans, all optional.</p><div class="opts" data-group="mo" data-multi="1" role="group" aria-label="Monthly plans"></div></div>
+      </div>
+      <aside class="sum rv" aria-live="polite">
+        <span class="eyebrow">Your estimate</span>
+        <div class="picked" id="picked">Nothing chosen yet.</div>
+        <div class="row"><span>One-time build</span><b class="num" id="o-build">—</b></div>
+        <div class="row"><span>Monthly plans</span><b class="num sm" id="o-month">—</b></div>
+        <div class="row"><span>Third-party tools, first year</span><b class="num sm" id="o-tools">—</b></div>
+        <div class="row" style="border-bottom:0;padding-bottom:0"><span>First-year total</span><b class="num" id="o-year">—</b></div>
+        <div class="picked" id="o-time"></div>
+        <a class="btn gold" href="proposal.html" id="send">Get a fixed quote</a>
+        <p class="fine">An estimate, not a quote. Prices in USD; Indian businesses are quoted in INR plus GST. Your fixed fee comes in the written proposal.</p>
+      </aside>
+    </div>
+  </div></section>
+
+  <section class="sec" id="example"><div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow rv">A worked example</span><h2 class="h2 rv">A 15-page business website, priced line by line.</h2></div><p class="rv">An illustration of how a quote is built, not a past client. Yours will list the same kind of lines, each with a fixed amount.</p></div>
+    <div class="two">
+      <table class="tbl ex rv">
+        <thead><tr><th>The build</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Discovery, UX and wireframes</td><td class="num">$1,200</td></tr>
+          <tr><td>Custom design</td><td class="num">$2,200</td></tr>
+          <tr><td>Development and editable pages</td><td class="num">$3,000</td></tr>
+          <tr><td>Copywriting, 15 pages</td><td class="num">$1,200</td></tr>
+          <tr><td>Integrations: CRM, forms, analytics</td><td class="num">$600</td></tr>
+          <tr><td>SEO foundation and legal pages</td><td class="num">$800</td></tr>
+          <tr><td>Testing, project management, launch and training</td><td class="num">$900</td></tr>
+          <tr class="tot"><td>Build total</td><td class="num">$9,900</td></tr>
+        </tbody>
+      </table>
+      <div>
+        <table class="tbl ex rv">
+          <thead><tr><th>First year of running it</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>Domain, hosting, SSL, tools, business email</td><td class="num">$650</td></tr>
+            <tr><td>Care plan, $150 a month × 12</td><td class="num">$1,800</td></tr>
+            <tr class="tot"><td>First year, build plus running</td><td class="num">$12,350</td></tr>
+          </tbody>
+        </table>
+        <p class="aside-note rv">From the second year, keeping a site like this running, secure and updated typically costs about $2,000–$2,500 a year, plus any growth work you choose.</p>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="sec"><div class="wrap two">
+    <div class="rv">
+      <h3>Costs people often forget</h3>
+      <div class="steps-list plain">
+        <div><span class="n">—</span><div><b>Your content and approvals</b><p>Late text, photos and sign-offs are the main cause of delays.</p></div></div>
+        <div><span class="n">—</span><div><b>Extra revisions</b><p>Two rounds are included; more are billed at $50–150 an hour.</p></div></div>
+        <div><span class="n">—</span><div><b>New ideas mid-project</b><p>Added pages or features are quoted separately before we do them.</p></div></div>
+        <div><span class="n">—</span><div><b>Moving an old site</b><p>Migrating products, posts or users: $300–3,000.</p></div></div>
+        <div><span class="n">—</span><div><b>Renewals and taxes</b><p>Domains and tools renew yearly, often above the intro price. GST, VAT or sales tax is added where it applies.</p></div></div>
+        <div><span class="n">—</span><div><b>No care plan</b><p>Emergency clean-up after a hack or crash: $300–1,500.</p></div></div>
+      </div>
+    </div>
+    <div class="rv">
+      <h3>Ways to spend less</h3>
+      <div class="steps-list plain">
+        <div><span class="n">1</span><div><b>Launch smaller</b><p>Start with the core pages and add features in phases.</p></div></div>
+        <div><span class="n">2</span><div><b>Bring your own words and photos</b><p>This alone can save $1,000 or more.</p></div></div>
+        <div><span class="n">3</span><div><b>Buy your own domain and hosting</b><p>And keep the logins. We will show you how.</p></div></div>
+        <div><span class="n">4</span><div><b>Pay yearly for care and search</b><p>About 10–15% less than paying monthly.</p></div></div>
+        <div><span class="n">5</span><div><b>Share examples early</b><p>Competitor and inspiration links mean fewer design rounds.</p></div></div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="sec faq"><div class="wrap grid">
+    <h2 class="h2 rv">Questions about pricing</h2>
+    <div class="rv">
+      <details><summary>Are these prices fixed?</summary><p>These are the ranges we work in. After a consultation you get one fixed fee for an agreed scope, in writing. That fee does not change unless you ask for something new.</p></details>
+      <details><summary>Do you price in rupees?</summary><p>Yes. Businesses in India are quoted in INR, plus GST where it applies. International clients are quoted in USD.</p></details>
+      <details><summary>How do payments work?</summary><p>Starter projects: 50% to begin and 50% at launch. Business and store projects: 40% to begin, 30% when you approve the design and 30% at launch. Web systems are billed in monthly milestones. Monthly plans are billed in advance.</p></details>
+      <details><summary>What is not included?</summary><p>Third-party costs such as domain, hosting, email and software are paid to those companies, ideally from your own accounts. Ad spend is always separate.</p></details>
+      <details><summary>Can we start small?</summary><p>Yes. Many projects start as a Starter site or one automation and grow in phases once they are paying for themselves.</p></details>
+    </div>
+  </div></section>
+
+  <section class="closing"><div class="wrap">
+    <div class="mark rv" data-mark></div>
+    <h2 class="rv">One fixed fee. In writing. Before we start.</h2>
+    <div class="row rv"><a class="btn solid" href="proposal.html">Request a proposal</a><a class="ulink" href="#estimate">Estimate your project</a></div>
+  </div></section>
+</main>
+<script src="assets/site.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // [label, sub, build min, build max, open-ended max, third-party tools per year min, max, timeline]
+  const G = {
+    pk:[['none','No website','Automations only',0,0,0,0,0,''],['starter','Starter','5–7 pages',1500,3500,0,150,500,'2–4 weeks'],['business','Business','10–20 pages, custom',4000,10000,0,400,1200,'6–10 weeks'],['store','E-commerce','Up to 100 products',6000,20000,0,500,4000,'8–14 weeks'],['system','Web system','Portal or platform',20000,100000,1,700,4000,'3–9 months']],
+    au:[['none','None','Not now',0,0,0,0,0,''],['one','One workflow','Single task',300,800,0,0,300,'1–2 weeks'],['autopilot','Enquiry autopilot','All channels',1500,3500,0,0,600,'2–4 weeks'],['ops','Operations','Orders, invoices, stock',3500,10000,1,0,1200,'4–8 weeks']],
+    ex:[['brand','Branding','Logo, colours, type',300,3000],['copy','Copywriting','Every page written',300,3000],['seo','SEO foundation','Keywords, schema, speed',300,2000],['feature','Custom feature','Booking, quotes, members',500,15000,1],['migrate','Move an old site','Products, posts, users',300,3000],['a11y','Accessibility audit','WCAG checks and fixes',500,3000],['photo','Photography','Stock or a shoot',50,2500]],
+    mo:[['care','Care plan','Updates, backups, security',50,400],['content','Content updates','Text, posts, products',75,500],['growth','Search and growth','SEO, local, AI answers',400,3000],['acare','Automation care','Monitoring and fixes',50,300]]
+  };
+  const S = { pk:'none', au:'none', ex:[], mo:[] };
+  const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+  const range = (a, b, open) => !b ? '$0' : a === b ? fmt(a) : `${fmt(a)} – ${fmt(b)}${open ? '+' : ''}`;
+
+  Object.entries(G).forEach(([g, list]) => {
+    const host = document.querySelector(`.opts[data-group="${g}"]`), multi = !!host.dataset.multi;
+    host.innerHTML = list.map(o => `<button type="button" class="opt" data-v="${o[0]}" aria-pressed="false"><b>${o[1]}</b><small>${o[2]}${o[3] || o[4] ? ` · ${range(o[3], o[4], o[5])}${g === 'mo' ? '/mo' : ''}` : ''}</small></button>`).join('');
+    host.addEventListener('click', e => {
+      const b = e.target.closest('.opt'); if (!b) return;
+      const v = b.dataset.v;
+      if (multi){ const i = S[g].indexOf(v); i < 0 ? S[g].push(v) : S[g].splice(i, 1); }
+      else S[g] = v;
+      paint();
+    });
+  });
+
+  // numbers ease towards their new value
+  const shown = {};
+  function tween(id, a, b, open, suffix){
+    const el = document.getElementById(id), from = shown[id] || [0, 0], t0 = performance.now(), dur = reduce ? 0 : 600;
+    shown[id] = [a, b];
+    if (!a && !b){ el.textContent = '—'; return; }
+    (function f(now){ const k = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - k, 3);
+      el.textContent = range(from[0] + (a - from[0]) * e, from[1] + (b - from[1]) * e, open && k === 1) + (suffix || '');
+      if (k < 1) requestAnimationFrame(f); })(t0);
+  }
+
+  function totals(){
+    const pk = G.pk.find(o => o[0] === S.pk), au = G.au.find(o => o[0] === S.au);
+    const ex = G.ex.filter(o => S.ex.includes(o[0])), mo = G.mo.filter(o => S.mo.includes(o[0]));
+    const b = [pk[3] + au[3] + ex.reduce((s, o) => s + o[3], 0), pk[4] + au[4] + ex.reduce((s, o) => s + o[4], 0)];
+    const open = !!(pk[5] || au[5] || ex.some(o => o[5]));
+    const m = [mo.reduce((s, o) => s + o[3], 0), mo.reduce((s, o) => s + o[4], 0)];
+    const t = [pk[6] + au[6], pk[7] + au[7]];
+    const y = [b[0] + m[0] * 12 + t[0], b[1] + m[1] * 12 + t[1]];
+    const names = [pk[0] !== 'none' && pk[1] + (pk[0] === 'system' ? '' : ' website'), au[0] !== 'none' && au[1], ...ex.map(o => o[1]), ...mo.map(o => o[1] + ' (monthly)')].filter(Boolean);
+    return { pk, au, b, open, m, t, y, names };
+  }
+
+  function paint(){
+    document.querySelectorAll('.opts').forEach(h => { const g = h.dataset.group; h.querySelectorAll('.opt').forEach(o => o.setAttribute('aria-pressed', Array.isArray(S[g]) ? S[g].includes(o.dataset.v) : S[g] === o.dataset.v)); });
+    const T = totals();
+    $('#picked').textContent = T.names.length ? T.names.join(' · ') : 'Nothing chosen yet.';
+    tween('o-build', T.b[0], T.b[1], T.open);
+    tween('o-month', T.m[0], T.m[1], false, T.m[1] ? ' / mo' : '');
+    tween('o-tools', T.t[0], T.t[1], false);
+    tween('o-year', T.y[0], T.y[1], T.open);
+    const tl = [T.pk[8], T.au[8]].filter(Boolean);
+    $('#o-time').textContent = tl.length ? 'Typical timeline: ' + tl.join(', plus automations ') : '';
+  }
+
+  // "Estimate this" on a package card preselects it
+  document.querySelectorAll('[data-pick]').forEach(a => a.addEventListener('click', () => { S.pk = a.dataset.pick; paint(); }));
+
+  // send the estimate into the proposal form
+  $('#send').addEventListener('click', () => {
+    const T = totals(); if (!T.names.length) return;
+    const KEY = 'weberact-proposal'; let D = {};
+    try { D = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){}
+    const need = new Set(D.need || []);
+    if (['starter', 'business'].includes(S.pk)) need.add('Premium website');
+    if (['store', 'system'].includes(S.pk) || S.ex.includes('feature')) need.add('Web system');
+    if (S.au !== 'none' || S.mo.includes('acare')) need.add('Automations');
+    if (S.ex.includes('seo') || S.mo.includes('growth')) need.add('Search and growth');
+    const lo = T.b[0];
+    D.need = [...need]; D.cur = 'USD';
+    D.budget = lo >= 20000 ? '$20,000+' : lo >= 10000 ? '$10,000 – $20,000' : lo >= 4000 ? '$4,000 – $10,000' : lo >= 1500 ? '$1,500 – $3,500' : lo > 0 ? 'Under $1,500' : (T.m[0] ? 'Monthly retainer' : 'Not sure yet');
+    const line = `From the pricing page: ${T.names.join(', ')}. Estimated build ${range(T.b[0], T.b[1], T.open)}${T.m[1] ? `, monthly ${range(T.m[0], T.m[1])}` : ''}.`;
+    if (!(D.detail || '').includes('From the pricing page')) D.detail = line + (D.detail ? '\n\n' + D.detail : '');
+    try { localStorage.setItem(KEY, JSON.stringify(D)); } catch(e){}
+  });
+  paint();
+})();
+</script>
+</body>
+</html>

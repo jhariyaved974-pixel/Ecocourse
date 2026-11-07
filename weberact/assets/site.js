@@ -9,7 +9,7 @@
   window.WA_MARK = MARK;
 
   const NAV_L = [['work.html','Work','work'],['services.html','Services','services'],['method.html','Method','method']];
-  const NAV_R = [['about.html','About','about']];
+  const NAV_R = [['pricing.html','Pricing','pricing'],['about.html','About','about']];
   const link = ([h, t, k]) => `<a href="${h}"${k === page ? ' aria-current="page"' : ''}>${t}</a>`;
 
   const top = d.createElement('div'); top.className = 'topline';
@@ -31,7 +31,7 @@
   foot.innerHTML = `<div class="wrap">
     <div><a class="logo" href="./">${MARK}<b>WeberAct</b></a><p>Premium websites, web systems, automations and search, built on a written promise.</p></div>
     <div><h4>Services</h4><ul><li><a href="services.html#websites">Premium websites</a></li><li><a href="services.html#systems">Web systems</a></li><li><a href="services.html#automations">Automations</a></li><li><a href="services.html#search">Search and growth</a></li></ul></div>
-    <div><h4>Studio</h4><ul><li><a href="work.html">Work</a></li><li><a href="method.html">Method</a></li><li><a href="about.html">About</a></li><li><a href="proposal.html">Request a proposal</a></li></ul></div>
+    <div><h4>Studio</h4><ul><li><a href="work.html">Work</a></li><li><a href="method.html">Method</a></li><li><a href="pricing.html">Pricing</a></li><li><a href="about.html">About</a></li><li><a href="proposal.html">Request a proposal</a></li></ul></div>
     <div><h4>Legal</h4><ul><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div>
     <div class="base"><span>Built on a promise. © ${new Date().getFullYear()} WeberAct</span><span>Replies within one working day</span></div></div>`;
   d.body.appendChild(foot);
