@@ -40,7 +40,7 @@ def chrome_top(page, mark):
     right = ''.join(link(i, page) for i in NAV_R)
     drawer = ''.join(link(i, page) for i in [*NAV_L, *NAV_R])
     return (
-        '<div class="topline"><div class="wrap"><span>Premium websites, web systems and automations</span></div></div>\n'
+        '<div class="topline"><div class="wrap"><span>Built to represent your business</span></div></div>\n'
         f'<header class="head"><div class="wrap">\n  <nav aria-label="Primary">{left}</nav>\n'
         f'  <a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a>\n'
         f'  <div class="right"><nav aria-label="Secondary">{right}</nav><a class="btn line" href="proposal.html">Request a proposal</a></div>\n'
