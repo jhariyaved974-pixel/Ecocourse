@@ -107,6 +107,10 @@ button{font:inherit;color:inherit}
 .mock .bar{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid #eee}
 .mock .bar i{width:7px;height:7px;border-radius:50%;background:#e2dcdf}
 .mock .body{padding:16px 16px 18px;display:grid;gap:9px}
+.mock .mhead{display:flex;align-items:center;gap:7px;padding-bottom:9px;margin-bottom:2px;border-bottom:1px solid #f1ecee}
+.mock .mlogo{width:40px;margin-right:auto;color:var(--maroon);display:flex}
+.mock .mlogo svg{width:100%;height:auto;display:block}
+.mock .mhead i{width:20px;height:5px;border-radius:3px;background:#e9e4e6}
 .mock .t1{height:12px;width:62%;border-radius:3px;background:var(--maroon)}
 .mock .t2{height:12px;width:44%;border-radius:3px;background:var(--maroon)}
 .mock .p{height:6px;border-radius:3px;background:#e9e4e6}
