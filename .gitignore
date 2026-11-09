@@ -49,3 +49,6 @@ next-env.d.ts
 
 # python
 __pycache__/
+
+# WeberAct dashboard build output (tools/build_admin.py)
+/dist-admin/

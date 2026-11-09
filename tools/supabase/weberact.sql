@@ -113,12 +113,12 @@ revoke all on public.privacy_requests from anon;
 grant insert (request_type, name, contact, details) on public.privacy_requests to anon;
 revoke all on public.admins from anon;
 
--- 7. Admins manage the team: add anyone, remove anyone except themselves -------
+-- 7. One admin account only: nobody can add or remove admins through the website or dashboard.
+--    The list changes only here, in the SQL editor. (Also turn off "Allow new users to sign up" in
+--    Supabase: Authentication, Sign In / Providers.)
 drop policy if exists "admins add admins" on public.admins;
-create policy "admins add admins" on public.admins for insert to authenticated with check (public.is_admin());
 drop policy if exists "admins remove other admins" on public.admins;
-create policy "admins remove other admins" on public.admins for delete to authenticated
-  using (public.is_admin() and email <> lower(coalesce(auth.jwt() ->> 'email', '')));
+revoke insert, update, delete on public.admins from authenticated;
 
 -- 8. Website content ---------------------------------------------------------------
 -- Two rows: 'draft' (what the admin panel is editing) and 'live' (what the website is built from).
@@ -199,5 +199,5 @@ create policy "admins replace media" on storage.objects for update to authentica
 drop policy if exists "admins delete media" on storage.objects;
 create policy "admins delete media" on storage.objects for delete to authenticated using (bucket_id = 'media' and public.is_admin());
 
--- 11. The first admin (run once, with the email you sign in with; later admins are added from the dashboard):
+-- 11. The admin (run once, with the email you sign in with):
 -- insert into public.admins (email) values ('founder@weberact.co');

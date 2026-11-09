@@ -1,4 +1,4 @@
-// Checks that the admin preview renderer (weberact/assets/cms-render.js) and the build renderer
+// Checks that the admin preview renderer (weberact-admin/assets/cms-render.js) and the build renderer
 // (tools/cms.py) turn the same content into the same HTML. Run: node tools/test_cms_parity.mjs [content.json]
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -10,7 +10,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const site = path.join(here, '..', 'weberact');
 const contentFile = process.argv[2] || path.join(site, 'content.json');
 const ctx = {}; vm.createContext(ctx);
-vm.runInContext(readFileSync(path.join(site, 'assets/cms-render.js'), 'utf8'), ctx);
+vm.runInContext(readFileSync(path.join(here, '..', 'weberact-admin/assets/cms-render.js'), 'utf8'), ctx);
 const R = ctx.WA_RENDER, content = JSON.parse(readFileSync(contentFile, 'utf8'));
 const py = JSON.parse(execFileSync('python3', ['-c', `
 import json, sys; sys.path.insert(0, ${JSON.stringify(here)}); import cms
