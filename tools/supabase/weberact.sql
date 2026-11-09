@@ -120,6 +120,20 @@ drop policy if exists "admins add admins" on public.admins;
 drop policy if exists "admins remove other admins" on public.admins;
 revoke insert, update, delete on public.admins from authenticated;
 
+-- No new login accounts: only an email on the admin list can ever have one, whatever the
+-- sign-up setting in Supabase says.
+create or replace function public.only_admin_accounts() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if not exists (select 1 from public.admins a where a.email = lower(new.email)) then
+    raise exception 'New accounts are not allowed';
+  end if;
+  return new;
+end $$;
+revoke all on function public.only_admin_accounts() from public, anon, authenticated;
+drop trigger if exists only_admin_accounts on auth.users;
+create trigger only_admin_accounts before insert on auth.users for each row execute function public.only_admin_accounts();
+
 -- 8. Website content ---------------------------------------------------------------
 -- Two rows: 'draft' (what the admin panel is editing) and 'live' (what the website is built from).
 create table if not exists public.site_content (
