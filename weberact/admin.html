@@ -148,6 +148,117 @@ a.mini{text-decoration:none;display:inline-block}
 .auth .msg.err{color:#b42318} .auth .msg.ok{color:var(--won)}
 .linkish{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;padding:0;justify-self:start}
 .sample-tag{font:600 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--new-bg);color:var(--new)}
+/* website editor: section list | form | live preview */
+.cms{display:grid;grid-template-columns:210px minmax(0,1fr);gap:18px;align-items:start}
+.cms.pv-on{grid-template-columns:210px minmax(0,1fr) minmax(0,1.05fr)}
+.snav{position:sticky;top:78px;display:grid;gap:16px;max-height:calc(100vh - 96px);overflow-y:auto;padding-bottom:8px}
+.snav div{display:grid;gap:1px}
+.snav h3{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 4px 10px}
+.snav button{border:0;background:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;color:var(--muted);font-weight:500;text-align:left}
+.snav button:hover{background:var(--surface);color:var(--ink)}
+.snav button[aria-current="true"]{background:var(--surface);color:var(--ink);box-shadow:inset 2px 0 0 var(--brand)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex:none}
+.editor{display:grid;gap:14px;min-width:0}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:16px;min-width:0}
+.group > h2{font:600 15px var(--sans);margin:0}
+.group > .hint{margin:-12px 0 0;font-size:12.5px;color:var(--muted)}
+.f{display:grid;gap:6px;min-width:0;align-content:start}
+.fl{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.f label,.fl > span:first-child{font-weight:600;font-size:13px}
+.f input,.f textarea,.f select{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;width:100%;min-width:0}
+.f textarea{min-height:76px;resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--brand);outline:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+.help{font-size:12.5px;color:var(--muted);margin:0}
+.help b{color:var(--ink)}
+.cnt{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cnt.over{color:#b42318;font-weight:600}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.items{display:grid;gap:8px}
+.item{border:1px solid var(--line);border-radius:11px;background:var(--raised);min-width:0}
+.item > summary{display:flex;align-items:center;gap:10px;padding:9px 10px 9px 12px;cursor:pointer;list-style:none;min-height:44px}
+.item > summary::-webkit-details-marker{display:none}
+.item > summary::before{content:"";width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg);transition:transform .2s;flex:none}
+.item[open] > summary::before{transform:rotate(45deg)}
+.item .ttl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:13.5px}
+.item .ttl em{font-style:normal;color:var(--faint);font-weight:500;margin-right:6px}
+.ctl{display:flex;gap:4px;flex:none}
+.ctl button,.line button{border:0;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);border-radius:7px;min-width:30px;height:30px;padding:0 8px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+.ctl button:hover,.line button:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ctl button:disabled,.line button:disabled{opacity:.35;cursor:default}
+.ctl button.arm,.line button.arm{color:#b42318;box-shadow:inset 0 0 0 1px currentColor}
+.item .inner{padding:4px 12px 14px;display:grid;gap:14px}
+.lines{display:grid;gap:8px}
+.line{display:flex;gap:6px;align-items:start}
+.line input,.line textarea{flex:1;min-width:0}
+.line .cnt{align-self:center;min-width:54px;text-align:right}
+.add{border:1px dashed var(--line-strong);background:none;border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--brand);font-weight:600;justify-self:start}
+.add:hover{background:var(--raised)}
+.add:disabled{color:var(--faint);cursor:default}
+.img{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.thumb{width:96px;height:64px;border-radius:8px;background:var(--track) center/cover no-repeat;border:1px solid var(--line);flex:none;display:grid;place-items:center;font-size:11px;color:var(--faint)}
+.img .f{flex:1 1 220px}
+.snip{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--raised);display:grid;gap:2px;font-family:Arial,system-ui,sans-serif}
+.snip .u{font-size:12px;color:var(--muted)}
+.snip b{font-size:18px;font-weight:400;color:#1a0dab;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snip p{margin:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+:root[data-theme="dark"] .snip b{color:#8ab4f8}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .snip b{color:#8ab4f8} }
+.savebar{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:var(--shadow)}
+.savebar .btn.ghost{color:var(--bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bg) 40%,transparent)}
+.savebar .btn.ghost:hover{background:color-mix(in srgb,var(--bg) 12%,transparent)}
+.preview{position:sticky;top:78px;height:calc(100vh - 96px);min-height:420px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.preview > header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.preview > header b{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:inline-flex;background:var(--raised);border-radius:8px;padding:2px;box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.pvbox{flex:1;position:relative;overflow:hidden;background:var(--track)}
+.pvbox iframe{position:absolute;top:0;left:0;border:0;background:#fff;transform-origin:0 0}
+.pvnone{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:20px}
+.mediagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.mcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--raised);display:grid;min-width:0}
+.mcard .im{aspect-ratio:4/3;background:var(--track) center/cover no-repeat}
+.mcard .meta{padding:8px 10px;display:grid;gap:6px;font-size:12px;min-width:0}
+.mcard .meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.mcard button.pick{all:unset;cursor:pointer;display:block}
+.mcard button.pick:focus-visible{outline:2px solid var(--gold)}
+.drop{border:1.5px dashed var(--line-strong);border-radius:12px;padding:22px;text-align:center;color:var(--muted);display:grid;gap:8px;justify-items:center}
+.drop.over{border-color:var(--brand);background:var(--raised)}
+.hist{display:grid}
+.hist > div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line)}
+.hist > div:last-child{border-bottom:0}
+.hist .when{font-size:12.5px}
+.modal-bg{position:fixed;inset:0;background:rgba(20,16,18,.45);z-index:60;display:grid;place-items:center;padding:16px}
+.modal{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);width:min(560px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden}
+.modal.wide{width:min(900px,100%)}
+.modal > header{padding:18px 20px 0}
+.modal > header h3{font:600 19px/1.25 var(--sans);letter-spacing:-.02em;margin:0}
+.modal .mbody{padding:14px 20px;overflow-y:auto;display:grid;gap:12px}
+.modal footer{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.changes{margin:0;padding-left:18px;display:grid;gap:4px}
+.team{display:grid;gap:0}
+.team > div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.team > div:last-child{border-bottom:0}
+.inline{display:flex;gap:8px;flex-wrap:wrap}
+.inline input{flex:1 1 220px;background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;min-width:0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:13.5px;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+.muted{color:var(--muted);font-size:12.5px}
+.thumb img,.mcard .im img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
+.toast[hidden]{display:none}
+.row-panel{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+@media (max-width:1180px){
+  .cms.pv-on{grid-template-columns:210px minmax(0,1fr)}
+  .cms .preview{position:fixed;inset:auto 0 0 0;top:calc(env(safe-area-inset-top,0px) + 8px);height:auto;z-index:45;border-radius:16px 16px 0 0;box-shadow:0 -20px 50px -20px rgba(0,0,0,.4)}
+}
+@media (max-width:820px){
+  .cms,.cms.pv-on{grid-template-columns:minmax(0,1fr)}
+  .snav{position:static;display:flex;gap:6px;overflow-x:auto;max-height:none;margin:0 -16px;padding:0 16px 4px}
+  .snav div{display:contents}
+  .snav h3{display:none}
+  .snav button{white-space:nowrap;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+  .snav button[aria-current="true"]{box-shadow:inset 0 0 0 1.5px var(--brand)}
+  .two{grid-template-columns:minmax(0,1fr)}
+}
 @media (max-width:980px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .grid2{grid-template-columns:minmax(0,1fr)} .funnel{grid-template-columns:repeat(3,minmax(0,1fr))} }
 @media (max-width:720px){
   .updated{display:none}
@@ -176,10 +287,12 @@ a.mini{text-decoration:none;display:inline-block}
     <button role="tab" data-view="overview" aria-selected="true">Overview</button>
     <button role="tab" data-view="enquiries" aria-selected="false">Enquiries <span class="count" id="cNew">0</span></button>
     <button role="tab" data-view="privacy" aria-selected="false">Privacy requests <span class="count" id="cPriv">0</span></button>
+    <button role="tab" data-view="website" aria-selected="false">Website</button>
+    <button role="tab" data-view="team" aria-selected="false">Team and settings</button>
   </nav>
   <div class="right" id="toolbar" hidden><span class="updated" id="updated" aria-live="polite"></span><button class="btn ghost" id="refresh">Refresh</button><button class="btn ghost" id="signout">Sign out</button></div>
 </div></header>
-<div class="banner" id="banner" hidden><div class="wrap"><span class="sample-tag">Sample data</span><span><b>Not connected yet.</b> These enquiries are examples so you can see how the dashboard works. Once the database is connected, real enquiries from the website appear here.</span></div></div>
+<div class="banner" id="banner" hidden><div class="wrap"><span class="sample-tag">Sample data</span><span><b>Preview mode.</b> The enquiries are examples, and website edits are kept in this browser only. Once the dashboard runs on the live site, enquiries are real and Publish updates the website.</span></div></div>
 
 <main class="wrap">
   <section class="view" id="v-auth" hidden>
@@ -201,6 +314,7 @@ a.mini{text-decoration:none;display:inline-block}
   <section class="view" id="v-overview" hidden>
     <div class="head"><div><h1 id="greet">Overview</h1><p class="sub" id="greetSub"></p></div></div>
     <div class="kpis" id="kpis"></div>
+    <div class="panel row-panel"><div><h2>Website</h2><p class="hint" id="siteStatus" style="margin:0">Edit every page, image and setting of the website.</p></div><button type="button" class="btn ghost" id="goWebsite">Edit the website</button></div>
     <div class="grid2">
       <div class="panel chart"><h2>Enquiries per week</h2><p class="hint">Last 12 weeks</p><div id="weekly"></div></div>
       <div class="panel"><h2>What people ask for</h2><p class="hint">Services chosen, all time (an enquiry can pick several)</p><div class="hbars" id="services"></div></div>
@@ -228,6 +342,34 @@ a.mini{text-decoration:none;display:inline-block}
     <div class="tablewrap"><table><thead><tr><th>Received</th><th>Request</th><th>Name and contact</th><th>Details</th><th>Status</th><th></th></tr></thead><tbody id="privRows"></tbody></table>
       <div class="empty" id="noPriv" hidden><b>No privacy requests</b>When someone uses the privacy request form, it appears here.</div></div>
   </section>
+
+  <section class="view" id="v-website" hidden>
+    <div class="head"><div><h1>Website</h1><p class="sub" id="wsStatus">Every word, list, image and setting on weberact.co.</p></div>
+      <div class="actions"><button type="button" class="btn ghost" id="pvToggle" aria-pressed="false">Preview</button><button type="button" class="btn ghost" id="saveDraft">Save draft</button><button type="button" class="btn" id="publishBtn">Publish</button></div></div>
+    <div class="cms" id="cms">
+      <nav class="snav" id="snav" aria-label="Website sections"></nav>
+      <div class="editor" id="editor"></div>
+      <aside class="preview" id="preview" hidden aria-label="Live preview">
+        <header><b id="pvTitle">Preview</b><div class="seg" role="group" aria-label="Preview size"><button type="button" data-dev="desktop" aria-pressed="true">Desktop</button><button type="button" data-dev="mobile" aria-pressed="false">Phone</button></div><button type="button" class="mini" id="pvClose">Close</button></header>
+        <div class="pvbox" id="pvBox"><iframe id="pvFrame" name="wa-preview" title="Page preview with your unsaved edits"></iframe><div class="pvnone" id="pvNone" hidden></div></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="v-team" hidden>
+    <div class="head"><div><h1>Team and settings</h1><p class="sub">Who can use this dashboard, your password, and how Publish reaches the website.</p></div></div>
+    <div class="grid2">
+      <div class="panel"><h2>Admins</h2><p class="hint">Everyone listed can edit the website and see enquiries.</p><div class="team" id="teamList"></div>
+        <form class="inline" id="addAdmin" style="margin-top:14px" novalidate><input type="email" id="newAdmin" placeholder="name@company.com" aria-label="Email address to give access" autocomplete="off"><button class="btn">Give access</button></form>
+        <p class="help" id="teamMsg" aria-live="polite" style="margin-top:8px"></p></div>
+      <div class="panel"><h2>Your password</h2><p class="hint" id="meEmail"></p>
+        <form id="pwForm" style="display:grid;gap:12px" novalidate><div class="two"><div class="f"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password"></div><div class="f"><label for="pw2">Type it again</label><input id="pw2" type="password" autocomplete="new-password"></div></div>
+          <button class="btn" style="justify-self:start">Change password</button><p class="help" id="pwMsg" aria-live="polite"></p></form></div>
+    </div>
+    <div class="panel"><h2>Publishing</h2><p class="hint">Paste the deploy hook from your hosting (on Vercel: Project, Settings, Git, Deploy Hooks). With it, Publish rebuilds the website straight away. Without it, published changes appear at the next build.</p>
+      <form class="inline" id="hookForm" novalidate><input type="url" id="hookUrl" placeholder="https://api.vercel.com/v1/integrations/deploy/…" aria-label="Deploy hook address" spellcheck="false" autocomplete="off"><button class="btn">Save</button></form>
+      <p class="help" id="hookMsg" aria-live="polite" style="margin-top:8px"></p></div>
+  </section>
 </main>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -237,6 +379,7 @@ a.mini{text-decoration:none;display:inline-block}
 </aside>
 
 <script src="assets/connect.js"></script>
+<script src="assets/cms-render.js"></script>
 <script>
 (function(){
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -246,6 +389,7 @@ a.mini{text-decoration:none;display:inline-block}
   const SERVICES = ['Premium website', 'Web system', 'Automations', 'Search optimisation (SEO)', 'Not sure yet'];
   const SHORT = { 'Premium website': 'Website', 'Web system': 'Web system', 'Automations': 'Automation', 'Search optimisation (SEO)': 'SEO', 'Not sure yet': 'Not sure' };
   const KEY = 'wa-admin-session';
+  const APP_VIEWS = ['overview', 'enquiries', 'privacy', 'website', 'team'];
   const S = { mode: C.ready ? 'live' : 'sample', session: null, rows: [], priv: [], view: 'overview', open: null, dirty: false, loadedAt: null };
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const day = 864e5;
@@ -325,20 +469,25 @@ a.mini{text-decoration:none;display:inline-block}
     const r = await fetch(C.url + '/rest/v1/' + path, { method: opts.method || 'GET', headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined });
     if (r.status === 401){ saveSession(null); throw new Error('signed-out'); }
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'The database refused the request (' + r.status + ').');
-    return r.status === 204 ? null : r.json();
+    const t = await r.text();
+    return t ? JSON.parse(t) : null;
   }
 
   // ---------- views ----------
   function show(view){
     S.view = view;
-    ['auth', 'noaccess', 'overview', 'enquiries', 'privacy'].forEach(v => $('#v-' + v).hidden = v !== view);
-    const inApp = ['overview', 'enquiries', 'privacy'].includes(view);
+    ['auth', 'noaccess', 'overview', 'enquiries', 'privacy', 'website', 'team'].forEach(v => $('#v-' + v).hidden = v !== view);
+    const inApp = APP_VIEWS.includes(view);
     $('#tabs').hidden = !inApp; $('#toolbar').hidden = !inApp;
     $('#signout').hidden = S.mode === 'sample'; $('#exportCsv').hidden = S.mode === 'sample';
     $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.view === view));
-    if (inApp) try { history.replaceState(null, '', '#' + view); } catch (e) {}
+    if (inApp) try { history.replaceState(null, '', '#' + view + (view === 'website' ? '/' + CM.sec : '')); } catch (e) {}
+    const tab = $('#tabs [aria-selected="true"]'); if (tab && inApp) try { tab.scrollIntoView({ inline: 'nearest', block: 'nearest' }); } catch (e) {}
+    if (view === 'website') renderCms();
+    if (view === 'team') renderTeam();
   }
   $$('#tabs button').forEach(b => b.addEventListener('click', () => { show(b.dataset.view); render(); }));
+  $('#goWebsite').addEventListener('click', () => show('website'));
 
   async function load(){
     if (S.mode === 'sample'){ const d = sample(); S.rows = d.rows; S.priv = d.priv; }
@@ -514,6 +663,587 @@ a.mini{text-decoration:none;display:inline-block}
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'weberact-enquiries-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
   });
 
+  // ---------- website editor ----------
+  // Every word, list, image, setting and SEO field of the site lives in one content document (content.json).
+  // The editor works on a draft; Publish copies the draft to the live copy the website is built from.
+  const RD = window.WA_RENDER;
+  const CM = { def: null, draft: null, live: null, saved: '', draftMeta: null, liveMeta: null, sec: 'home', open: new Set(), pv: matchMedia('(min-width:1181px)').matches,
+    dev: 'desktop', media: null, hist: null, hook: '', err: '', t: 0 };
+  const DEFS = new Map();
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const getP = (o, p) => p.split('.').reduce((a, k) => a == null ? undefined : a[k], o);
+  function setP(o, p, v){ const ks = p.split('.'), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; }
+  function merge(base, nw){  // same rule as tools/fetch_content.py: saved values win, new keys get defaults
+    const obj = x => x && typeof x === 'object' && !Array.isArray(x);
+    if (obj(base) && obj(nw)){ const out = {}; new Set([...Object.keys(base), ...Object.keys(nw)]).forEach(k => { out[k] = k in base && k in nw ? merge(base[k], nw[k]) : k in nw ? nw[k] : base[k]; }); return out; }
+    if (base == null) return nw;
+    return Array.isArray(base) === Array.isArray(nw) && typeof base === typeof nw ? nw : base;
+  }
+  function diff(a, b, p = '', out = []){
+    if (Array.isArray(a) || Array.isArray(b)){
+      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length){ out.push(p); return out; }
+      a.forEach((x, i) => diff(x, b[i], p ? p + '.' + i : String(i), out)); return out;
+    }
+    if (a && b && typeof a === 'object' && typeof b === 'object'){ new Set([...Object.keys(a), ...Object.keys(b)]).forEach(k => diff(a[k], b[k], p ? p + '.' + k : k, out)); return out; }
+    if (a !== b) out.push(p);
+    return out;
+  }
+  const isDirty = () => !!CM.draft && JSON.stringify(CM.draft) !== CM.saved;
+  const kb = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+
+  // field builders
+  const T = (p, label, o) => Object.assign({ t: 'text', p, label }, o);
+  const TA = (p, label, o) => Object.assign({ t: 'area', p, label }, o);
+  const LN = (p, label, o) => Object.assign({ t: 'lines', p, label, noun: 'line', blank: () => '' }, o);
+  const LS = (p, label, fields, o) => Object.assign({ t: 'list', p, label, fields, noun: 'item' }, o);
+  const IMG = (p, label, o) => Object.assign({ t: 'image', p, label }, o);
+  const SEL = (p, label, options, o) => Object.assign({ t: 'select', p, label, options }, o);
+  const ROW = (...fields) => ({ t: 'row', fields });
+  const NOTE = html => ({ t: 'note', html });
+  const G = (title, fields, hint) => ({ title, fields, hint });
+  const go = id => `<button type="button" class="linkish" data-goto="${id}">`;
+
+  const TESTI = [T('tag', 'Label above the quote', { max: 40 }), TA('quote', 'Their words', { max: 380, help: 'Quotation marks are added for you.' }), ROW(T('name', 'Name', { max: 60 }), T('role', 'Role', { max: 60 })), T('company', 'Company', { max: 80 })];
+  const TESTI_LIST = p => LS(p, 'Testimonials', TESTI, { min: 1, max: 6, noun: 'testimonial', name: x => x.name || x.tag, blank: () => ({ tag: '', quote: '', name: '', role: '', company: '' }) });
+  const STEP = [T('title', 'Title', { max: 60 }), TA('text', 'Text', { max: 300 })];
+  const STEP_LIST = (p, label, max, noun) => LS(p, label, STEP, { min: 1, max, noun, name: x => x.title, blank: () => ({ title: '', text: '' }) });
+  const HERO = p => LN(p, 'Headline', { min: 1, max: 5, len: 34, help: 'One row per line, the way it breaks on a large screen.' });
+  const SEO_PAGES = [['index', 'Home', ''], ['services', 'Services', 'services'], ['work', 'Work', 'work'], ['method', 'Method', 'method'], ['about', 'About', 'about'],
+    ['proposal', 'Request a proposal', 'proposal'], ['terms', 'Terms and conditions', 'terms'], ['privacy', 'Privacy policy', 'privacy']];
+
+  const SECTIONS = [
+    { id: 'home', nav: 'Home', grp: 'Pages', page: 'index.html', pre: ['home'], groups: [
+      G('Top of the page', [HERO('home.hero'), TA('home.lede', 'Introduction', { max: 320 }), ROW(T('home.cta_primary', 'Main button', { max: 32 }), T('home.cta_secondary', 'Second link', { max: 32 })),
+        T('home.stamp', 'Round badge', { max: 28, help: 'The circular stamp beside the headline.' })]),
+      G('What we make', [T('home.make_title', 'Section title', { max: 40 }), LS('home.make', 'Services', [T('title', 'Title', { max: 40 }), TA('text', 'Text', { max: 220 }),
+        T('badge', 'Small label', { max: 16, help: 'For example “New”. Leave it empty to hide it.' })], { fixed: true, name: x => x.title })]),
+      G('Testimonials', [TESTI_LIST('home.testimonials')], 'Use real words from real clients, with their permission.'),
+      G('How a project runs', [STEP_LIST('home.steps', 'Steps', 6, 'step')]),
+      G('Selected work', [T('home.work_title', 'Section title', { max: 40 }),
+        NOTE(`Shows the first three projects from ${go('work')}Work</button>. The method block and the closing line are in ${go('shared')}Shared blocks</button>.`)]),
+    ] },
+    { id: 'services', nav: 'Services', grp: 'Pages', page: 'services.html', pre: ['services'], groups: [
+      G('Top of the page', [HERO('services.hero'), TA('services.lede', 'Introduction', { max: 320 })]),
+      G('The four services', [LS('services.items', 'Services', [
+        ROW(T('chip', 'Name', { max: 32, help: 'Used in the page index and the footer.' }), T('label', 'Small heading', { max: 40 })),
+        TA('heading', 'Headline', { max: 90 }), TA('intro', 'Introduction', { max: 420 }),
+        LS('points', 'What is included', [T('title', 'Title', { max: 50 }), TA('text', 'Text', { max: 300 })], { min: 1, max: 6, noun: 'point', name: x => x.title, blank: () => ({ title: '', text: '' }) }),
+        LS('facts', 'Key facts', [ROW(T('label', 'Label', { max: 24 }), T('value', 'Value', { max: 40 }))], { min: 1, max: 4, noun: 'fact', name: x => [x.label, x.value].filter(Boolean).join(': '), blank: () => ({ label: '', value: '' }) }),
+      ], { fixed: true, name: x => x.chip })], 'Each service keeps its place and its link; change its words here.'),
+      G('Questions and answers', [T('services.faq_title', 'Section title', { max: 50 }),
+        LS('services.faq', 'Questions', [T('q', 'Question', { max: 120 }), TA('a', 'Answer', { max: 600 })], { min: 0, max: 12, noun: 'question', name: x => x.q, blank: () => ({ q: '', a: '' }) })]),
+    ] },
+    { id: 'work', nav: 'Work', grp: 'Pages', page: 'work.html', pre: ['work'], groups: [
+      G('Top of the page', [HERO('work.hero'), TA('work.lede', 'Introduction', { max: 320 })]),
+      G('Projects', [LS('work.projects', 'Projects', [T('name', 'Project name', { max: 60 }), SEL('category', 'Service', Object.entries(RD.CATS)), TA('result', 'The result, in one line', { max: 160 }),
+        IMG('image', 'Screenshot', { help: 'Landscape, about 16 by 10. Leave it empty for the drawn placeholder.' }),
+        T('link', 'Link', { type: 'url', ph: 'https://', help: 'Optional: the live website. Without one, the card leads to the proposal form.' })],
+        { min: 1, max: 12, noun: 'project', name: x => x.name, blank: () => ({ name: '', category: 'web', result: '', image: '', link: '' }) })], 'The first three also appear on the home page. Filters on the Work page follow the services you use.'),
+      G('Below the projects', [TA('work.note', 'Note', { max: 200 }), T('work.closing', 'Closing line', { max: 80 })]),
+    ] },
+    { id: 'method', nav: 'Method', grp: 'Pages', page: 'method.html', pre: ['method'], groups: [
+      G('Top of the page', [HERO('method.hero'), TA('method.text', 'Introduction', { max: 420 })]),
+      G('The three steps', [LS('method.phases', 'Steps', [T('title', 'Title', { max: 30 }), TA('text', 'Text', { max: 420 }), ROW(T('cmd', 'Terminal command', { max: 60 }), T('out', 'Terminal result', { max: 60 })),
+        LS('items', 'Checklist', [ROW(T('label', 'Item', { max: 50 }), T('tag', 'Detail', { max: 24 }))], { min: 1, max: 6, noun: 'item', name: x => x.label, blank: () => ({ label: '', tag: '' }) })],
+        { fixed: true, name: x => x.title })]),
+      G('Closing', [T('method.closing', 'Closing line', { max: 80 })]),
+    ] },
+    { id: 'about', nav: 'About', grp: 'Pages', page: 'about.html', pre: ['about'], groups: [
+      G('Top of the page', [HERO('about.hero')]),
+      G('Story', [LN('about.story', 'Paragraphs', { min: 1, max: 6, area: true, noun: 'paragraph', len: 600 })]),
+      G('People', [T('about.people_title', 'Section title', { max: 50 }), LS('about.people', 'People', [ROW(T('name', 'Name', { max: 60 }), T('role', 'Role', { max: 40 })), TA('bio', 'Short bio', { max: 320 }),
+        IMG('photo', 'Photo', { help: 'A square photo works best.' }), T('initials', 'Initials', { max: 3, help: 'Shown when there is no photo.' })],
+        { min: 1, max: 6, noun: 'person', name: x => x.name, blank: () => ({ role: '', name: '', bio: '', initials: '', photo: '' }) })]),
+      G('Promises', [T('about.values_title', 'Section title', { max: 50 }), STEP_LIST('about.values', 'Promises', 8, 'promise')]),
+      G('Testimonials', [TESTI_LIST('about.testimonials')], 'Use real words from real clients, with their permission.'),
+      G('How we work', [STEP_LIST('about.steps', 'Steps', 6, 'step')]),
+    ] },
+    { id: 'proposal', nav: 'Request a proposal', grp: 'Pages', page: 'proposal.html', pre: ['proposal'], groups: [
+      G('Top of the page', [HERO('proposal.hero'), TA('proposal.lede', 'Introduction', { max: 320 })]),
+      G('What happens next', [T('proposal.next_title', 'Title', { max: 40 }), STEP_LIST('proposal.next', 'Steps', 6, 'step')]),
+      G('Contact and thank-you', [T('proposal.contact_label', 'Label above the contact details', { max: 40 }), T('proposal.done_title', 'Message after sending', { max: 80 }),
+        NOTE(`The email and WhatsApp number are in ${go('settings')}Header, footer and contact</button>.`)]),
+    ] },
+    { id: 'shared', nav: 'Shared blocks', grp: 'Across the site', page: 'index.html', pre: ['common'], groups: [
+      G('Method block', [LN('common.method.title', 'Headline', { min: 1, max: 4, len: 14, help: 'Large words, one per row.' }), TA('common.method.text', 'Text', { max: 300 }), T('common.method.link', 'Link text', { max: 30 }),
+        LS('common.method.terminal', 'Terminal lines', [ROW(T('cmd', 'Command', { max: 60 }), T('out', 'Result', { max: 60 }))], { min: 1, max: 6, noun: 'line', name: x => x.cmd, blank: () => ({ cmd: 'weberact ', out: '' }) })],
+        'Appears on Home and Services.'),
+      G('Closing line', [T('common.closing', 'Closing line', { max: 90, help: 'The large line above “Book a consultation” on Home and Services.' })]),
+    ] },
+    { id: 'settings', nav: 'Header, footer and contact', grp: 'Across the site', page: 'index.html', pre: ['settings'], groups: [
+      G('Header', [T('settings.topline', 'Line above the header', { max: 60 }), T('settings.header_button', 'Header button', { max: 28 })]),
+      G('Contact details', [ROW(T('settings.email', 'Email', { type: 'email', ph: 'hello@weberact.co' }), T('settings.whatsapp', 'WhatsApp number', { ph: '+91 98765 43210', help: 'Include the country code.' }))],
+        'Shown on the proposal page, in the closing links and in the terms and privacy policy.'),
+      G('Footer', [TA('settings.footer_blurb', 'Short description', { max: 160 }), ROW(T('settings.footer_left', 'Bottom line, left', { max: 40, help: '“© year WeberAct” follows it.' }), T('settings.footer_right', 'Bottom line, right', { max: 40 }))]),
+      G('Social profiles', [T('settings.linkedin', 'LinkedIn', { type: 'url', ph: 'https://www.linkedin.com/company/…' }), T('settings.instagram', 'Instagram', { type: 'url', ph: 'https://www.instagram.com/…' }), T('settings.x', 'X', { type: 'url', ph: 'https://x.com/…' })],
+        'Each link appears in the footer once it is filled in.'),
+    ] },
+    { id: 'seo', nav: 'Search and sharing (SEO)', grp: 'Across the site', page: null, pre: ['seo'], groups: SEO_PAGES.map(([k, label], i) => G(label,
+      [{ t: 'snip', key: k }, T(`seo.${k}.title`, 'Title in search results', { max: 60 }), TA(`seo.${k}.description`, 'Description in search results', { max: 160 })]
+        .concat(k === 'index' ? [T('seo.index.og_title', 'Title when shared on social media', { max: 90 }), TA('seo.index.og_description', 'Description when shared', { max: 200 })] : []),
+      i ? '' : 'Google shows about 60 characters of a title and 160 of a description. Every page has its own.')) },
+    { id: 'legal', nav: 'Legal details', grp: 'Across the site', page: 'terms.html', pre: ['legal'], groups: [
+      G('Company', [T('legal.legal_name', 'Registered business name'), TA('legal.registered_address', 'Registered address'), ROW(T('legal.court_city', 'City for legal disputes', { help: 'For example “Mumbai, Maharashtra”.' }), T('legal.grievance_officer', 'Grievance officer (privacy)'))],
+        'Words in [square brackets] are placeholders still to fill in. Have both documents checked by a lawyer before launch.'),
+      G('Dates', [ROW(T('legal.terms_updated', 'Terms last updated'), T('legal.privacy_updated', 'Privacy policy last updated')), T('legal.privacy_effective', 'Privacy policy effective from')]),
+      G('Numbers in the terms', [ROW(T('legal.invoice_days', 'Days to pay an invoice'), T('legal.warranty_days', 'Days of free fixes after delivery')),
+        ROW(T('legal.liability_months', 'Months of fees that cap liability'), T('legal.notice_days', 'Days of notice to end monthly services'))]),
+      G('Services named in the privacy policy', [ROW(T('legal.hosting_provider', 'Website hosting'), T('legal.email_provider', 'Email')), ROW(T('legal.crm_provider', 'CRM'), T('legal.document_storage', 'Document storage')),
+        ROW(T('legal.payment_providers', 'Payments and accounting'), T('legal.analytics_tool', 'Analytics'))]),
+      G('How long data is kept', [T('legal.retention_requests', 'Months to keep enquiries that do not become projects'), ROW(T('legal.retention_projects', 'Years to keep project records'), T('legal.retention_accounts', 'Years to keep accounting records'))]),
+    ] },
+    { id: 'media', nav: 'Images', grp: 'Library', custom: () => renderMedia() },
+    { id: 'history', nav: 'History and backups', grp: 'Library', custom: () => renderHistory() },
+  ];
+  const cur = () => SECTIONS.find(s => s.id === CM.sec) || SECTIONS[0];
+  const secFor = p => (SECTIONS.find(s => (s.pre || []).some(x => p === x || p.startsWith(x + '.'))) || { nav: 'Other' }).nav;
+
+  // ----- fields -----
+  const fid = p => 'f-' + p.replace(/[^a-z0-9]/gi, '-');
+  const counter = (p, v, max) => max ? `<span class="cnt${String(v || '').length > max ? ' over' : ''}" data-cnt="${p}" data-max="${max}">${String(v || '').length} / ${max}</span>` : '';
+  function ctl(lp, i, n, f){
+    if (f.fixed) return '';
+    return `<span class="ctl"><button type="button" data-act="up" data-list="${lp}" data-i="${i}" aria-label="Move up"${i ? '' : ' disabled'}>↑</button>` +
+      `<button type="button" data-act="down" data-list="${lp}" data-i="${i}" aria-label="Move down"${i < n - 1 ? '' : ' disabled'}>↓</button>` +
+      `<button type="button" data-act="del" data-list="${lp}" data-i="${i}" aria-label="Remove"${n > (f.min || 0) ? '' : ' disabled'}>✕</button></span>`;
+  }
+  const addBtn = (p, n, f) => f.fixed ? '' : `<button type="button" class="add" data-act="add" data-list="${p}"${n >= f.max ? ' disabled' : ''}>+ Add ${f.noun}${n >= f.max ? ` (up to ${f.max})` : ''}</button>`;
+  function snip(k){
+    const s = (CM.draft.seo || {})[k] || {}, page = SEO_PAGES.find(x => x[0] === k);
+    return `<div class="snip" data-snip="${k}" aria-label="How it may look in Google"><span class="u">weberact.co${page[2] ? ' › ' + page[2] : ''}</span><b>${esc(s.title || '')}</b><p>${esc(s.description || '')}</p></div>`;
+  }
+  function field(f, base){
+    if (f.t === 'note') return `<p class="help">${f.html}</p>`;
+    if (f.t === 'row') return `<div class="two">${f.fields.map(x => field(x, base)).join('')}</div>`;
+    if (f.t === 'snip') return snip(f.key);
+    const p = base ? base + '.' + f.p : f.p, v = getP(CM.draft, p), id = fid(p);
+    const help = f.help ? `<p class="help">${f.help}</p>` : '';
+    const lab = extra => `<div class="fl"><label for="${id}">${esc(f.label)}</label>${extra || ''}</div>`;
+    if (f.t === 'text') return `<div class="f">${lab(counter(p, v, f.max))}<input id="${id}" type="${f.type || 'text'}" data-p="${p}" value="${esc(v)}"${f.ph ? ` placeholder="${esc(f.ph)}"` : ''} autocomplete="off"${f.type ? ' spellcheck="false"' : ''}>${help}</div>`;
+    if (f.t === 'area') return `<div class="f">${lab(counter(p, v, f.max))}<textarea id="${id}" data-p="${p}" rows="${Math.min(8, Math.max(2, Math.ceil(String(v || '').length / 64)))}">${esc(v)}</textarea>${help}</div>`;
+    if (f.t === 'select') return `<div class="f">${lab()}<select id="${id}" data-p="${p}">${f.options.map(([k, l]) => `<option value="${esc(k)}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>${help}</div>`;
+    if (f.t === 'image') return `<div class="f"><div class="fl"><label for="${id}">${esc(f.label)}</label></div><div class="img"><div class="thumb" data-thumb="${p}">${v ? `<img src="${esc(RD.safeUrl(v))}" alt="">` : 'None'}</div>` +
+      `<div class="f"><input id="${id}" type="url" data-p="${p}" value="${esc(v)}" placeholder="Choose an image, or paste its address" spellcheck="false"><div class="inline">` +
+      `<button type="button" class="mini" data-act="pick" data-path="${p}">Choose from images</button><button type="button" class="mini" data-act="upload" data-path="${p}">Upload</button>` +
+      `${v ? `<button type="button" class="mini" data-act="clear" data-path="${p}">Remove</button>` : ''}</div></div></div>${help}</div>`;
+    const arr = Array.isArray(v) ? v : [];
+    DEFS.set(p, f);
+    if (f.t === 'lines'){
+      const rows = arr.map((x, i) => {
+        const pi = p + '.' + i, aria = `aria-label="${esc(f.label)}, ${f.noun} ${i + 1}"`;
+        const input = f.area ? `<textarea id="${fid(pi)}" data-p="${pi}" rows="3" ${aria}>${esc(x)}</textarea>` : `<input id="${fid(pi)}" data-p="${pi}" value="${esc(x)}" ${aria} autocomplete="off">`;
+        return `<div class="line">${input}${f.len ? counter(pi, x, f.len) : ''}${ctl(p, i, arr.length, f)}</div>`;
+      }).join('');
+      return `<div class="f"><div class="fl"><span>${esc(f.label)}</span></div><div class="lines">${rows}</div>${addBtn(p, arr.length, f)}${help}</div>`;
+    }
+    const items = arr.map((x, i) => {
+      const pi = p + '.' + i;
+      return `<details class="item" data-item="${pi}"${CM.open.has(pi) ? ' open' : ''}><summary><span class="ttl"><em>${i + 1}</em><span data-ttl="${pi}">${esc((f.name && f.name(x)) || 'Untitled')}</span></span>${ctl(p, i, arr.length, f)}</summary>` +
+        `<div class="inner">${f.fields.map(sf => field(sf, pi)).join('')}</div></details>`;
+    }).join('');
+    return `<div class="f"><div class="fl"><span>${esc(f.label)}</span>${f.max && !f.fixed ? `<span class="cnt">${arr.length} of up to ${f.max}</span>` : ''}</div>` +
+      `<div class="items">${items || '<p class="help">None yet.</p>'}</div>${addBtn(p, arr.length, f)}${help}</div>`;
+  }
+
+  // ----- page -----
+  function renderCms(){
+    if (!CM.draft){
+      $('#editor').innerHTML = `<section class="group"><h2>The website content could not be loaded</h2><p class="help">${esc(CM.err || 'Loading…')}</p></section>`;
+      $('#snav').innerHTML = ''; return;
+    }
+    const groups = [...new Set(SECTIONS.map(s => s.grp))];
+    $('#snav').innerHTML = groups.map(g => `<div><h3>${g}</h3>${SECTIONS.filter(s => s.grp === g).map(s =>
+      `<button type="button" data-sec="${s.id}" aria-current="${s.id === CM.sec}">${esc(s.nav)}<span class="dot" data-dot="${s.id}" title="Changed since the last publish" hidden></span></button>`).join('')}</div>`).join('');
+    renderSection();
+  }
+  function renderSection(keep){
+    const s = cur(), y = scrollY; DEFS.clear();
+    const body = s.custom ? s.custom() : s.groups.map(g => `<section class="group"><h2>${esc(g.title)}</h2>${g.hint ? `<p class="hint">${g.hint}</p>` : ''}${g.fields.map(f => field(f)).join('')}</section>`).join('');
+    $('#editor').innerHTML = body + `<div class="savebar" id="saveBar" hidden><span>You have unsaved changes</span><span class="actions"><button type="button" class="btn ghost" data-act="discard">Discard</button><button type="button" class="btn" data-act="save">Save draft</button></span></div>`;
+    $$('#snav button').forEach(b => b.setAttribute('aria-current', String(b.dataset.sec === CM.sec)));
+    if (keep) scrollTo(0, y);
+    syncBars(); loadPreview();
+  }
+  function syncBars(){
+    if (!CM.draft) return;
+    const dirty = isDirty(), pend = diff(CM.draft, CM.live || {});
+    const bar = $('#saveBar'); if (bar) bar.hidden = !dirty;
+    const secs = new Set(pend.map(secFor));
+    $$('[data-dot]').forEach(d => { const s = SECTIONS.find(x => x.id === d.dataset.dot); d.hidden = !secs.has(s.nav); });
+    const parts = [dirty ? 'Unsaved changes' : CM.draftMeta ? 'Draft saved ' + when(CM.draftMeta.updated_at) : 'Edit any page, then save and publish'];
+    parts.push(pend.length ? `${pend.length} ${pend.length === 1 ? 'change' : 'changes'} not published yet` : 'The website shows the latest version');
+    if (CM.liveMeta) parts.push('Last published ' + when(CM.liveMeta.updated_at) + (CM.liveMeta.updated_by && CM.liveMeta.updated_by !== 'system' ? ' by ' + CM.liveMeta.updated_by : ''));
+    $('#wsStatus').textContent = parts.join(' · ');
+    $('#publishBtn').disabled = !pend.length && !dirty;
+    if ($('#siteStatus')) $('#siteStatus').textContent = parts.slice(1).join(' · ');
+  }
+  function changed(){ clearTimeout(CM.t); CM.t = setTimeout(() => { paint(); syncBars(); }, 150); }
+  function restructure(focus){
+    changed(); renderSection(true);
+    if (focus){ const el = document.querySelector(`[data-item="${focus}"] [data-p], [id="${fid(focus)}"]`); if (el) el.focus(); }
+  }
+  function remap(lp, fn){
+    const pre = lp + '.';
+    CM.open = new Set([...CM.open].map(p => {
+      if (!p.startsWith(pre)) return p;
+      const rest = p.slice(pre.length), k = parseInt(rest, 10), n = fn(k);
+      return n < 0 ? null : pre + n + rest.slice(String(k).length);
+    }).filter(Boolean));
+  }
+  function arm(b, label){
+    if (b.classList.contains('arm')) return true;
+    const old = b.textContent; b.classList.add('arm'); b.textContent = label || 'Remove?';
+    setTimeout(() => { if (document.body.contains(b)){ b.classList.remove('arm'); b.textContent = old; } }, 3500);
+    return false;
+  }
+
+  const ed = $('#editor');
+  ed.addEventListener('input', e => {
+    const el = e.target, p = el.dataset.p; if (!p || !CM.draft) return;
+    setP(CM.draft, p, el.value);
+    const c = ed.querySelector(`[data-cnt="${p}"]`);
+    if (c){ const n = el.value.length, m = +c.dataset.max; c.textContent = n + ' / ' + m; c.classList.toggle('over', n > m); }
+    const d = el.closest('details.item');
+    if (d){ const pi = d.dataset.item, f = DEFS.get(pi.slice(0, pi.lastIndexOf('.'))), t = ed.querySelector(`[data-ttl="${pi}"]`); if (f && t) t.textContent = (f.name && f.name(getP(CM.draft, pi))) || 'Untitled'; }
+    if (p.startsWith('seo.')) $$('[data-snip]').forEach(s => { s.outerHTML = snip(s.dataset.snip); });
+    const th = ed.querySelector(`[data-thumb="${p}"]`); if (th){ const u = RD.safeUrl(el.value); th.innerHTML = u ? `<img src="${esc(u)}" alt="">` : 'None'; }
+    changed();
+  });
+  ed.addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.item) d.open ? CM.open.add(d.dataset.item) : CM.open.delete(d.dataset.item); }, true);
+  ed.addEventListener('focusin', e => { const p = e.target.dataset && e.target.dataset.p; if (p) spot(p); });
+  ed.addEventListener('click', async e => {
+    const b = e.target.closest('[data-act],[data-goto]'); if (!b) return;
+    if (b.closest('summary')) e.preventDefault();
+    if (b.dataset.goto) return openSection(b.dataset.goto);
+    const act = b.dataset.act, lp = b.dataset.list, i = +b.dataset.i, arr = lp ? getP(CM.draft, lp) : null;
+    if (act === 'add'){ const f = DEFS.get(lp); arr.push(f.blank()); const pi = lp + '.' + (arr.length - 1); if (f.t === 'list') CM.open.add(pi); restructure(pi); }
+    else if (act === 'up' || act === 'down'){
+      const j = act === 'up' ? i - 1 : i + 1; [arr[i], arr[j]] = [arr[j], arr[i]]; remap(lp, k => k === i ? j : k === j ? i : k); restructure();
+      const nb = ed.querySelector(`[data-act="${act}"][data-list="${lp}"][data-i="${j}"]`); if (nb && !nb.disabled) nb.focus();
+    }
+    else if (act === 'del'){ if (!arm(b)) return; arr.splice(i, 1); remap(lp, k => k === i ? -1 : k > i ? k - 1 : k); restructure(); }
+    else if (act === 'pick'){ const url = await picker(); if (url) setImage(b.dataset.path, url); }
+    else if (act === 'upload') chooseFiles(false, async files => { try { toast('Uploading…'); setImage(b.dataset.path, await uploadImage(files[0])); toast('Image added'); } catch (err){ handle(err); toast(err.message); } });
+    else if (act === 'clear') setImage(b.dataset.path, '');
+    else if (act === 'save') saveDraftUI();
+    else if (act === 'discard'){ if (!arm(b, 'Discard all?')) return; CM.draft = JSON.parse(CM.saved); renderSection(true); changed(); toast('Changes discarded'); }
+    else if (act === 'mupload') chooseFiles(true, uploadMany);
+    else if (act === 'mcopy') copyText(b.dataset.url, b);
+    else if (act === 'mdel') deleteImage(b);
+    else if (act === 'hload') loadVersion(+b.dataset.id);
+    else if (act === 'hdown') downloadVersion(+b.dataset.id);
+    else if (act === 'export') download(CM.draft, 'content.json');
+    else if (act === 'import') importFile();
+    else if (act === 'tolive'){ if (!arm(b, 'Press again to reset the draft')) return; CM.draft = clone(CM.live); CM.open.clear(); renderSection(); changed(); toast('The draft now matches the website. Save it to keep this.'); }
+  });
+  // drag and drop on the image library
+  ed.addEventListener('dragover', e => { const z = e.target.closest('#drop'); if (z){ e.preventDefault(); z.classList.add('over'); } });
+  ed.addEventListener('dragleave', e => { const z = e.target.closest('#drop'); if (z) z.classList.remove('over'); });
+  ed.addEventListener('drop', e => { const z = e.target.closest('#drop'); if (!z) return; e.preventDefault(); z.classList.remove('over'); uploadMany([...e.dataTransfer.files]); });
+
+  $('#snav').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if (b) openSection(b.dataset.sec); });
+  function openSection(id){
+    CM.sec = id; renderSection(); scrollTo(0, 0);
+    try { history.replaceState(null, '', '#website/' + id); } catch (e) {}
+    const b = $(`#snav [data-sec="${id}"]`); if (b && b.scrollIntoView && matchMedia('(max-width:820px)').matches) b.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+  function setImage(p, url){ setP(CM.draft, p, url); renderSection(true); changed(); }
+
+  // ----- live preview -----
+  const fr = $('#pvFrame');
+  function loadPreview(){
+    $('#cms').classList.toggle('pv-on', CM.pv); $('#preview').hidden = !CM.pv; $('#pvToggle').setAttribute('aria-pressed', String(CM.pv));
+    if (!CM.pv) return;
+    const s = cur();
+    $('#pvTitle').textContent = s.page ? s.page.replace('index.html', 'Home page').replace('.html', ' page') : 'Preview';
+    $('#pvNone').hidden = !!s.page; fr.hidden = !s.page;
+    if (!s.page){ $('#pvNone').textContent = s.id === 'seo' ? 'Each page’s search result is previewed next to its fields.' : 'This section has no page preview.'; return; }
+    if (fr.dataset.page !== s.page){ fr.dataset.page = s.page; fr.src = s.page; } else paint();
+    fit();
+  }
+  fr.addEventListener('load', () => {
+    try {
+      const d = fr.contentDocument, st = d.createElement('style');
+      st.textContent = '.rv,.line-mask>span,.page-hero .rv{opacity:1!important;transform:none!important;transition:none!important;animation:none!important}html{scroll-behavior:auto!important}';
+      d.head.appendChild(st);
+      d.addEventListener('click', ev => { const a = ev.target.closest('a[href]'); if (a){ ev.preventDefault(); } }, true);
+    } catch (e) {}
+    paint();
+  });
+  function paint(){ if (!CM.pv || fr.hidden || !CM.draft) return; try { const d = fr.contentDocument; if (d && d.querySelector('.topline')) RD.apply(d, CM.draft); } catch (e) {} }
+  function fit(){
+    const box = $('#pvBox'); if (!CM.pv || !box.clientWidth) return;
+    const W = CM.dev === 'mobile' ? 390 : 1280, s = Math.min(1, box.clientWidth / W);
+    fr.style.width = W + 'px'; fr.style.height = (box.clientHeight / s) + 'px'; fr.style.transform = `scale(${s})`; fr.style.left = Math.max(0, (box.clientWidth - W * s) / 2) + 'px';
+  }
+  if (window.ResizeObserver) new ResizeObserver(fit).observe($('#pvBox'));
+  function spot(p){
+    if (!CM.pv || fr.hidden) return;
+    let d; try { d = fr.contentDocument; } catch (e) { return; }
+    if (!d) return;
+    let el = d.querySelector(`[data-cms="${p}"]`);
+    if (!el) for (const x of d.querySelectorAll('[data-cms-list]')){ const k = x.getAttribute('data-cms-list'), cp = RD.LIST_PATH[k] || k; if (p === cp || p.startsWith(cp + '.')){ el = x; break; } }
+    if (!el) el = p === 'settings.topline' ? d.querySelector('.topline') : p === 'settings.header_button' ? d.querySelector('.head') : p.startsWith('settings.') || p.startsWith('services.items') ? d.querySelector('.foot') : null;
+    if (!el) return;
+    const w = d.defaultView, r = el.getBoundingClientRect();
+    w.scrollTo(0, Math.max(0, r.top + w.scrollY - Math.max(40, (w.innerHeight - r.height) / 2)));
+    el.style.outline = '3px solid #c6a24e'; el.style.outlineOffset = '6px';
+    clearTimeout(el._wa); el._wa = setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1600);
+  }
+  $('#pvToggle').addEventListener('click', () => { CM.pv = !CM.pv; loadPreview(); });
+  $('#pvClose').addEventListener('click', () => { CM.pv = false; loadPreview(); });
+  $$('#preview [data-dev]').forEach(b => b.addEventListener('click', () => { CM.dev = b.dataset.dev; $$('#preview [data-dev]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); fit(); }));
+
+  // ----- load, save, publish -----
+  async function loadContent(){
+    try { const r = await fetch('content.json', { cache: 'no-store' }); if (r.ok) CM.def = await r.json(); } catch (e) {}
+    if (!CM.def && window.WA_CONTENT_DEFAULT) CM.def = window.WA_CONTENT_DEFAULT;  // copies of the dashboard that carry the content inline
+    if (S.mode === 'live'){
+      const rows = await api('site_content?select=id,content,updated_at,updated_by');
+      const live = rows.find(r => r.id === 'live'), draft = rows.find(r => r.id === 'draft');
+      CM.liveMeta = live || null; CM.draftMeta = draft || null;
+      CM.live = live ? live.content : CM.def; CM.draft = clone(draft ? draft.content : CM.live);
+      try { const h = await api('private_settings?key=eq.deploy_hook&select=value'); CM.hook = (h[0] && h[0].value) || ''; } catch (e) {}
+    } else {
+      let d = null, l = null; try { d = JSON.parse(localStorage.getItem('wa-cms-draft') || 'null'); l = JSON.parse(localStorage.getItem('wa-cms-live') || 'null'); } catch (e) {}
+      CM.live = l || CM.def; CM.draft = clone(d || CM.live); CM.hist = CM.hist || [];
+    }
+    if (!CM.draft){ CM.err = 'The file content.json was not found next to this page, and nothing has been saved yet.'; return; }
+    if (CM.def){ CM.draft = merge(CM.def, CM.draft); CM.live = merge(CM.def, CM.live); }
+    CM.saved = JSON.stringify(CM.draft);
+  }
+  const me = () => ((S.session && S.session.email) || '').toLowerCase();
+  function sampleHist(kind){ CM.hist = [{ id: Date.now(), created_at: new Date().toISOString(), kind, saved_by: 'you (preview)', content: clone(CM.draft) }, ...(CM.hist || [])].slice(0, 80); }
+  async function saveDraft(){
+    if (S.mode === 'sample'){
+      try { localStorage.setItem('wa-cms-draft', JSON.stringify(CM.draft)); } catch (e) {}
+      CM.draftMeta = { updated_at: new Date().toISOString(), updated_by: 'you' }; CM.saved = JSON.stringify(CM.draft); sampleHist('draft'); return true;
+    }
+    const now = await api('site_content?id=eq.draft&select=updated_at,updated_by');
+    if (now[0] && CM.draftMeta && now[0].updated_at !== CM.draftMeta.updated_at && now[0].updated_by !== me()){
+      const ok = await modal({ title: 'Someone else saved a newer draft', body: `<p class="help"><b>${esc(now[0].updated_by)}</b> saved the draft ${when(now[0].updated_at)}. Saving now replaces their version with yours. Their version stays in History and backups.</p>`, ok: 'Save mine anyway' });
+      if (!ok) return false;
+    }
+    const out = await api('site_content?on_conflict=id', { method: 'POST', body: { id: 'draft', content: CM.draft }, prefer: 'resolution=merge-duplicates,return=representation' });
+    CM.draftMeta = out[0]; CM.saved = JSON.stringify(CM.draft); CM.hist = null; return true;
+  }
+  async function saveDraftUI(){
+    if (!CM.draft) return;
+    const btns = [$('#saveDraft'), ...$$('[data-act="save"]')]; btns.forEach(b => b.disabled = true);
+    try { if (await saveDraft()) toast(S.mode === 'sample' ? 'Draft saved in this browser (preview only)' : 'Draft saved'); }
+    catch (err){ handle(err); toast(err.message); }
+    finally { btns.forEach(b => b.disabled = false); syncBars(); if (CM.sec === 'history') renderSection(true); }
+  }
+  async function publishUI(){
+    if (!CM.draft) return;
+    const pend = diff(CM.draft, CM.live || {});
+    if (!pend.length){ if (isDirty()) await saveDraftUI(); toast('Nothing new to publish: the website already shows this version.'); return; }
+    const by = {}; pend.forEach(p => { const s = secFor(p); by[s] = (by[s] || 0) + 1; });
+    const how = S.mode === 'sample' ? 'This is a preview, so nothing is sent anywhere.' : CM.hook ? 'The website rebuilds straight away and shows the changes in about a minute.'
+      : 'The website shows these changes after its next build. To make that automatic, add a deploy hook in Team and settings.';
+    const ok = await modal({ title: 'Publish these changes?', ok: 'Publish', body: `<ul class="changes">${Object.entries(by).map(([k, n]) => `<li><b>${esc(k)}</b>: ${n} ${n === 1 ? 'change' : 'changes'}</li>`).join('')}</ul><p class="help">${how} Every published version is kept, so you can go back.</p>` });
+    if (!ok) return;
+    $('#publishBtn').disabled = true;
+    try {
+      if (isDirty() && !(await saveDraft())) return;
+      if (S.mode === 'live'){
+        const out = await api('site_content?on_conflict=id', { method: 'POST', body: { id: 'live', content: CM.draft }, prefer: 'resolution=merge-duplicates,return=representation' });
+        CM.liveMeta = out[0]; CM.hist = null;
+      } else { CM.liveMeta = { updated_at: new Date().toISOString(), updated_by: 'you' }; sampleHist('live'); try { localStorage.setItem('wa-cms-live', JSON.stringify(CM.draft)); } catch (e) {} }
+      CM.live = clone(CM.draft);
+      let msg = S.mode === 'sample' ? 'Published in this preview only' : 'Published. The website shows it after its next build.';
+      if (S.mode === 'live' && CM.hook){
+        try { await fetch(CM.hook, { method: 'POST', mode: 'no-cors' }); msg = 'Published. The website is rebuilding and updates in about a minute.'; }
+        catch (e){ msg = 'Published, but the rebuild did not start. Check the deploy hook in Team and settings.'; }
+      }
+      toast(msg);
+    } catch (err){ handle(err); toast(err.message); }
+    finally { syncBars(); if (CM.sec === 'history') renderSection(true); }
+  }
+  $('#saveDraft').addEventListener('click', saveDraftUI);
+  $('#publishBtn').addEventListener('click', publishUI);
+  document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && S.view === 'website'){ e.preventDefault(); saveDraftUI(); } });
+  addEventListener('beforeunload', e => { if (isDirty()){ e.preventDefault(); e.returnValue = ''; } });
+
+  // ----- images -----
+  const IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+  const publicUrl = name => C.url + '/storage/v1/object/public/media/' + encodeURIComponent(name);
+  async function storage(path, opts = {}){
+    await fresh();
+    const r = await fetch(C.url + '/storage/v1/' + path, { method: opts.method || 'GET', headers: Object.assign({ apikey: C.key, Authorization: 'Bearer ' + S.session.access_token }, opts.headers || {}), body: opts.body });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.message || j.error || 'The image library refused the request (' + r.status + ').');
+    return j;
+  }
+  async function loadMedia(){
+    if (S.mode === 'sample'){ CM.media = CM.media || []; return; }
+    const list = await storage('object/list/media', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prefix: '', limit: 500, offset: 0, sortBy: { column: 'created_at', order: 'desc' } }) });
+    CM.media = list.filter(o => o.id).map(o => ({ name: o.name, url: publicUrl(o.name), size: (o.metadata || {}).size || 0, at: o.created_at }));
+  }
+  async function prepare(file){
+    if (!IMG_TYPES.includes(file.type)) throw new Error('Use a JPG, PNG, WebP, AVIF or GIF image.');
+    let blob = file, ext = (file.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+    if (file.type !== 'image/gif' && window.createImageBitmap){
+      try {  // keep pages fast: at most 2000 px wide, saved as WebP when that is smaller
+        const bmp = await createImageBitmap(file), k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+        if (k < 1 || file.size > 500 * 1024){
+          const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+          cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+          const b = await new Promise(res => cv.toBlob(res, 'image/webp', .84));
+          if (b && b.type === 'image/webp' && b.size < file.size){ blob = b; ext = 'webp'; }
+        }
+      } catch (e) {}
+    }
+    if (blob.size > 5 * 1048576) throw new Error('That image is over 5 MB even after resizing. Try a smaller one.');
+    const base = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'image';
+    return { blob, name: `${base}-${Date.now().toString(36)}.${ext}` };
+  }
+  async function uploadImage(file){
+    const { blob, name } = await prepare(file);
+    if (S.mode === 'sample'){ const url = URL.createObjectURL(blob); CM.media = [{ name, url, size: blob.size, at: new Date().toISOString() }, ...(CM.media || [])]; return url; }
+    await storage('object/media/' + encodeURIComponent(name), { method: 'POST', headers: { 'Content-Type': blob.type, 'cache-control': '31536000', 'x-upsert': 'false' }, body: blob });
+    CM.media = null; return publicUrl(name);
+  }
+  async function uploadMany(files){
+    let n = 0;
+    for (const f of files){ try { toast(`Uploading ${f.name}…`); await uploadImage(f); n++; } catch (err){ handle(err); toast(`${f.name}: ${err.message}`); await new Promise(r => setTimeout(r, 1500)); } }
+    if (n){ try { await loadMedia(); } catch (e) {} toast(`${n} ${n === 1 ? 'image' : 'images'} added`); }
+    if (CM.sec === 'media') renderSection(true);
+  }
+  function chooseFiles(multi, cb){
+    const i = document.createElement('input'); i.type = 'file'; i.accept = IMG_TYPES.join(','); i.multiple = multi;
+    i.addEventListener('change', () => { if (i.files.length) cb([...i.files]); }); i.click();
+  }
+  function renderMedia(){
+    if (CM.media === null){ loadMedia().then(() => { if (CM.sec === 'media') renderSection(true); }, err => { handle(err); CM.media = []; toast(err.message); }); return '<section class="group"><p class="help">Loading images…</p></section>'; }
+    const used = JSON.stringify(CM.draft) + JSON.stringify(CM.live || {});
+    return `<section class="group"><h2>Images</h2><p class="hint">Screenshots for projects and photos of people. Big images are resized and turned into WebP so pages stay fast.${S.mode === 'sample' ? ' In this preview, uploads stay in this browser tab.' : ''}</p>
+      <div class="drop" id="drop"><b>Drop images here</b><span>JPG, PNG, WebP, AVIF or GIF, up to 5 MB</span><button type="button" class="btn ghost" data-act="mupload">Choose files</button></div>
+      ${CM.media.length ? `<div class="mediagrid">${CM.media.map(m => `<div class="mcard"><div class="im"><img src="${esc(m.url)}" alt="" loading="lazy"></div><div class="meta"><span title="${esc(m.name)}">${esc(m.name)}</span>
+        <span>${kb(m.size)}${used.includes(m.url) ? ' · in use' : ''}</span><div class="inline"><button type="button" class="mini" data-act="mcopy" data-url="${esc(m.url)}">Copy link</button><button type="button" class="mini" data-act="mdel" data-name="${esc(m.name)}" data-url="${esc(m.url)}">Delete</button></div></div></div>`).join('')}</div>` : '<p class="help">No images yet.</p>'}</section>`;
+  }
+  async function deleteImage(b){
+    const inUse = (JSON.stringify(CM.draft) + JSON.stringify(CM.live || {})).includes(b.dataset.url);
+    if (!arm(b, inUse ? 'In use. Delete?' : 'Delete?')) return;
+    try {
+      if (S.mode === 'live') await storage('object/media', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prefixes: [b.dataset.name] }) });
+      CM.media = CM.media.filter(m => m.name !== b.dataset.name); renderSection(true); toast('Image deleted');
+    } catch (err){ handle(err); toast(err.message); }
+  }
+  async function picker(){
+    if (CM.media === null){ try { await loadMedia(); } catch (err){ handle(err); toast(err.message); return false; } }
+    const grid = () => CM.media.length ? `<div class="mediagrid">${CM.media.map(m => `<div class="mcard"><button type="button" class="pick" data-url="${esc(m.url)}" aria-label="Use ${esc(m.name)}"><div class="im"><img src="${esc(m.url)}" alt="" loading="lazy"></div></button><div class="meta"><span>${esc(m.name)}</span></div></div>`).join('')}</div>`
+      : '<p class="help">No images yet. Upload one below.</p>';
+    return modal({ title: 'Choose an image', wide: true, cancel: 'Close', body: `<div data-grid>${grid()}</div><div><button type="button" class="btn ghost" data-up>Upload a new image</button></div>`,
+      onOpen: (box, done) => {
+        box.addEventListener('click', e => {
+          const p = e.target.closest('.pick'); if (p) return done(p.dataset.url);
+          if (e.target.closest('[data-up]')) chooseFiles(false, async files => { try { toast('Uploading…'); done(await uploadImage(files[0])); toast('Image added'); } catch (err){ handle(err); toast(err.message); } });
+        });
+      } });
+  }
+
+  // ----- history and backups -----
+  async function loadHistory(){ if (S.mode === 'sample'){ CM.hist = CM.hist || []; return; } CM.hist = await api('content_history?select=id,created_at,kind,saved_by&order=id.desc&limit=80'); }
+  function renderHistory(){
+    if (CM.hist === null){ loadHistory().then(() => { if (CM.sec === 'history') renderSection(true); }, err => { handle(err); CM.hist = []; toast(err.message); }); return '<section class="group"><p class="help">Loading versions…</p></section>'; }
+    return `<section class="group"><h2>Versions</h2><p class="hint">Every saved draft and every publish is kept (the latest 80). Loading one puts it in the editor; the website changes only when you publish.</p>
+      <div class="hist">${CM.hist.map(h => `<div><span><b>${h.kind === 'live' ? 'Published' : 'Draft saved'}</b> <span class="muted">by ${esc(h.saved_by || 'unknown')}</span></span>
+        <span class="actions"><button type="button" class="mini" data-act="hload" data-id="${h.id}">Load into editor</button><button type="button" class="mini" data-act="hdown" data-id="${h.id}">Download</button></span>
+        <span class="when">${full(h.created_at)}</span></div>`).join('') || '<p class="help">No versions yet. They appear after the first save.</p>'}</div></section>
+      <section class="group"><h2>Backups</h2><p class="hint">Download the whole website’s content as one file, or load a file you downloaded before. Loading a file changes the draft only.</p>
+        <div class="inline"><button type="button" class="btn ghost" data-act="export">Download the draft</button><button type="button" class="btn ghost" data-act="import">Load a file…</button></div></section>
+      <section class="group"><h2>Start again</h2><p class="hint">Throw away every draft change and go back to what the website shows now.</p><div><button type="button" class="btn danger" data-act="tolive">Reset the draft to the published version</button></div></section>`;
+  }
+  async function versionContent(id){
+    if (S.mode === 'sample') return (CM.hist.find(h => h.id === id) || {}).content;
+    const r = await api('content_history?id=eq.' + id + '&select=content'); return r[0] && r[0].content;
+  }
+  async function loadVersion(id){
+    try { const c = await versionContent(id); if (!c) return; CM.draft = merge(CM.def || {}, c); CM.open.clear(); changed(); syncBars(); toast('Loaded into the editor. Save the draft to keep it, or publish it.'); }
+    catch (err){ handle(err); toast(err.message); }
+  }
+  async function downloadVersion(id){ try { const c = await versionContent(id); if (c) download(c, 'weberact-content-' + id + '.json'); } catch (err){ handle(err); toast(err.message); } }
+  function download(obj, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 1)], { type: 'application/json' })); a.download = name; a.click(); }
+  function importFile(){
+    const i = document.createElement('input'); i.type = 'file'; i.accept = '.json,application/json';
+    i.addEventListener('change', async () => {
+      try {
+        const c = JSON.parse(await i.files[0].text());
+        if (!c || typeof c !== 'object' || !c.home || !c.settings) throw new Error('That file is not a WeberAct content file.');
+        CM.draft = merge(CM.def || CM.draft, c); CM.open.clear(); changed(); syncBars(); toast('File loaded into the draft. Check it, then save or publish.');
+      } catch (err){ toast(err.message.startsWith('That') ? err.message : 'That file could not be read.'); }
+    });
+    i.click();
+  }
+
+  // ----- small helpers -----
+  function modal({ title, body, ok, cancel = 'Cancel', wide, onOpen }){
+    return new Promise(res => {
+      const bg = document.createElement('div'), prev = document.activeElement; bg.className = 'modal-bg';
+      bg.innerHTML = `<div class="modal${wide ? ' wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="mTitle"><header><h3 id="mTitle">${esc(title)}</h3></header><div class="mbody">${body}</div>` +
+        `<footer><button type="button" class="btn ghost" data-m="0">${esc(cancel)}</button>${ok ? `<button type="button" class="btn" data-m="1">${esc(ok)}</button>` : ''}</footer></div>`;
+      let closed = false;
+      const done = v => { if (closed) return; closed = true; bg.remove(); document.removeEventListener('keydown', key, true); try { prev && prev.focus(); } catch (e) {} res(v); };
+      const key = e => { if (e.key === 'Escape'){ e.stopPropagation(); done(false); } };
+      bg.addEventListener('click', e => { if (e.target === bg) return done(false); const b = e.target.closest('[data-m]'); if (b) done(b.dataset.m === '1'); });
+      document.addEventListener('keydown', key, true); document.body.appendChild(bg);
+      if (onOpen) onOpen(bg.querySelector('.mbody'), done);
+      (bg.querySelector('[data-m="1"]') || bg.querySelector('[data-m="0"]')).focus();
+    });
+  }
+  function toast(msg){
+    let t = $('#toast'); if (!t){ t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+    t.textContent = msg; t.hidden = false; clearTimeout(t._t); t._t = setTimeout(() => { t.hidden = true; }, 4200);
+  }
+  function copyText(v, b){ const old = b.textContent; try { navigator.clipboard.writeText(v).then(() => { b.textContent = 'Copied'; setTimeout(() => b.textContent = old, 1400); }, () => toast(v)); } catch (e){ toast(v); } }
+
+  // ---------- team and settings ----------
+  async function renderTeam(){
+    $('#meEmail').textContent = S.mode === 'sample' ? 'Preview mode: these controls show how it works.' : 'Signed in as ' + (S.session.email || '');
+    $('#hookUrl').value = CM.hook || '';
+    $('#teamList').innerHTML = '<p class="help">Loading…</p>';
+    let list;
+    try { list = S.mode === 'sample' ? (CM.team = CM.team || [{ email: 'owner@weberact.co', added_at: new Date(Date.now() - 30 * day).toISOString() }]) : await api('admins?select=email,added_at&order=added_at'); }
+    catch (err){ handle(err, $('#teamMsg')); return; }
+    const mine = S.mode === 'sample' ? 'owner@weberact.co' : me();
+    $('#teamList').innerHTML = list.map(a => `<div><span><b>${esc(a.email)}</b>${a.email === mine ? ' <span class="muted">(you)</span>' : ''}<br><span class="muted">Added ${full(a.added_at)}</span></span>` +
+      `${a.email === mine ? '' : `<button type="button" class="mini" data-rm="${esc(a.email)}">Remove</button>`}</div>`).join('');
+  }
+  $('#teamList').addEventListener('click', async e => {
+    const b = e.target.closest('[data-rm]'); if (!b || !arm(b, 'Remove access?')) return;
+    try { if (S.mode === 'live') await api('admins?email=eq.' + encodeURIComponent(b.dataset.rm), { method: 'DELETE' }); else CM.team = CM.team.filter(a => a.email !== b.dataset.rm); renderTeam(); toast('Access removed'); }
+    catch (err){ handle(err, $('#teamMsg')); }
+  });
+  $('#addAdmin').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#newAdmin').value.trim().toLowerCase(), msg = $('#teamMsg'); msg.style.color = '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent = 'Enter a full email address.'; msg.style.color = '#b42318'; return; }
+    try {
+      if (S.mode === 'live') await api('admins', { method: 'POST', body: { email }, prefer: 'return=minimal' });
+      else CM.team.push({ email, added_at: new Date().toISOString() });
+      $('#newAdmin').value = ''; msg.textContent = `${email} can now use the dashboard. They sign up with this email using “First time here?” on the sign-in page.`; renderTeam();
+    } catch (err){ handle(err, msg); if (/duplicate|already|23505/i.test(err.message)) msg.textContent = 'That email already has access.'; }
+  });
+  $('#pwForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const a = $('#pw1').value, b = $('#pw2').value, msg = $('#pwMsg'); msg.style.color = '#b42318';
+    if (a.length < 8) return void (msg.textContent = 'Use at least 8 characters.');
+    if (a !== b) return void (msg.textContent = 'The two passwords are different.');
+    if (S.mode === 'sample'){ msg.style.color = ''; msg.textContent = 'In preview mode nothing is changed.'; return; }
+    try { await fresh(); await auth('user', { password: a }, S.session.access_token); $('#pw1').value = $('#pw2').value = ''; msg.style.color = 'var(--won)'; msg.textContent = 'Password changed.'; }
+    catch (err){ handle(err, msg); }
+  });
+  $('#hookForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = $('#hookUrl').value.trim(), msg = $('#hookMsg'); msg.style.color = '#b42318';
+    if (v && !/^https:\/\/[^\s]+$/.test(v)) return void (msg.textContent = 'A deploy hook starts with https://');
+    try {
+      if (S.mode === 'live') await api('private_settings?on_conflict=key', { method: 'POST', body: { key: 'deploy_hook', value: v }, prefer: 'resolution=merge-duplicates,return=minimal' });
+      CM.hook = v; msg.style.color = 'var(--won)'; msg.textContent = v ? 'Saved. Publish now rebuilds the website automatically.' : 'Removed. Publish now only saves the live copy.';
+    } catch (err){ handle(err, msg); }
+  });
+
   // ---------- sign-in ----------
   let authMode = 'signin';
   function setAuth(mode, message, kind){
@@ -558,8 +1288,10 @@ a.mini{text-decoration:none;display:inline-block}
       if (!admins.length){ $('#naEmail').textContent = S.session.email || 'this account'; show('noaccess'); return; }
     }
     await load();
-    const want = (location.hash || '').slice(1);
-    show(['overview', 'enquiries', 'privacy'].includes(want) ? want : 'overview'); render();
+    if (!CM.draft){ try { await loadContent(); } catch (err){ if (err.message === 'signed-out') throw err; CM.err = err.message; } }
+    const [want, sec] = (location.hash || '').slice(1).split('/');
+    if (sec && SECTIONS.some(s => s.id === sec)) CM.sec = sec;
+    show(APP_VIEWS.includes(want) ? want : 'overview'); render(); syncBars();
   }
   async function refresh(){ if (S.mode === 'sample' || S.dirty || !$('#drawer').hidden) return; try { await load(); render(); } catch (err){ handle(err); } }
   $('#refresh').addEventListener('click', async () => { if (S.mode === 'sample') { render(); return; } try { await load(); render(); } catch (err){ handle(err); } });

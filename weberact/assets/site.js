@@ -9,7 +9,7 @@
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   if (!location.hash){
     scrollTo(0, 0);
-    try { if (window.top !== window) d.documentElement.scrollIntoView({ block:'start' }); } catch(e){}
+    try { if (window.top !== window && window.name !== 'wa-preview') d.documentElement.scrollIntoView({ block:'start' }); } catch(e){}
   }
 
   // The WeberAct mark, traced from the client's logo artwork

@@ -1,6 +1,9 @@
--- WeberAct: enquiries and privacy requests from the website.
--- Visitors can only ADD rows (never read them). Only people listed in public.admins,
--- signed in to the dashboard, can read, update or delete them.
+-- WeberAct: the database behind the website and its admin dashboard.
+--   * enquiries and privacy requests from the website forms: visitors can only ADD rows, never read them
+--   * the website's words, lists, settings and SEO (site_content), with a history of every save and publish
+--   * an image library (storage bucket "media")
+-- Only people listed in public.admins, signed in to the dashboard, can read or change anything private.
+-- Safe to run again: every statement can be repeated.
 
 -- 1. Who can use the dashboard -------------------------------------------------
 create table if not exists public.admins (
@@ -110,5 +113,91 @@ revoke all on public.privacy_requests from anon;
 grant insert (request_type, name, contact, details) on public.privacy_requests to anon;
 revoke all on public.admins from anon;
 
--- 7. Give dashboard access (run once per person, with their sign-in email):
+-- 7. Admins manage the team: add anyone, remove anyone except themselves -------
+drop policy if exists "admins add admins" on public.admins;
+create policy "admins add admins" on public.admins for insert to authenticated with check (public.is_admin());
+drop policy if exists "admins remove other admins" on public.admins;
+create policy "admins remove other admins" on public.admins for delete to authenticated
+  using (public.is_admin() and email <> lower(coalesce(auth.jwt() ->> 'email', '')));
+
+-- 8. Website content ---------------------------------------------------------------
+-- Two rows: 'draft' (what the admin panel is editing) and 'live' (what the website is built from).
+create table if not exists public.site_content (
+  id         text primary key check (id in ('draft', 'live')),
+  content    jsonb not null check (jsonb_typeof(content) = 'object' and pg_column_size(content) < 500000),
+  updated_at timestamptz not null default now(),
+  updated_by text
+);
+create table if not exists public.content_history (
+  id         bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  kind       text not null check (kind in ('draft', 'live')),
+  saved_by   text,
+  content    jsonb not null
+);
+create index if not exists content_history_created_idx on public.content_history (created_at desc);
+
+-- every save is stamped with who and when, and a copy is kept (the newest 80 copies)
+create or replace function public.stamp_content() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  new.updated_at := now();
+  new.updated_by := lower(coalesce(auth.jwt() ->> 'email', 'system'));
+  return new;
+end $$;
+create or replace function public.keep_content_history() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  insert into public.content_history (kind, saved_by, content) values (new.id, new.updated_by, new.content);
+  delete from public.content_history where id in (select id from public.content_history order by id desc offset 80);
+  return null;
+end $$;
+revoke all on function public.keep_content_history() from public, anon, authenticated;
+drop trigger if exists site_content_stamp on public.site_content;
+create trigger site_content_stamp before insert or update on public.site_content for each row execute function public.stamp_content();
+drop trigger if exists site_content_history on public.site_content;
+create trigger site_content_history after insert or update on public.site_content for each row execute function public.keep_content_history();
+
+alter table public.site_content    enable row level security;
+alter table public.content_history enable row level security;
+drop policy if exists "anyone reads the live website content" on public.site_content;
+create policy "anyone reads the live website content" on public.site_content for select to anon, authenticated using (id = 'live');
+drop policy if exists "admins read the draft" on public.site_content;
+create policy "admins read the draft" on public.site_content for select to authenticated using (public.is_admin());
+drop policy if exists "admins save content" on public.site_content;
+create policy "admins save content" on public.site_content for insert to authenticated with check (public.is_admin());
+drop policy if exists "admins update content" on public.site_content;
+create policy "admins update content" on public.site_content for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "admins read history" on public.content_history;
+create policy "admins read history" on public.content_history for select to authenticated using (public.is_admin());
+revoke all on public.site_content from anon;
+grant select on public.site_content to anon;
+revoke all on public.content_history from anon;
+revoke insert, update, delete on public.content_history from authenticated;
+
+-- 9. Private settings (for example the hosting deploy hook that rebuilds the site on Publish)
+create table if not exists public.private_settings (
+  key        text primary key check (char_length(key) between 1 and 60),
+  value      text check (char_length(value) <= 2000),
+  updated_at timestamptz not null default now()
+);
+alter table public.private_settings enable row level security;
+drop policy if exists "admins manage private settings" on public.private_settings;
+create policy "admins manage private settings" on public.private_settings for all to authenticated using (public.is_admin()) with check (public.is_admin());
+revoke all on public.private_settings from anon;
+
+-- 10. Image library: public files, only admins can add, replace, list or delete them
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('media', 'media', true, 5242880, array['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'])
+on conflict (id) do update set public = true, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+drop policy if exists "admins list media" on storage.objects;
+create policy "admins list media" on storage.objects for select to authenticated using (bucket_id = 'media' and public.is_admin());
+drop policy if exists "admins upload media" on storage.objects;
+create policy "admins upload media" on storage.objects for insert to authenticated with check (bucket_id = 'media' and public.is_admin());
+drop policy if exists "admins replace media" on storage.objects;
+create policy "admins replace media" on storage.objects for update to authenticated using (bucket_id = 'media' and public.is_admin()) with check (bucket_id = 'media' and public.is_admin());
+drop policy if exists "admins delete media" on storage.objects;
+create policy "admins delete media" on storage.objects for delete to authenticated using (bucket_id = 'media' and public.is_admin());
+
+-- 11. The first admin (run once, with the email you sign in with; later admins are added from the dashboard):
 -- insert into public.admins (email) values ('founder@weberact.co');

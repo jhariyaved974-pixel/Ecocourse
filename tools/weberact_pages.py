@@ -10,8 +10,14 @@ loads site.js with `defer`. It is idempotent: run it again after editing.
 
     python3 tools/weberact_pages.py                       # no canonical tags
     python3 tools/weberact_pages.py --domain weberact.com  # adds canonical, og:url, sitemap.xml, robots.txt
+
+All editable words, lists and settings come from weberact/content.json (see tools/cms.py), which the
+admin panel edits; tools/fetch_content.py refreshes that file from Supabase before a build.
 """
-import argparse, pathlib, re
+import argparse, json, pathlib, re, sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import cms  # noqa: E402
 
 SITE = pathlib.Path(__file__).resolve().parent.parent / 'weberact'
 PAGES = {  # file: (data-page key, sitemap priority)
@@ -35,28 +41,35 @@ def link(item, page):
     return f'<a href="{href}"{" aria-current=\"page\"" if key == page else ""}>{text}</a>'
 
 
-def chrome_top(page, mark):
+SOCIAL = [('linkedin', 'LinkedIn'), ('instagram', 'Instagram'), ('x', 'X')]
+
+
+def chrome_top(page, mark, st):
+    cta = cms.E(st.get('header_button') or 'Request a proposal')
     left = ''.join(link(i, page) for i in NAV_L)
     right = ''.join(link(i, page) for i in NAV_R)
     drawer = ''.join(link(i, page) for i in [*NAV_L, *NAV_R])
     return (
-        '<div class="topline"><div class="wrap"><span>Built to represent your business</span></div></div>\n'
+        f'<div class="topline"><div class="wrap"><span>{cms.E(st.get("topline", ""))}</span></div></div>\n'
         f'<header class="head"><div class="wrap">\n  <nav aria-label="Primary">{left}</nav>\n'
         f'  <a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a>\n'
-        f'  <div class="right"><nav aria-label="Secondary">{right}</nav><a class="btn line" href="proposal.html">Request a proposal</a></div>\n'
+        f'  <div class="right"><nav aria-label="Secondary">{right}</nav><a class="btn line" href="proposal.html">{cta}</a></div>\n'
         '  <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer"><i></i><i></i><i></i></button></div></header>\n'
-        f'<div class="drawer" id="drawer">{drawer}<a class="btn solid" href="proposal.html">Request a proposal</a></div>'
+        f'<div class="drawer" id="drawer">{drawer}<a class="btn solid" href="proposal.html">{cta}</a></div>'
     )
 
 
-def chrome_foot(mark):
+def chrome_foot(mark, st, services):
+    svc = ''.join(f'<li><a href="services.html#{s["key"]}">{cms.E(s["chip"])}</a></li>' for s in services)
+    social = ''.join(f'<a href="{cms.A(cms.safe_url(st[k]))}" target="_blank" rel="noopener">{label}</a>' for k, label in SOCIAL if cms.safe_url(st.get(k)))
+    social = f'<span class="social">{social}</span>' if social else ''
     return (
         '<footer class="foot"><div class="wrap">\n'
-        f'  <div><a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a><p>Premium websites, web systems, automations and search, built on a written promise.</p></div>\n'
-        '  <div><h2>Services</h2><ul><li><a href="services.html#websites">Premium websites</a></li><li><a href="services.html#systems">Web systems</a></li><li><a href="services.html#automations">Automations</a></li><li><a href="services.html#search">Search optimisation (SEO)</a></li></ul></div>\n'
+        f'  <div><a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a><p>{cms.E(st.get("footer_blurb", ""))}</p></div>\n'
+        f'  <div><h2>Services</h2><ul>{svc}</ul></div>\n'
         '  <div><h2>Studio</h2><ul><li><a href="work.html">Work</a></li><li><a href="method.html">Method</a></li><li><a href="about.html">About</a></li><li><a href="proposal.html">Request a proposal</a></li></ul></div>\n'
         '  <div><h2>Legal</h2><ul><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div>\n'
-        '  <div class="base"><span>Built on a promise. © <span data-year>2026</span> WeberAct</span><span>Replies within one working day</span></div></div></footer>'
+        f'  <div class="base"><span>{cms.E(st.get("footer_left", ""))} © <span data-year>2026</span> WeberAct</span>{social}<span>{cms.E(st.get("footer_right", ""))}</span></div></div></footer>'
     )
 
 
@@ -87,7 +100,11 @@ def put(s, tag, content, anchor_re, where):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--domain', help='production domain, e.g. weberact.com (adds canonical tags, sitemap.xml, robots.txt)')
-    domain = (ap.parse_args().domain or '').strip().strip('/').removeprefix('https://').removeprefix('http://')
+    ap.add_argument('--content', default=str(SITE / 'content.json'), help='content file (default weberact/content.json)')
+    args = ap.parse_args()
+    domain = (args.domain or '').strip().strip('/').removeprefix('https://').removeprefix('http://')
+    content = json.loads(pathlib.Path(args.content).read_text())
+    st = content.get('settings', {})
     mark = mark_svg()
     for name, (page, _) in PAGES.items():
         p = SITE / name
@@ -99,8 +116,10 @@ def main():
         s = re.sub(r'\n<!-- wa:head -->.*?<!-- /wa:head -->', '', s, flags=re.S)
         s = s.replace('<link rel="stylesheet" href="assets/site.css">', head_block(name, domain) + '\n<link rel="stylesheet" href="assets/site.css">', 1)
         # body: header and footer baked in
-        s = put(s, 'top', chrome_top(page, mark), r'<body[^>]*>', 'after')
-        s = put(s, 'foot', chrome_foot(mark), r'<script src="assets/site\.js"', 'before')
+        s = put(s, 'top', chrome_top(page, mark, st), r'<body[^>]*>', 'after')
+        s = put(s, 'foot', chrome_foot(mark, st, content['services']['items']), r'<script src="assets/site\.js"', 'before')
+        # words, lists and SEO from content.json
+        s = cms.apply(s, content, name[:-5])
         s = s.replace('<script src="assets/site.js"></script>', '<script src="assets/site.js" defer></script>')
         # logo marks that site.js used to fill in
         s = re.sub(r'(<div[^>]*\bdata-mark\b[^>]*>)\s*(?:<svg.*?</svg>)?\s*(</div>)', lambda m: m.group(1) + mark + m.group(2), s, flags=re.S)

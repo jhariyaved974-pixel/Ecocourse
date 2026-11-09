@@ -1,10 +1,13 @@
 // WeberAct: where the website's forms send enquiries, and how the dashboard reaches them.
-// Fill in the two values from Supabase (Project Settings → API). The publishable key is safe in the
-// browser: row-level security lets visitors add enquiries but never read them (see supabase/weberact.sql).
+// The two values come from Supabase (Project Settings → API). The publishable key is safe in the
+// browser: row-level security lets visitors add enquiries but never read them (see tools/supabase/weberact.sql).
 window.WA_CONNECT = (function(){
-  const SUPABASE_URL = '';   // e.g. https://abcdefghijklmnop.supabase.co
-  const SUPABASE_KEY = '';   // publishable key (sb_publishable_...) or legacy anon key
-  const ready = !!(SUPABASE_URL && SUPABASE_KEY);
+  const SUPABASE_URL = 'https://gdzwpwmpngogcbxqkxjy.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable__gS9mVhhjWrBp27ewTlvAQ_TjPwGLKw';
+  // Only the real website talks to the database. Anywhere else (local files, previews) the forms and the
+  // dashboard run in demo mode. Add a host here if the site moves.
+  const LIVE_HOSTS = /(^|\.)weberact\.co$|\.vercel\.app$/;
+  const ready = !!(SUPABASE_URL && SUPABASE_KEY) && LIVE_HOSTS.test(location.hostname);
 
   function headers(extra){
     const h = Object.assign({ 'Content-Type': 'application/json', apikey: SUPABASE_KEY }, extra || {});

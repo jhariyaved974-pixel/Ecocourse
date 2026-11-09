@@ -1,0 +1,604 @@
+{
+ "settings": {
+  "topline": "Built to represent your business",
+  "header_button": "Request a proposal",
+  "footer_blurb": "Premium websites, web systems, automations and search, built on a written promise.",
+  "footer_left": "Built on a promise.",
+  "footer_right": "Replies within one working day",
+  "email": "[EMAIL]",
+  "whatsapp": "[WHATSAPP NUMBER]",
+  "linkedin": "",
+  "instagram": "",
+  "x": ""
+ },
+ "legal": {
+  "legal_name": "[WeberAct legal name]",
+  "registered_address": "[registered address]",
+  "court_city": "[City, State]",
+  "terms_updated": "[date]",
+  "privacy_effective": "[date]",
+  "privacy_updated": "[date]",
+  "grievance_officer": "[name]",
+  "invoice_days": "[7]",
+  "warranty_days": "[30]",
+  "liability_months": "[12]",
+  "notice_days": "[15]",
+  "hosting_provider": "[hosting provider, e.g. Vercel]",
+  "email_provider": "[email provider]",
+  "crm_provider": "[CRM provider]",
+  "document_storage": "[document storage]",
+  "payment_providers": "[payment and accounting providers]",
+  "analytics_tool": "[analytics tool]",
+  "retention_requests": "[12]",
+  "retention_projects": "[3]",
+  "retention_accounts": "[8]"
+ },
+ "seo": {
+  "index": {
+   "title": "WeberAct — Premium websites, web systems and automations",
+   "description": "WeberAct designs and builds premium websites, web systems, automations and search optimisation (SEO). Clear plans, fair fees and launches to look forward to.",
+   "og_title": "WeberAct — The website your business deserves to be represented by",
+   "og_description": "Premium websites, web systems, automations and search optimisation (SEO). Clear plans. Fair fees. Launches to look forward to."
+  },
+  "services": {
+   "title": "Services — WeberAct",
+   "description": "Premium websites, web systems, automations and search optimisation (SEO) from WeberAct. Every project has a fixed scope, a fixed fee and a launch date in writing."
+  },
+  "work": {
+   "title": "Work — WeberAct",
+   "description": "Selected websites, web systems, automations and search projects by WeberAct."
+  },
+  "method": {
+   "title": "Method — WeberAct",
+   "description": "Analyse, create, track: how every WeberAct project runs, from a written spec to monthly numbers."
+  },
+  "about": {
+   "title": "About — WeberAct",
+   "description": "WeberAct is a studio for premium websites, web systems and automations, run by its founder and co-founder."
+  },
+  "proposal": {
+   "title": "Request a proposal — WeberAct",
+   "description": "Tell us about your business in two minutes. We reply within one working day with next steps and a written proposal."
+  },
+  "terms": {
+   "title": "Terms & Conditions — WeberAct",
+   "description": "The terms that apply to WeberAct websites, web systems, automations and search services."
+  },
+  "privacy": {
+   "title": "Privacy Policy — WeberAct",
+   "description": "How WeberAct collects, uses, shares and protects personal data, and how you can see, correct or delete yours."
+  }
+ },
+ "common": {
+  "closing": "Clear plans. Fair fees. Launches to look forward to.",
+  "method": {
+   "title": [
+    "Analyse.",
+    "Create.",
+    "Track."
+   ],
+   "text": "Every project follows the same three steps. You see the plan before we build, and the results after we launch.",
+   "link": "Read the method",
+   "terminal": [
+    {
+     "cmd": "weberact analyse --goal=enquiries",
+     "out": "agreed in writing, signed off"
+    },
+    {
+     "cmd": "weberact create --scope=fixed --fee=fixed",
+     "out": "design, build, launch on the agreed date"
+    },
+    {
+     "cmd": "weberact automate --reply=instant",
+     "out": "every enquiry answered, logged, followed up"
+    },
+    {
+     "cmd": "weberact track --report=monthly",
+     "out": "enquiries, calls, orders"
+    }
+   ]
+  }
+ },
+ "home": {
+  "hero": [
+   "The website your",
+   "business",
+   "deserves to be",
+   "represented by."
+  ],
+  "lede": "Before anyone calls, they look you up. We design and build websites, web systems and automations that make that first impression worthy of the business behind it, and we promise in writing what they will deliver.",
+  "cta_primary": "Book a consultation",
+  "cta_secondary": "View selected work",
+  "stamp": "Built to represent",
+  "make_title": "What we make",
+  "make": [
+   {
+    "key": "websites",
+    "title": "Premium websites",
+    "text": "Sites that make a business look established from the first click, designed and built around performance.",
+    "badge": ""
+   },
+   {
+    "key": "systems",
+    "title": "Web systems",
+    "text": "The working parts behind the site: enquiry flows, catalogues, bookings, dashboards and client portals.",
+    "badge": ""
+   },
+   {
+    "key": "automations",
+    "title": "Automations",
+    "text": "Simple automations that take repetitive work off your hands, cut errors and keep your business running smoothly, even when you are away.",
+    "badge": "New"
+   },
+   {
+    "key": "search",
+    "title": "Search optimisation (SEO)",
+    "text": "Be found on Google, Maps and AI answers, with steady improvements and a clear report every month.",
+    "badge": ""
+   }
+  ],
+  "testimonials": [
+   {
+    "tag": "Premium website",
+    "quote": "[The client’s own words on what changed after the new website launched: how it looks to their customers, and how many more enquiries arrive.]",
+    "name": "[Client name]",
+    "role": "[Role]",
+    "company": "[Company]"
+   },
+   {
+    "tag": "Automations",
+    "quote": "[The client’s own words on what it is like now that every enquiry gets a reply in seconds, and the hours their team saves each week.]",
+    "name": "[Client name]",
+    "role": "[Role]",
+    "company": "[Company]"
+   },
+   {
+    "tag": "Search optimisation (SEO)",
+    "quote": "[The client’s own words on how customers find them now, on Google, Maps or in AI answers.]",
+    "name": "[Client name]",
+    "role": "[Role]",
+    "company": "[Company]"
+   }
+  ],
+  "steps": [
+   {
+    "title": "Scope, in writing",
+    "text": "We learn the business and agree, in writing, the one result the site must deliver."
+   },
+   {
+    "title": "A fixed fee",
+    "text": "One price for the agreed scope. No hourly meter, no surprises on the invoice."
+   },
+   {
+    "title": "A date you can plan around",
+    "text": "A launch date in the proposal, and progress you can see."
+   }
+  ],
+  "work_title": "Selected work"
+ },
+ "services": {
+  "hero": [
+   "Four ways we make",
+   "a business look",
+   "and work established."
+  ],
+  "lede": "Each service has a fixed scope, a fixed fee and a launch date, agreed in writing before we begin. Use one, or let them work together.",
+  "items": [
+   {
+    "key": "websites",
+    "chip": "Premium websites",
+    "label": "01 — PREMIUM WEBSITES",
+    "heading": "A first impression worth the business behind it.",
+    "intro": "Before anyone calls, they look you up. We write and design a site that makes you look established from the first click, and that turns visitors into customers.",
+    "points": [
+     {
+      "title": "Strategy and copy",
+      "text": "We learn your business, your customers and their requirements, then write every page around them."
+     },
+     {
+      "title": "Bespoke design",
+      "text": "No templates. A visual identity on the web that looks like your business at its best."
+     },
+     {
+      "title": "Fast, mobile-first build",
+      "text": "Fast on every phone, accessible to every visitor and ready for search from day one."
+     },
+     {
+      "title": "An admin you can use",
+      "text": "Edit pages, products and posts yourself. Code, domain and hosting are in your name."
+     }
+    ],
+    "facts": [
+     {
+      "label": "Scope",
+      "value": "Agreed in writing"
+     },
+     {
+      "label": "Fee",
+      "value": "Fixed, quoted upfront"
+     },
+     {
+      "label": "Launch",
+      "value": "A date in the proposal"
+     }
+    ]
+   },
+   {
+    "key": "systems",
+    "chip": "Web systems",
+    "label": "02 — WEB SYSTEMS",
+    "heading": "The working parts behind the site.",
+    "intro": "Enquiry flows, catalogues, bookings, quote builders, client portals and dashboards: the parts that do real work every day, built to fit how you already run.",
+    "points": [
+     {
+      "title": "Quote and enquiry systems",
+      "text": "Guided forms that collect what you need to price a job, then route it to the right person."
+     },
+     {
+      "title": "Catalogues and stores",
+      "text": "Products, variants, stock and secure online payments, with an admin panel your team can run."
+     },
+     {
+      "title": "Bookings and portals",
+      "text": "Appointments, reminders and a private area for clients to see orders, files and invoices."
+     },
+     {
+      "title": "Dashboards",
+      "text": "The numbers you check every morning in one place, updated by themselves."
+     }
+    ],
+    "facts": [
+     {
+      "label": "Built for",
+      "value": "The way your team already works"
+     },
+     {
+      "label": "Handover",
+      "value": "Training and documentation"
+     },
+     {
+      "label": "Fee",
+      "value": "Fixed, quoted upfront"
+     }
+    ]
+   },
+   {
+    "key": "automations",
+    "chip": "Automations",
+    "label": "03 — AUTOMATIONS · NEW",
+    "heading": "Handled before you even ask.",
+    "intro": "We connect your website, WhatsApp, Instagram and email so every enquiry is captured, answered, qualified and followed up in seconds, while orders, invoices and stock stay in sync.",
+    "points": [
+     {
+      "title": "Lead capture and instant replies",
+      "text": "Every channel in one place, with a friendly reply and timely follow-ups sent to each customer on your behalf, in your tone."
+     },
+     {
+      "title": "Qualification and CRM",
+      "text": "Leads checked for budget, location and need, then logged and assigned in Google Sheets, HubSpot or the CRM you already use."
+     },
+     {
+      "title": "Follow-ups and owner alerts",
+      "text": "Polite follow-ups until the buyer replies, and hot leads sent straight to your phone."
+     },
+     {
+      "title": "Orders, invoices and reports",
+      "text": "Invoices, orders and stock synced between tools, with a weekly report that writes itself."
+     }
+    ],
+    "facts": [
+     {
+      "label": "Tools",
+      "value": "n8n · Zapier · Make"
+     },
+     {
+      "label": "Works with",
+      "value": "WhatsApp · Email · Google Sheets · CRMs"
+     },
+     {
+      "label": "Fee",
+      "value": "Fixed, quoted upfront"
+     }
+    ]
+   },
+   {
+    "key": "search",
+    "chip": "Search optimisation (SEO)",
+    "label": "04 — SEARCH OPTIMISATION (SEO)",
+    "heading": "Found first, then measured.",
+    "intro": "Search, Maps and AI answers, plus the steady refinements that keep a site earning, with a clear report every month.",
+    "points": [
+     {
+      "title": "Technical foundations",
+      "text": "Speed, structure and indexing fixed so search engines can read every page."
+     },
+     {
+      "title": "Local and city pages",
+      "text": "Google Business Profile and a strong page for every area you serve."
+     },
+     {
+      "title": "AI-answer visibility",
+      "text": "Content structured so ChatGPT, Gemini and Perplexity can cite you."
+     },
+     {
+      "title": "Measurement and refinement",
+      "text": "Enquiries, calls and orders tracked, and the pages that move them improved monthly."
+     }
+    ],
+    "facts": [
+     {
+      "label": "Report",
+      "value": "Monthly"
+     },
+     {
+      "label": "Fee",
+      "value": "Fixed monthly"
+     }
+    ]
+   }
+  ],
+  "faq_title": "Questions about services",
+  "faq": [
+   {
+    "q": "How much does a project cost?",
+    "a": "Every project gets a fixed fee in a written proposal after a short consultation, in US dollars or your local currency. You know the full price before we start."
+   },
+   {
+    "q": "Can I combine services?",
+    "a": "Yes, and most clients do. A premium website brings enquiries, automations answer them, and search keeps new visitors arriving."
+   },
+   {
+    "q": "Do you guarantee rankings?",
+    "a": "No. Anyone who does is guessing. We do the technical and content work properly and report what changed every month."
+   },
+   {
+    "q": "Who owns the website and automations?",
+    "a": "You do. Code, domain, hosting and every workflow are in your name, with documentation and a walkthrough at handover."
+   }
+  ]
+ },
+ "work": {
+  "hero": [
+   "Selected work.",
+   "Built to represent."
+  ],
+  "lede": "Each project starts with one result agreed in writing. Here is what we built, and what it changed.",
+  "projects": [
+   {
+    "name": "[Project name]",
+    "category": "web",
+    "result": "[The result, in one line: e.g. enquiries per month before and after.]",
+    "image": "",
+    "link": ""
+   },
+   {
+    "name": "[Project name]",
+    "category": "sys",
+    "result": "[The result, in one line: e.g. quotes sent the same day.]",
+    "image": "",
+    "link": ""
+   },
+   {
+    "name": "[Project name]",
+    "category": "auto",
+    "result": "[The result, in one line: e.g. hours of copy-paste removed each week.]",
+    "image": "",
+    "link": ""
+   },
+   {
+    "name": "[Project name]",
+    "category": "seo",
+    "result": "[The result, in one line: e.g. calls from Google Maps per month.]",
+    "image": "",
+    "link": ""
+   },
+   {
+    "name": "[Project name]",
+    "category": "web",
+    "result": "[The result, in one line.]",
+    "image": "",
+    "link": ""
+   },
+   {
+    "name": "[Project name]",
+    "category": "auto",
+    "result": "[The result, in one line.]",
+    "image": "",
+    "link": ""
+   }
+  ],
+  "note": "Case studies are being written up with our clients' permission.",
+  "closing": "Your project could be next on this page."
+ },
+ "method": {
+  "hero": [
+   "Analyse.",
+   "Create.",
+   "Track."
+  ],
+  "text": "Every project follows the same three steps. You see the plan before we build, and the results after we launch. Nothing starts until you sign it off.",
+  "phases": [
+   {
+    "title": "Analyse",
+    "text": "We learn the business, your customers and your numbers, then agree in writing the one result the work must deliver.",
+    "cmd": "weberact analyse --goal=enquiries",
+    "out": "agreed in writing, signed off",
+    "items": [
+     {
+      "label": "Consultation call",
+      "tag": "30 min"
+     },
+     {
+      "label": "Customer and competitor review",
+      "tag": "written"
+     },
+     {
+      "label": "The one result, agreed",
+      "tag": "signed off"
+     },
+     {
+      "label": "Proposal: scope, fee, date",
+      "tag": "fixed"
+     }
+    ]
+   },
+   {
+    "title": "Create",
+    "text": "Design, copy, build and automations, shown to you every week on real content. No surprises at launch.",
+    "cmd": "weberact create --scope=fixed --fee=fixed",
+    "out": "design, build, launch on the agreed date",
+    "items": [
+     {
+      "label": "Copy and design",
+      "tag": "weekly review"
+     },
+     {
+      "label": "Build and automations",
+      "tag": "staging link"
+     },
+     {
+      "label": "Testing on real enquiries",
+      "tag": "before launch"
+     },
+     {
+      "label": "Launch and handover",
+      "tag": "on the date"
+     }
+    ]
+   },
+   {
+    "title": "Track",
+    "text": "After launch we measure what the work delivers, report it plainly every month, and refine what moves the number.",
+    "cmd": "weberact track --report=monthly",
+    "out": "enquiries, calls, orders",
+    "items": [
+     {
+      "label": "Enquiries, calls and orders",
+      "tag": "tracked"
+     },
+     {
+      "label": "Monthly report",
+      "tag": "every month"
+     },
+     {
+      "label": "Refinements",
+      "tag": "what moves it"
+     },
+     {
+      "label": "Support",
+      "tag": "1 working day"
+     }
+    ]
+   }
+  ],
+  "closing": "See the plan before we build."
+ },
+ "about": {
+  "hero": [
+   "Built on",
+   "a promise."
+  ],
+  "story": [
+   "WeberAct was started by a founder and co-founder who kept seeing the same thing: good businesses judged by websites that didn't do them justice, and enquiries lost because nobody had time to reply.",
+   "So we build the opposite. Websites that make a business look as established as it really is, the systems behind them, and the automations that answer every enquiry in seconds.",
+   "Every project begins with a promise in writing: a fixed scope, a fixed fee and a date you can plan around. Then we keep it."
+  ],
+  "people_title": "The people you'll work with",
+  "people": [
+   {
+    "role": "Founder",
+    "name": "[Founder name]",
+    "bio": "[Two lines: background, what they lead at WeberAct, and what clients rely on them for.]",
+    "initials": "F",
+    "photo": ""
+   },
+   {
+    "role": "Co-founder",
+    "name": "[Co-founder name]",
+    "bio": "[Two lines: background, what they lead at WeberAct, and how clients reach them.]",
+    "initials": "CF",
+    "photo": ""
+   }
+  ],
+  "values_title": "What we promise, every time",
+  "values": [
+   {
+    "title": "In writing",
+    "text": "Scope, fee and date agreed on paper before any work begins."
+   },
+   {
+    "title": "Yours to keep",
+    "text": "Code, domain, accounts and workflows in your name from day one."
+   },
+   {
+    "title": "Honest numbers",
+    "text": "Plain monthly reports. No ranking guarantees, no inflated claims."
+   },
+   {
+    "title": "One working day",
+    "text": "Every message answered within a working day, before and after launch."
+   }
+  ],
+  "testimonials": [
+   {
+    "tag": "Working with WeberAct",
+    "quote": "[The client’s own words on what it was like to work with WeberAct, from the first call to launch.]",
+    "name": "[Client name]",
+    "role": "[Role]",
+    "company": "[Company]"
+   },
+   {
+    "tag": "The promise",
+    "quote": "[The client’s own words on getting a fixed scope, a fixed fee and a launch date, and whether it was kept.]",
+    "name": "[Client name]",
+    "role": "[Role]",
+    "company": "[Company]"
+   },
+   {
+    "tag": "After launch",
+    "quote": "[The client’s own words on the monthly reports and support after the site went live.]",
+    "name": "[Client name]",
+    "role": "[Role]",
+    "company": "[Company]"
+   }
+  ],
+  "steps": [
+   {
+    "title": "Analyse",
+    "text": "We learn the business and agree, in writing, the one result the site must deliver."
+   },
+   {
+    "title": "Create",
+    "text": "We design and build only what serves that result."
+   },
+   {
+    "title": "Track",
+    "text": "After launch we measure it, report it and refine what moves it."
+   }
+  ]
+ },
+ "proposal": {
+  "hero": [
+   "Tell us the result",
+   "you need."
+  ],
+  "lede": "Five short steps, about two minutes. We read every request ourselves and reply within one working day with next steps and a time for a consultation.",
+  "next_title": "What happens next",
+  "next": [
+   {
+    "title": "We read it",
+    "text": "Within one working day, a founder replies with questions or a time to talk."
+   },
+   {
+    "title": "Consultation",
+    "text": "Thirty minutes about your business and the result you need."
+   },
+   {
+    "title": "Written proposal",
+    "text": "Fixed scope, fixed fee and a launch date. Nothing starts until you sign it."
+   }
+  ],
+  "contact_label": "Prefer to write directly?",
+  "done_title": "Thank you. Your request is with us."
+ }
+}
