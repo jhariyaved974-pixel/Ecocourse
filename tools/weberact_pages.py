@@ -61,7 +61,7 @@ def chrome_foot(mark):
 
 
 def head_block(name, domain):
-    lines = ["<script>document.documentElement.classList.add('js')</script>",
+    lines = ["<script>document.documentElement.classList.add('js')</script>", '<script src="assets/connect.js" defer></script>',
              f'<link rel="preload" href="{FONT_MAIN}" as="font" type="font/woff2" crossorigin>']
     if name == 'method.html':
         lines.append(f'<link rel="preload" href="{FONT_COND}" as="font" type="font/woff2" crossorigin>')
@@ -108,7 +108,7 @@ def main():
     if domain:
         urls = ''.join(f'  <url><loc>https://{domain}/{"" if n == "index.html" else n}</loc><priority>{pr}</priority></url>\n' for n, (_, pr) in PAGES.items())
         (SITE / 'sitemap.xml').write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n')
-        (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\n\nSitemap: https://{domain}/sitemap.xml\n')
+        (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /admin.html\n\nSitemap: https://{domain}/sitemap.xml\n')
     print('updated', len(PAGES), 'pages', f'(canonical: https://{domain}/)' if domain else '(no domain: canonical tags not added)')
 
 

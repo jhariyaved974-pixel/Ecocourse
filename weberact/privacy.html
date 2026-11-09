@@ -8,6 +8,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <!-- wa:head -->
 <script>document.documentElement.classList.add('js')</script>
+<script src="assets/connect.js" defer></script>
 <link rel="preload" href="assets/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://weberact.co/privacy.html">
 <meta property="og:url" content="https://weberact.co/privacy.html">
@@ -152,7 +153,8 @@
           <label class="full" for="r-msg">Details (optional)<textarea id="r-msg"></textarea></label>
         </div>
         <p class="err" id="r-err" hidden></p>
-        <div><button class="btn gold" type="submit">Send request</button></div>
+        <label style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">Leave this empty<input id="r-hp" tabindex="-1" autocomplete="off"></label>
+        <div><button class="btn gold" type="submit" id="r-send">Send request</button></div>
         <div class="ok" id="r-ok" hidden></div>
       </form>
 
@@ -191,14 +193,23 @@
 <script>
 (function(){
   const f = document.getElementById('req'), err = document.getElementById('r-err'), ok = document.getElementById('r-ok');
-  f.addEventListener('submit', e => {
+  f.addEventListener('submit', async e => {
     e.preventDefault();
+    if (f.dataset.sending) return;
     const name = document.getElementById('r-name').value.trim(), c = document.getElementById('r-contact').value.trim();
     const validContact = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c) || c.replace(/\D/g, '').length >= 10;
     if (!name){ err.textContent = 'Add your name so we can find your records.'; err.hidden = false; document.getElementById('r-name').focus(); return; }
     if (!validContact){ err.textContent = 'Enter the email or a WhatsApp number with at least 10 digits that we have on file.'; err.hidden = false; document.getElementById('r-contact').focus(); return; }
     err.hidden = true;
-    ok.textContent = `Thank you, ${name}. Your request to "${document.getElementById('r-type').value.toLowerCase()}" is noted. We'll reply to ${c} within one working day. (Demo form, not connected yet.)`;
+    const C = window.WA_CONNECT, type = document.getElementById('r-type').value, btn = document.getElementById('r-send');
+    let res = { ok: true, demo: !(C && C.ready) };
+    if (!document.getElementById('r-hp').value && C && C.ready){
+      f.dataset.sending = '1'; btn.disabled = true; btn.textContent = 'Sending…';
+      res = await C.submit('privacy_requests', { request_type: type.slice(0, 60), name: name.slice(0, 120), contact: c.slice(0, 200), details: document.getElementById('r-msg').value.trim().slice(0, 4000) || null });
+      delete f.dataset.sending; btn.disabled = false; btn.textContent = 'Send request';
+      if (!res.ok){ err.textContent = 'We couldn\'t send your request just now. Please try again in a moment, or write to us at the address in section 13.'; err.hidden = false; return; }
+    }
+    ok.textContent = `Thank you, ${name}. Your request to "${type.toLowerCase()}" is noted. We'll reply to ${c} within one working day.${res.demo ? ' (Demo form, not connected yet.)' : ''}`;
     ok.hidden = false; f.querySelectorAll('input,select,textarea,button').forEach(el => el.disabled = true);
   });
 })();

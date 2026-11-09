@@ -8,6 +8,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <!-- wa:head -->
 <script>document.documentElement.classList.add('js')</script>
+<script src="assets/connect.js" defer></script>
 <link rel="preload" href="assets/fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="canonical" href="https://weberact.co/proposal.html">
 <meta property="og:url" content="https://weberact.co/proposal.html">
@@ -64,6 +65,8 @@
 .done .seal circle{stroke-dasharray:240;stroke-dashoffset:240;animation:draw 1s var(--ease) forwards}
 .done .seal path{stroke:var(--maroon);stroke-dasharray:50;stroke-dashoffset:50;animation:draw .6s var(--ease) .7s forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
+.hp{position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden}
+.senderr{margin:12px 0 0;font-size:14px;font-weight:600;color:var(--maroon)}
 .brief{width:100%;background:var(--cream);border-radius:10px;padding:20px 22px;font:400 14px/1.8 var(--mono);white-space:pre-wrap;margin:0}
 @media (max-width:980px){ .layout{grid-template-columns:minmax(0,1fr)} .side{position:static} }
 @media (max-width:600px){ .choices,.fields{grid-template-columns:1fr} }
@@ -91,12 +94,14 @@
       <form id="pf" novalidate>
         <div class="prog"><div class="steps" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><span id="stepLabel">Step 1 of 5</span></div>
         <div id="paneHost"></div>
+        <label class="hp" aria-hidden="true">Leave this empty<input id="hp" tabindex="-1" autocomplete="off"></label>
         <div class="nav"><button type="button" class="back" id="back">← Back</button><span class="saved" id="saved">Progress saved on this device</span><button type="submit" class="btn solid" id="next">Continue</button></div>
+        <p class="senderr" id="sendErr" role="alert" tabindex="-1" hidden>We couldn't send your request just now. Your answers are saved: please try again in a moment, or write to us at [EMAIL].</p>
       </form>
       <div class="done" id="done" hidden tabindex="-1">
         <svg class="seal" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38"/><path d="M27 43l10 10 21-23"/></svg>
         <h2 class="h2" style="color:var(--maroon)">Thank you. Your request is with us.</h2>
-        <p class="lede">We'll reply within one working day by your chosen method with next steps and a time for your consultation. Here is the brief we received (demo form, not connected yet):</p>
+        <p class="lede">We'll reply within one working day by your chosen method with next steps and a time for your consultation. <span id="doneNote">Here is a copy of the brief you sent:</span></p>
         <pre class="brief" id="brief"></pre>
         <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap"><a class="btn solid" href="work.html">See selected work</a><button class="ulink" id="again" style="background:none;border:0;cursor:pointer">Send another request</button></div>
       </div>
@@ -190,11 +195,27 @@
     if (key === 'result'){ document.querySelector('.choice').focus(); return; }
     el.setAttribute('aria-invalid', 'true'); const m = el.parentElement.querySelector('.msg'); m.textContent = MSG[key]; m.hidden = false; el.focus();
   }
-  $('#pf').addEventListener('submit', e => {
+  let sending = false;
+  $('#pf').addEventListener('submit', async e => {
     e.preventDefault();
+    if (sending) return;
     const bad = STEPS[step].ok(); if (bad) return fail(bad);
     if (step < STEPS.length - 1){ step++; render(); const f = document.querySelector('#paneHost .choice, #paneHost input'); if (f) f.focus({ preventScroll:true }); return; }
     const lines = [`Services:  ${D.need.join(', ')}`, `Business:  ${[D.biz, D.type, D.city].filter(Boolean).join(' · ') || '—'}`, `Website:   ${D.site || '—'}`, `Result:    ${D.result}`, `Budget:    ${D.budget || '—'}`, `Launch:    ${D.when || '—'}`, `Name:      ${D.name}`, `WhatsApp:  ${D.wa}`, `Email:     ${D.email || '—'}`, `Contact:   ${D.via}`, '', D.detail];
+    // send the enquiry to the dashboard; bots that fill the hidden field get the thank-you page without sending
+    const C = window.WA_CONNECT, cut = (v, n) => (v || '').toString().trim().slice(0, n) || null;
+    const row = { services: D.need.slice(0, 10), business: cut(D.biz, 160), business_type: cut(D.type, 80), city: cut(D.city, 120), website: cut(D.site, 300),
+      result: cut(D.result, 120), detail: cut(D.detail, 4000), currency: D.cur === 'INR' ? 'INR' : 'USD', budget: cut(D.budget, 60), timing: cut(D.when, 60),
+      name: cut(D.name, 120), whatsapp: cut(D.wa, 40), email: cut(D.email, 200), contact_via: ['WhatsApp', 'Call', 'Email'].includes(D.via) ? D.via : null, source: C ? C.source() : {} };
+    let res = { ok: true, demo: !(C && C.ready) };
+    $('#sendErr').hidden = true;
+    if (!$('#hp').value && C && C.ready){
+      sending = true; $('#next').disabled = true; $('#next').textContent = 'Sending…';
+      res = await C.submit('enquiries', row);
+      sending = false; $('#next').disabled = false; $('#next').textContent = 'Send request';
+      if (!res.ok){ $('#sendErr').hidden = false; $('#sendErr').focus(); return; }
+    }
+    $('#doneNote').textContent = res.demo ? 'Here is the brief we received (demo form, not connected yet):' : 'Here is a copy of the brief you sent:';
     $('#brief').textContent = lines.join('\n');
     $('#pf').hidden = true; $('#done').hidden = false; $('#done').focus();
     try { localStorage.removeItem(KEY); } catch(e){}
