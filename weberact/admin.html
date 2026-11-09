@@ -1267,8 +1267,8 @@ a.mini{text-decoration:none;display:inline-block}
     btn.disabled = true;
     try {
       if (authMode === 'signin'){ saveSession(asSession(await auth('token?grant_type=password', { email, password: pw }))); await start(); }
-      else if (authMode === 'signup'){ const j = await auth('signup', { email, password: pw }); if (j.access_token){ saveSession(asSession(j)); await start(); } else setAuth('signin', 'Check your inbox to confirm your email, then sign in here.', 'ok'); }
-      else if (authMode === 'forgot'){ await auth('recover', { email }); setAuth('signin', 'If that email has an account, a reset link is on its way.', 'ok'); }
+      else if (authMode === 'signup'){ const j = await auth('signup?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { email, password: pw }); if (j.access_token){ saveSession(asSession(j)); await start(); } else setAuth('signin', 'Check your inbox to confirm your email, then sign in here.', 'ok'); }
+      else if (authMode === 'forgot'){ await auth('recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { email }); setAuth('signin', 'If that email has an account, a reset link is on its way.', 'ok'); }
       else { await auth('user', { password: pw }, S.session.access_token); setAuth('signin', 'Password saved.', 'ok'); await start(); }
     } catch (err){ setAuth(authMode, err.message === 'Invalid login credentials' ? 'That email and password do not match.' : err.message, 'err'); }
     finally { btn.disabled = false; }
