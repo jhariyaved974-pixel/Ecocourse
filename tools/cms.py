@@ -49,7 +49,7 @@ def lines(items, delays):
     for i, t in enumerate(items):
         d = delays(i)
         st = ' style="transition-delay:%ss"' % d if d else ''
-        out += f'<span class="line-mask"><span{st}>{E(t)}</span></span>'
+        out += (' ' if i else '') + f'<span class="line-mask"><span{st}>{E(t)}</span></span>'
     return out
 
 
@@ -58,11 +58,18 @@ def r_home_hero(c): return lines(c['home']['hero'], lambda i: sec(.05 + i * .1))
 def page_lines(key): return lambda c: lines(get(c, key), lambda i: sec(i * .12) if i else None)
 
 
+def page_for(c, key):
+    """The dedicated page for a service key (websites, search, ...), if there is one."""
+    for slug, p in c.get('pages', {}).items():
+        if p.get('service_key') == key: return slug + '.html'
+    return None
+
+
 def r_make(c):
     out = ''
     for m in c['home']['make']:
         badge = f'<span class="new">{E(m["badge"])}</span>' if m.get('badge') else ''
-        out += (f'\n      <a class="col rv" href="services.html#{m["key"]}">{badge}<span class="ic">{ICON[m["key"]]}</span><h3>{E(m["title"])}</h3>'
+        out += (f'\n      <a class="col rv" href="{page_for(c, m["key"]) or "services.html#" + m["key"]}">{badge}<span class="ic">{ICON[m["key"]]}</span><h3>{E(m["title"])}</h3>'
                 f'<p>{E(m["text"])}</p><span class="more">Explore →</span></a>')
     return out + '\n    '
 
@@ -76,7 +83,7 @@ def r_terminal(c):
     return out + '\n    '
 
 
-def r_method_title(c): return ''.join(f'<span>{E(t)}</span>' for t in c['common']['method']['title'])
+def r_method_title(c): return ' '.join(f'<span>{E(t)}</span>' for t in c['common']['method']['title'])
 
 
 def slides(items):
@@ -114,7 +121,10 @@ def r_work_filters(c):
     return '\n      <button aria-pressed="true" data-f="all">All</button>' + ''.join(f'<button aria-pressed="false" data-f="{k}">{labels[k]}</button>' for k in used) + '\n    '
 
 
-def r_services_index(c): return ''.join(f'<a href="#{s["key"]}">{E(s["chip"])}</a>' for s in c['services']['items'])
+def r_services_index(c):
+    keys = {s['key'] for s in c['services']['items']}
+    extra = [(slug, p) for slug, p in c.get('pages', {}).items() if p.get('service_key') and p['service_key'] not in keys]
+    return ''.join(f'<a href="#{s["key"]}">{E(s["chip"])}</a>' for s in c['services']['items']) + ''.join(f'<a href="{slug}.html">{E(p["crumb"])}</a>' for slug, p in extra)
 
 
 FLOW = ('\n        <div class="flow rv" id="flow" aria-label="An automation running: enquiry, qualify, reply, CRM, alert" role="img">'
@@ -122,6 +132,14 @@ FLOW = ('\n        <div class="flow rv" id="flow" aria-label="An automation runn
         '\n          <ol><li><i>01</i>Enquiry arrives</li><li><i>02</i>Qualified</li><li><i>03</i>WhatsApp reply</li><li><i>04</i>Logged in CRM</li><li><i>05</i>Owner alerted</li></ol>'
         '\n          <div class="clock" id="clock">00.0 s</div>\n        </div>')
 EXTRA_LINK = {'websites': '<a class="ulink" href="work.html">See work</a>', 'automations': '<a class="ulink" href="./#method">How it runs</a>'}
+
+
+def more(c, s):
+    page = page_for(c, s['key'])
+    if not page: return EXTRA_LINK.get(s['key'], '')
+    name = c['pages'][page[:-5]]['crumb']
+    name = name if len(name) > 1 and name[1].isupper() else name[:1].lower() + name[1:]  # "technical SEO", "AI business automation"
+    return f'<a class="ulink" href="{page}">More about {E(name)}</a>'
 
 
 def r_services(c):
@@ -133,7 +151,7 @@ def r_services(c):
         facts = ''.join(f'<div><span>{E(f["label"])}</span><b>{E(f["value"])}</b></div>' for f in s['facts'])
         out += (f'\n    <article class="svc" id="{s["key"]}">'
                 f'\n      <div class="stick rv"><span class="num">{E(s["label"])}</span><h2>{E(s["heading"])}</h2><p>{E(s["intro"])}</p>'
-                f'\n        <div class="row"><a class="btn solid" href="proposal.html#{s["key"]}">Request a proposal</a>{EXTRA_LINK.get(s["key"], "")}</div></div>'
+                f'\n        <div class="row"><a class="btn solid" href="proposal.html#{s["key"]}">Request a proposal</a>{more(c, s)}</div></div>'
                 f'\n      <div>\n        <div class="list">{pts}\n        </div>{FLOW if s["key"] == "automations" else ""}'
                 f'\n        <div class="facts rv"{style}>{facts}</div>\n      </div>\n    </article>\n')
     return out + '  '
@@ -178,6 +196,50 @@ def r_next(c):
     return ''.join(f'\n          <div{last(i)}><span class="n">{roman(i)}</span><div><b>{E(s["title"])}</b><p>{E(s["text"])}</p></div></div>' for i, s in enumerate(n)) + '\n        '
 
 
+def r_page(c, slug):
+    p = c['pages'][slug]
+    svc = p.get('service_key') or ''
+    cta = 'proposal.html' + ('#' + svc if svc else '')
+    crumbs = '<a href="./">Home</a><span>/</span>' + ('<a href="services.html">Services</a><span>/</span>' if svc else '') + f'<span>{E(p["crumb"])}</span>'
+
+    def section(cls, title, body, sid=''):
+        return (f'\n  <section class="sp-sec {cls}"{" id=" + chr(34) + sid + chr(34) if sid else ""}><div class="wrap sp-grid">'
+                f'\n    <h2 class="h2 rv">{E(title)}</h2>\n    <div class="rv">{body}</div>\n  </div></section>')
+
+    out = (f'\n  <section class="page-hero"><div class="wrap">'
+           f'\n    <nav class="crumbs" aria-label="Breadcrumb">{crumbs}</nav>'
+           f'\n    <h1 class="display">{lines(p["hero"], lambda i: sec(i * .12) if i else None)}</h1>'
+           f'\n    <p class="lede rv">{E(p["lede"])}</p>'
+           f'\n    <div class="sp-cta rv"><a class="btn solid" href="{cta}">{E(p.get("cta_label") or "Request a proposal")}</a><a class="ulink" href="#faq">Questions answered</a></div>'
+           f'\n  </div></section>'
+           f'\n  <section class="sp-answer"><div class="wrap"><div class="sp-box rv"><h2>{E(p["answer_q"])}</h2><p>{E(p["answer"])}</p></div></div></section>')
+    out += section('sp-who', p['who_title'], '<div class="sp-cards">' + ''.join(
+        f'<div><h3>{E(i["title"])}</h3><p>{E(i["text"])}</p></div>' for i in p['who']) + '</div>')
+    out += section('sp-inc', p['included_title'], '<div class="list">' + ''.join(
+        f'<div><span class="k">{chr(97 + n)}</span><div><h3>{E(i["title"])}</h3><p>{E(i["text"])}</p></div></div>' for n, i in enumerate(p['included'])) + '</div>')
+    out += section('sp-proc', p['process_title'], '<ol class="sp-steps">' + ''.join(
+        f'<li><span class="n">{n + 1:02d}</span><div><h3>{E(i["title"])}</h3><p>{E(i["text"])}</p></div></li>' for n, i in enumerate(p['process'])) + '</ol>')
+    cost = ''.join(f'<p>{E(t)}</p>' for t in p['cost_text'])
+    if p.get('cost_factors'):
+        cost += '<ul class="sp-ticks">' + ''.join(f'<li>{E(t)}</li>' for t in p['cost_factors']) + '</ul>'
+    out += section('sp-cost', p['cost_title'], cost)
+    faq = ''.join(f'<details><summary><h3>{E(f["q"])}</h3></summary><p>{E(f["a"])}</p></details>' for f in p['faq'])
+    src = [s for s in p.get('sources', []) if safe_url(s.get('url'))]
+    if src:
+        faq += '<p class="sp-src">Sources: ' + ' · '.join(f'<a href="{A(safe_url(s["url"]))}" rel="noopener" target="_blank">{E(s["label"])}</a>' for s in src) + '</p>'
+    out += section('sp-faq', p['faq_title'], faq, 'faq')
+    rel = [r for r in p.get('related', []) if r in c['pages'] and r != slug]
+    if rel:
+        out += section('sp-rel', 'Related services', '<div class="sp-related">' + ''.join(
+            f'<a href="{r}.html"><b>{E(c["pages"][r]["crumb"])}</b><span>{E(c["pages"][r]["answer_q"])}</span></a>' for r in rel) + '</div>')
+    return out + '\n'
+
+
+def render_key(key, c):
+    if key.startswith('page.'): return r_page(c, key[5:])
+    return RENDER[key](c)
+
+
 RENDER = {
     'home.hero': r_home_hero, 'home.make': r_make, 'home.testimonials': lambda c: slides(c['home']['testimonials']), 'home.steps': lambda c: steps(c['home']['steps']),
     'home.work': r_home_work, 'method.terminal': r_terminal, 'method.title': r_method_title,
@@ -219,7 +281,7 @@ def _replace_inner(s, attr, fn):
 
 
 def apply(page_html, content, page_key=None):
-    s = _replace_inner(page_html, 'data-cms-list', lambda key: RENDER[key](content))
+    s = _replace_inner(page_html, 'data-cms-list', lambda key: render_key(key, content))
     s = _replace_inner(s, 'data-cms', lambda key: E(get(content, key)))
     if page_key and page_key in content.get('seo', {}):
         seo = content['seo'][page_key]

@@ -9,7 +9,20 @@
   "whatsapp": "[WHATSAPP NUMBER]",
   "linkedin": "",
   "instagram": "",
-  "x": ""
+  "x": "",
+  "tagline": "Build. Automate. Accelerate.",
+  "org_description": "WeberAct designs and builds premium websites, technical SEO, AI business automation and B2B lead generation systems for manufacturers, exporters and established B2B companies, with a fixed scope, a fixed fee and a launch date agreed in writing.",
+  "areas_served": [
+   "United States",
+   "United Kingdom",
+   "United Arab Emirates",
+   "Canada",
+   "Australia"
+  ],
+  "booking_url": "",
+  "google_site_verification": "",
+  "bing_site_verification": "",
+  "ga4_id": ""
  },
  "legal": {
   "legal_name": "[WeberAct legal name]",
@@ -35,38 +48,82 @@
  },
  "seo": {
   "index": {
-   "title": "WeberAct — Premium websites, web systems and automations",
-   "description": "WeberAct designs and builds premium websites, web systems, automations and search optimisation (SEO). Clear plans, fair fees and launches to look forward to.",
+   "title": "WeberAct | B2B Websites, Technical SEO & AI Automation",
+   "description": "Premium websites, technical SEO, AI business automation and B2B lead generation for manufacturers, exporters and B2B companies. Build. Automate. Accelerate.",
    "og_title": "WeberAct — The website your business deserves to be represented by",
    "og_description": "Premium websites, web systems, automations and search optimisation (SEO). Clear plans. Fair fees. Launches to look forward to."
   },
   "services": {
-   "title": "Services — WeberAct",
-   "description": "Premium websites, web systems, automations and search optimisation (SEO) from WeberAct. Every project has a fixed scope, a fixed fee and a launch date in writing."
+   "title": "Services: B2B Websites, SEO, Automation & Lead Generation",
+   "description": "Website development, technical SEO, AI automation and B2B lead generation from WeberAct. Every project has a fixed scope, a fixed fee and a launch date in writing.",
+   "og_title": "",
+   "og_description": ""
   },
   "work": {
-   "title": "Work — WeberAct",
-   "description": "Selected websites, web systems, automations and search projects by WeberAct."
+   "title": "Selected Work: B2B Websites, Systems & Automations | WeberAct",
+   "description": "Selected websites, web systems, automations and search projects by WeberAct.",
+   "og_title": "",
+   "og_description": ""
   },
   "method": {
-   "title": "Method — WeberAct",
-   "description": "Analyse, create, track: how every WeberAct project runs, from a written spec to monthly numbers."
+   "title": "Our Method: Analyse, Create, Track | WeberAct",
+   "description": "Analyse, create, track: how every WeberAct project runs, from a written spec to monthly numbers.",
+   "og_title": "",
+   "og_description": ""
   },
   "about": {
-   "title": "About — WeberAct",
-   "description": "WeberAct is a studio for premium websites, web systems and automations, run by its founder and co-founder."
+   "title": "About WeberAct: Websites, SEO & Automation Studio",
+   "description": "WeberAct is a studio for premium websites, web systems and automations, run by its founder and co-founder.",
+   "og_title": "",
+   "og_description": ""
   },
   "proposal": {
-   "title": "Request a proposal — WeberAct",
-   "description": "Tell us about your business in two minutes. We reply within one working day with next steps and a written proposal."
+   "title": "Request a Proposal: Website, SEO or Automation | WeberAct",
+   "description": "Tell us about your business in two minutes. We reply within one working day with next steps and a written proposal.",
+   "og_title": "",
+   "og_description": ""
   },
   "terms": {
-   "title": "Terms & Conditions — WeberAct",
-   "description": "The terms that apply to WeberAct websites, web systems, automations and search services."
+   "title": "Terms and Conditions for WeberAct Services",
+   "description": "The terms that apply to WeberAct websites, web systems, automations and search services.",
+   "og_title": "",
+   "og_description": ""
   },
   "privacy": {
-   "title": "Privacy Policy — WeberAct",
-   "description": "How WeberAct collects, uses, shares and protects personal data, and how you can see, correct or delete yours."
+   "title": "Privacy Policy: How WeberAct Handles Your Data",
+   "description": "How WeberAct collects, uses, shares and protects personal data, and how you can see, correct or delete yours.",
+   "og_title": "",
+   "og_description": ""
+  },
+  "website-development": {
+   "title": "B2B Website Development for Manufacturers & Exporters | WeberAct",
+   "description": "Premium B2B website development and redesigns for manufacturers, exporters and B2B companies. Fixed scope, fixed fee and a launch date in writing.",
+   "og_title": "",
+   "og_description": ""
+  },
+  "technical-seo": {
+   "title": "Technical SEO Services & SEO Audits for B2B | WeberAct",
+   "description": "Technical SEO, SEO audits and international SEO for manufacturers, exporters and B2B companies, with plain monthly reporting and no ranking guarantees.",
+   "og_title": "",
+   "og_description": ""
+  },
+  "ai-automation": {
+   "title": "AI Business Automation & Workflow Automation | WeberAct",
+   "description": "AI business automation for B2B teams: lead capture, qualification, CRM updates, follow-ups, invoices and reports, built in n8n, Zapier or Make.",
+   "og_title": "",
+   "og_description": ""
+  },
+  "b2b-lead-generation": {
+   "title": "B2B Lead Generation for Manufacturers & Exporters | WeberAct",
+   "description": "B2B lead generation for manufacturers and exporters: target lists, compliant outreach, reply qualification and reporting in the US, UK, UAE, Canada and Australia.",
+   "og_title": "",
+   "og_description": ""
+  },
+  "international": {
+   "title": "International Clients: US, UK, UAE, Canada, Australia | WeberAct",
+   "description": "How WeberAct works with B2B companies in the US, UK, UAE, Canada and Australia: remotely, in English, with a fixed fee and everything agreed in writing.",
+   "og_title": "",
+   "og_description": ""
   }
  },
  "common": {
@@ -600,5 +657,625 @@
   ],
   "contact_label": "Prefer to write directly?",
   "done_title": "Thank you. Your request is with us."
+ },
+ "pages": {
+  "website-development": {
+   "service_key": "websites",
+   "crumb": "Website development",
+   "cta_label": "Request a website proposal",
+   "hero": [
+    "Website development",
+    "for B2B companies."
+   ],
+   "lede": "Premium websites for manufacturers, exporters and B2B companies: written, designed and built to make you look as established as you are, and to turn serious buyers into enquiries.",
+   "answer_q": "What is B2B website development?",
+   "answer": "B2B website development is the planning, writing, design and build of a website for a company that sells to other businesses. It is shaped around how buyers check a supplier: they compare capabilities, look for proof of credibility and then send an enquiry or request a quote. WeberAct delivers it with a fixed scope, a fixed fee and a launch date agreed in writing.",
+   "who_title": "Who it is for",
+   "who": [
+    {
+     "title": "Manufacturers",
+     "text": "Capability and product pages, the specifications buyers ask for, and a request-for-quote form that reaches the right person."
+    },
+    {
+     "title": "Exporters and importers",
+     "text": "Clear product ranges, the markets you supply and enquiry routes that work for buyers in other countries and time zones."
+    },
+    {
+     "title": "B2B and professional services",
+     "text": "Service pages that explain what you do, who it is for and how to start, written for the people who sign off the decision."
+    },
+    {
+     "title": "Growing international businesses",
+     "text": "A website that looks as established as the business behind it, in clear English for buyers in the US, UK, UAE, Canada and Australia."
+    }
+   ],
+   "included_title": "What is included",
+   "included": [
+    {
+     "title": "Strategy and copy",
+     "text": "We learn your business, your buyers and their questions, then write every page around them."
+    },
+    {
+     "title": "Bespoke design",
+     "text": "No templates. A visual identity on the web that looks like your business at its best, on every screen size."
+    },
+    {
+     "title": "Fast, mobile-first build",
+     "text": "Built for speed and accessibility, and tested on phones, tablets and desktops before launch."
+    },
+    {
+     "title": "Search foundations",
+     "text": "Page titles, descriptions, headings, a sitemap, structured data, Google Search Console and Google Analytics 4 set up from day one."
+    },
+    {
+     "title": "Enquiry and quote forms",
+     "text": "Forms that ask the questions you need to price a job, with WhatsApp and click-to-call where your buyers prefer them."
+    },
+    {
+     "title": "An admin you can use, in your name",
+     "text": "Edit pages yourself. Code, domain and hosting are yours, with documentation and a walkthrough at handover."
+    }
+   ],
+   "process_title": "How a project works",
+   "process": [
+    {
+     "title": "Analyse",
+     "text": "A consultation about your business, buyers and goals, then a written proposal with the scope, fee and launch date."
+    },
+    {
+     "title": "Write and design",
+     "text": "Copy and design shown to you on real content, with your feedback built in at each round."
+    },
+    {
+     "title": "Build and test",
+     "text": "The site is built, checked for speed, accessibility and search readiness, and tested on real devices."
+    },
+    {
+     "title": "Launch and track",
+     "text": "We launch on the agreed date, confirm analytics and Search Console, and report what the site delivers."
+    }
+   ],
+   "cost_title": "How much does B2B website development cost?",
+   "cost_text": [
+    "The cost depends on the scope, not on a rate card. Every project has a fixed fee in a written proposal, in US dollars or your local currency, agreed before any work starts. The fee only changes if you ask for more, and any change is confirmed in writing first.",
+    "These are the things that change the scope most:"
+   ],
+   "cost_factors": [
+    "The number of pages and page templates",
+    "Custom features such as quote builders, catalogues or client portals",
+    "Integrations with your CRM, booking or other business tools",
+    "Whether we write the copy, and how much content needs moving from an old site",
+    "A redesign of an existing website, including redirects so search traffic is kept"
+   ],
+   "faq_title": "Questions about website development",
+   "faq": [
+    {
+     "q": "How long does it take to build a B2B website?",
+     "a": "Most projects take between two and eight weeks from the signed proposal, depending on the number of pages and any custom features. The launch date is written into the proposal before work starts."
+    },
+    {
+     "q": "Can you redesign our website without losing search traffic?",
+     "a": "Yes. A redesign starts with a list of your current pages and the searches they already bring in. Every address that changes gets a permanent redirect, content that ranks is kept or improved, and we check Search Console for errors after launch."
+    },
+    {
+     "q": "Will we be able to edit the website ourselves?",
+     "a": "Yes. You get an admin to edit pages and content, plus a walkthrough at handover. You can also ask us to make changes."
+    },
+    {
+     "q": "Who owns the website?",
+     "a": "You do. The code, domain, hosting and accounts are in your name, with documentation at handover."
+    },
+    {
+     "q": "What makes a manufacturing website generate enquiries?",
+     "a": "Buyers need to find the capability they are looking for quickly, trust that you can deliver it, and know how to ask for a quote. That means clear capability and product pages, proof such as certifications and project examples where you have them, fast pages on mobile, and a short quote form on every relevant page."
+    }
+   ],
+   "sources": [],
+   "related": [
+    "technical-seo",
+    "b2b-lead-generation",
+    "ai-automation"
+   ]
+  },
+  "technical-seo": {
+   "service_key": "search",
+   "crumb": "Technical SEO",
+   "cta_label": "Request an SEO proposal",
+   "hero": [
+    "Technical SEO",
+    "for B2B companies."
+   ],
+   "lede": "Technical SEO, SEO audits and organic growth for manufacturers, exporters and B2B companies: so search engines and AI answer engines can find, understand and recommend your pages.",
+   "answer_q": "What is technical SEO?",
+   "answer": "Technical SEO is the work that lets search engines and AI answer engines find, crawl, understand and index a website. It covers site structure, speed, mobile usability, indexing, canonical addresses, structured data and internal links. It does not replace useful content; it makes sure useful content can be found and trusted.",
+   "who_title": "Who it is for",
+   "who": [
+    {
+     "title": "Manufacturers and industrial companies",
+     "text": "Product, capability and specification pages that buyers search for but that are not indexed, are duplicated or load slowly."
+    },
+    {
+     "title": "Exporters selling abroad",
+     "text": "International SEO: the right pages for each market, consistent canonical addresses, and country targeting only where it is justified."
+    },
+    {
+     "title": "B2B service companies",
+     "text": "Service pages that compete for commercial searches, structured so the right page ranks for the right search."
+    },
+    {
+     "title": "Companies after a redesign",
+     "text": "Lost traffic, broken redirects or pages dropped from the index after a new website went live."
+    }
+   ],
+   "included_title": "What is included",
+   "included": [
+    {
+     "title": "Technical audit and fixes",
+     "text": "Crawling, indexing, redirects, broken links, duplicate pages, mobile usability and Core Web Vitals, with every issue ranked by impact."
+    },
+    {
+     "title": "Keyword research and page mapping",
+     "text": "The searches your buyers make, mapped so each topic has one page and pages do not compete with each other."
+    },
+    {
+     "title": "On-page optimisation",
+     "text": "Titles, descriptions, headings, internal links and content improvements on the pages that matter most."
+    },
+    {
+     "title": "Structured data",
+     "text": "Organization, service, breadcrumb and other schema markup that is valid and matches what the page shows."
+    },
+    {
+     "title": "AI-answer visibility",
+     "text": "Clear answers to buyer questions and consistent business details, so AI answer engines can understand and cite you."
+    },
+    {
+     "title": "Measurement and reporting",
+     "text": "Google Search Console and Google Analytics 4 set up and checked, with a plain-language report every month."
+    }
+   ],
+   "process_title": "How it works",
+   "process": [
+    {
+     "title": "Audit",
+     "text": "A full technical review of the site, its indexing and its performance, using your own Search Console data where you have it."
+    },
+    {
+     "title": "Prioritise",
+     "text": "A written list of fixes and opportunities, ranked by expected impact and effort, agreed with you."
+    },
+    {
+     "title": "Fix and build",
+     "text": "Technical fixes, page improvements and new pages where a real gap exists."
+    },
+    {
+     "title": "Measure and refine",
+     "text": "Monthly reporting on visibility, traffic and enquiries, and the next round of improvements."
+    }
+   ],
+   "cost_title": "How much do technical SEO services cost?",
+   "cost_text": [
+    "SEO is offered as a one-off audit or as a fixed monthly plan. Every project has a fixed fee in a written proposal, in US dollars or your local currency, agreed before any work starts. The fee only changes if you ask for more, and any change is confirmed in writing first.",
+    "What changes the scope most:"
+   ],
+   "cost_factors": [
+    "The size of the site and how many pages need work",
+    "How many countries or languages you target",
+    "The current technical state of the site",
+    "How much new content is needed"
+   ],
+   "faq_title": "Questions about SEO",
+   "faq": [
+    {
+     "q": "How long does SEO take to work?",
+     "a": "Fixes for serious technical problems, such as pages blocked from search or broken redirects, can show results soon after search engines recrawl the pages. Ranking for competitive commercial searches usually takes months. Google says that in most cases SEOs need four months to a year to implement improvements and then see potential benefit."
+    },
+    {
+     "q": "How does technical SEO improve organic visibility?",
+     "a": "Search engines can only rank pages they can crawl, understand and index. Technical SEO removes what blocks that, such as broken links, duplicate pages, slow loading and missing structured data, so the content you already have can compete."
+    },
+    {
+     "q": "What does a technical SEO audit include?",
+     "a": "Crawlability and indexing, sitemaps and robots rules, canonical addresses, redirects and broken links, duplicate and thin pages, mobile usability, Core Web Vitals, structured data, internal links and page titles and descriptions, each with a priority and a recommended fix."
+    },
+    {
+     "q": "What should businesses look for in an SEO agency?",
+     "a": "A clear written scope, reporting on enquiries and not only on rankings, access to your own Search Console and analytics, methods that follow Google’s search guidelines, and no guaranteed rankings. Nobody can guarantee a position in Google."
+    },
+    {
+     "q": "Do you guarantee rankings?",
+     "a": "No. Anyone who does is guessing. We do the technical and content work properly and report what changed every month."
+    }
+   ],
+   "sources": [
+    {
+     "label": "Google: Do you need an SEO?",
+     "url": "https://developers.google.com/search/docs/fundamentals/do-i-need-seo"
+    },
+    {
+     "label": "Google: Core Web Vitals",
+     "url": "https://developers.google.com/search/docs/appearance/core-web-vitals"
+    }
+   ],
+   "related": [
+    "website-development",
+    "b2b-lead-generation",
+    "international"
+   ]
+  },
+  "ai-automation": {
+   "service_key": "automations",
+   "crumb": "AI business automation",
+   "cta_label": "Request an automation proposal",
+   "hero": [
+    "AI business automation,",
+    "built around your team."
+   ],
+   "lede": "Workflow, CRM and sales automation that captures, answers, qualifies and follows up every enquiry, and keeps orders, invoices and reports moving without copy and paste.",
+   "answer_q": "What is AI business automation?",
+   "answer": "AI business automation uses software workflows, with AI models where they genuinely help, to carry out repetitive work without someone doing it by hand: replying to enquiries, qualifying leads, updating a CRM, preparing invoices or sending reports. Each workflow follows rules you approve, and anything unusual is passed to a person.",
+   "who_title": "Who it is for",
+   "who": [
+    {
+     "title": "Sales teams with many enquiries",
+     "text": "Every enquiry answered and followed up, even outside working hours, with hot leads sent straight to the right person."
+    },
+    {
+     "title": "Manufacturers and exporters",
+     "text": "Quote requests collected in a consistent format and followed up across time zones without losing track."
+    },
+    {
+     "title": "Operations teams",
+     "text": "Orders, invoices and stock kept in sync between the tools you already use."
+    },
+    {
+     "title": "Owners and managers",
+     "text": "Weekly reports that write themselves, from the systems that hold the numbers."
+    }
+   ],
+   "included_title": "What we automate",
+   "included": [
+    {
+     "title": "Lead capture and instant replies",
+     "text": "Website, WhatsApp, Instagram and email enquiries in one place, each answered in your tone."
+    },
+    {
+     "title": "Lead qualification and CRM",
+     "text": "Leads checked for budget, location and need, then logged and assigned in Google Sheets, HubSpot or the CRM you already use."
+    },
+    {
+     "title": "Follow-ups and owner alerts",
+     "text": "Polite follow-ups until the buyer replies, and an alert on your phone when a valuable lead arrives."
+    },
+    {
+     "title": "Orders, invoices and reports",
+     "text": "Data moved between your tools automatically, with a weekly summary."
+    },
+    {
+     "title": "AI assistants",
+     "text": "Assistants that answer repeat questions or handle multi-step tasks, where they save real time and with a person in the loop."
+    }
+   ],
+   "process_title": "How it works",
+   "process": [
+    {
+     "title": "Map",
+     "text": "We document the current process, who does what, which tools are involved and where time is lost."
+    },
+    {
+     "title": "Design",
+     "text": "A written workflow: what is automated, what a person approves, and what happens when something unusual arrives."
+    },
+    {
+     "title": "Build and test",
+     "text": "Built with n8n, Zapier or Make, connected to your tools and tested with real examples before going live."
+    },
+    {
+     "title": "Hand over and monitor",
+     "text": "Documentation, a walkthrough and monitoring, so you always know what runs and why."
+    }
+   ],
+   "cost_title": "How much does AI automation cost?",
+   "cost_text": [
+    "Every project has a fixed fee in a written proposal, in US dollars or your local currency, agreed before any work starts. The fee only changes if you ask for more, and any change is confirmed in writing first.",
+    "Software subscriptions and AI or messaging usage fees are paid by you, in accounts you own. What changes the scope most:"
+   ],
+   "cost_factors": [
+    "The number of steps and tools in the workflow",
+    "Whether AI is needed, or simple rules are enough",
+    "WhatsApp Business set-up, which needs approval from Meta",
+    "How much monitoring and reporting you want"
+   ],
+   "faq_title": "Questions about automation",
+   "faq": [
+    {
+     "q": "What business processes can be automated?",
+     "a": "Most repeated, rule-based work: replying to and qualifying enquiries, follow-ups, CRM updates, quote requests, invoices, order and stock updates, and reports. Work that needs judgement stays with your team, and the automation hands it to them."
+    },
+    {
+     "q": "How can companies automate their lead generation?",
+     "a": "By connecting the channels where leads arrive to a workflow that replies instantly, asks qualifying questions, logs each lead in the CRM, assigns it to a person and follows up until the buyer responds. Outreach to new prospects can be automated too, within the email rules of each country."
+    },
+    {
+     "q": "Will automation replace our sales team?",
+     "a": "No. It removes copying, pasting and waiting, so your team spends its time on conversations that need a person."
+    },
+    {
+     "q": "Is customer data safe?",
+     "a": "Workflows run in accounts you own, access is limited to what each step needs, and personal data is only sent to an AI tool when that is necessary and agreed with you."
+    },
+    {
+     "q": "How long does an automation project take?",
+     "a": "Most workflows take two to four weeks. WhatsApp automation also needs Meta’s approval, and larger AI assistant projects can take five to eight weeks. The timeline is written into the proposal."
+    }
+   ],
+   "sources": [],
+   "related": [
+    "b2b-lead-generation",
+    "website-development",
+    "technical-seo"
+   ]
+  },
+  "b2b-lead-generation": {
+   "service_key": "leadgen",
+   "crumb": "B2B lead generation",
+   "cta_label": "Request a lead generation proposal",
+   "hero": [
+    "B2B lead generation",
+    "for manufacturers",
+    "and exporters."
+   ],
+   "lede": "Lead generation systems that find the right companies, start the right conversations and turn replies into qualified sales calls, in the US, UK, UAE, Canada and Australia.",
+   "answer_q": "What is a B2B lead generation system?",
+   "answer": "A B2B lead generation system is a repeatable process that finds companies likely to buy from you, contacts the right people within the rules of each country, and turns their replies into qualified sales conversations. It combines a defined target market, verified contact data, personalised outreach, a website that converts and automation that qualifies and follows up every reply.",
+   "who_title": "Who it is for",
+   "who": [
+    {
+     "title": "Manufacturers",
+     "text": "Reaching distributors, OEMs and procurement teams who buy what you make."
+    },
+    {
+     "title": "Exporters",
+     "text": "Finding and contacting buyers in new countries, with messages written for each market."
+    },
+    {
+     "title": "Importers and distributors",
+     "text": "Building a steady flow of business customers for the products you bring in."
+    },
+    {
+     "title": "B2B service companies",
+     "text": "Booking conversations with decision makers in the industries you serve best."
+    }
+   ],
+   "included_title": "What is included",
+   "included": [
+    {
+     "title": "Ideal customer profile and target list",
+     "text": "The countries, industries, company sizes and roles most likely to buy, agreed with you in writing."
+    },
+    {
+     "title": "Contact data and verification",
+     "text": "Business contacts gathered from sources that can be used lawfully in each market, and every address verified before sending."
+    },
+    {
+     "title": "Outreach that respects the rules",
+     "text": "Personalised email sequences from properly set-up, warmed-up sending domains, with a clear sender and a working opt-out in every message."
+    },
+    {
+     "title": "Reply handling and qualification",
+     "text": "Replies sorted automatically, qualified against your criteria and passed to your team, with meetings booked where you want them."
+    },
+    {
+     "title": "A website that converts",
+     "text": "The pages prospects visit after they read your email, with a short enquiry or quote form."
+    },
+    {
+     "title": "Reporting",
+     "text": "Replies, meetings and pipeline reported every month, and the targeting and messages refined."
+    }
+   ],
+   "process_title": "How it works",
+   "process": [
+    {
+     "title": "Define",
+     "text": "Who you sell to, in which countries, and what a qualified lead means for your business."
+    },
+    {
+     "title": "Build",
+     "text": "Target lists, sending domains and the messages for each market, written with you."
+    },
+    {
+     "title": "Warm up and launch",
+     "text": "New sending domains are warmed up for two to three weeks before campaigns run at full volume."
+    },
+    {
+     "title": "Qualify and hand over",
+     "text": "Interested replies are qualified and passed to your team or booked straight into a call."
+    },
+    {
+     "title": "Report and refine",
+     "text": "Monthly results, and changes to the list, the message or the offer based on what buyers respond to."
+    }
+   ],
+   "cost_title": "How much does B2B lead generation cost?",
+   "cost_text": [
+    "Every project has a fixed fee in a written proposal, in US dollars or your local currency, agreed before any work starts. The fee only changes if you ask for more, and any change is confirmed in writing first.",
+    "Data, email and software subscriptions are paid by you, in accounts you own. What changes the scope most:"
+   ],
+   "cost_factors": [
+    "How many countries and industries you target",
+    "The size of the target list and the sending volume",
+    "How many message variations each market needs",
+    "Whether reply handling and meeting booking are included"
+   ],
+   "faq_title": "Questions about lead generation",
+   "faq": [
+    {
+     "q": "How can manufacturers generate international B2B leads?",
+     "a": "By combining three things: a website with clear capability pages and a short quote form, search visibility for the products and processes buyers search for, and targeted outreach to companies in each market. Each channel feeds the same qualification process, so your team only talks to buyers who fit."
+    },
+    {
+     "q": "Is cold email to businesses legal in the US, UK, Canada, Australia and the UAE?",
+     "a": "It depends on the country. In the US, the CAN-SPAM Act covers business email and requires an accurate sender and a working opt-out. In the UK, the PECR rules allow email to companies without prior consent if you identify yourself and offer an opt-out, while sole traders need consent. Canada’s CASL and Australia’s Spam Act require consent, which can be implied or inferred when a business publishes an address and the message relates to that person’s role. The UAE has its own personal data protection law. We check the rules for each campaign. This is general information, not legal advice."
+    },
+    {
+     "q": "How long does it take to see results?",
+     "a": "New sending domains need two to three weeks of warm-up before campaigns run at full volume. After that, replies arrive as the sequences run, and targeting improves each month as we learn which companies and messages respond."
+    },
+    {
+     "q": "How are leads qualified?",
+     "a": "Against criteria you set, such as country, company size, product need and timing. Replies that match are passed to your team with the context they need; the rest are logged and followed up or closed politely."
+    },
+    {
+     "q": "Do you guarantee a number of leads or meetings?",
+     "a": "No. Results depend on the market, the offer and the list. We agree the activity and the reporting in writing, and report honestly on what it produces."
+    }
+   ],
+   "sources": [
+    {
+     "label": "FTC: CAN-SPAM Act compliance guide",
+     "url": "https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business"
+    },
+    {
+     "label": "ICO: Business-to-business marketing",
+     "url": "https://ico.org.uk/for-organisations/direct-marketing/business-to-business-marketing/"
+    },
+    {
+     "label": "Government of Canada: CASL",
+     "url": "https://ised-isde.canada.ca/site/canada-anti-spam-legislation/en"
+    },
+    {
+     "label": "ACMA: Spam rules",
+     "url": "https://www.acma.gov.au/avoid-sending-spam"
+    }
+   ],
+   "related": [
+    "ai-automation",
+    "website-development",
+    "international"
+   ]
+  },
+  "international": {
+   "service_key": "",
+   "crumb": "International clients",
+   "cta_label": "Request a proposal",
+   "hero": [
+    "Working with",
+    "international clients."
+   ],
+   "lede": "How WeberAct works with B2B companies in the United States, United Kingdom, United Arab Emirates, Canada and Australia: remotely, in English, with everything agreed in writing.",
+   "answer_q": "Does WeberAct work with businesses in the US, UK, UAE, Canada and Australia?",
+   "answer": "Yes. WeberAct works remotely with B2B companies in these countries. Proposals, calls, progress updates and reports all happen online, in English, with fees in US dollars or your local currency. WeberAct has no offices in these countries, so the same team runs your project wherever you are.",
+   "who_title": "What we plan for in each market",
+   "who": [
+    {
+     "title": "United States",
+     "text": "US English spelling, and imperial units where your buyers use them. Business email follows the CAN-SPAM Act, and some states, such as California, have their own privacy laws."
+    },
+    {
+     "title": "United Kingdom",
+     "text": "UK English spelling. Personal data falls under UK GDPR, email marketing under PECR, and analytics or marketing cookies need consent before they are set."
+    },
+    {
+     "title": "United Arab Emirates",
+     "text": "Clear English pages for international and local buyers. Personal data falls under the UAE’s federal data protection law, and free zones such as DIFC and ADGM have their own data protection rules."
+    },
+    {
+     "title": "Canada",
+     "text": "Canadian English spelling. Commercial email falls under CASL, which needs consent, and personal information under PIPEDA."
+    },
+    {
+     "title": "Australia",
+     "text": "Australian English spelling. Commercial email falls under the Spam Act 2003, which needs consent, and personal information under the Privacy Act 1988."
+    }
+   ],
+   "included_title": "How we work across borders",
+   "included": [
+    {
+     "title": "Everything in writing",
+     "text": "Scope, fee and launch date agreed in a written proposal before work starts."
+    },
+    {
+     "title": "Calls at a time that suits you",
+     "text": "Meetings are scheduled for your working hours, with written updates in between."
+    },
+    {
+     "title": "Replies within one working day",
+     "text": "Every message answered within a working day, before and after launch."
+    },
+    {
+     "title": "Accounts in your name",
+     "text": "Domains, hosting, analytics and automation tools are set up in your accounts, so you own them."
+    }
+   ],
+   "process_title": "How a project runs",
+   "process": [
+    {
+     "title": "Consultation",
+     "text": "A video call about your business, buyers and goals, at a time that suits your time zone."
+    },
+    {
+     "title": "Written proposal",
+     "text": "Scope, fixed fee in US dollars or your local currency, and a launch date."
+    },
+    {
+     "title": "Delivery",
+     "text": "Work shown to you regularly on real content, with your feedback built in."
+    },
+    {
+     "title": "Launch and reporting",
+     "text": "Launch on the agreed date and a plain-language report every month after that."
+    }
+   ],
+   "cost_title": "Should we have a separate website for each country?",
+   "cost_text": [
+    "Only when it genuinely helps buyers. Separate country pages or sites make sense when products, prices, regulations or language differ between markets. When the offer is the same everywhere, one clear English website, with a page explaining how you serve international buyers, usually serves buyers and search engines better than near-duplicate country pages.",
+    "Country-specific pages are worth building when they have:"
+   ],
+   "cost_factors": [
+    "Different products, prices or delivery terms for that country",
+    "Different regulations, certifications or standards buyers must see",
+    "A different language, or local spelling and units that matter to buyers",
+    "Real local proof, such as projects or clients in that country"
+   ],
+   "faq_title": "Questions from international clients",
+   "faq": [
+    {
+     "q": "Do you have offices in these countries?",
+     "a": "No. We work remotely with clients in these countries, and we do not claim a local office we do not have."
+    },
+    {
+     "q": "Which currency do you invoice in?",
+     "a": "Proposals and invoices are in US dollars or your local currency, agreed in the proposal."
+    },
+    {
+     "q": "How do meetings work across time zones?",
+     "a": "Calls are scheduled at a time that works for you, and progress is shared in writing between calls so nothing waits for a meeting."
+    },
+    {
+     "q": "Can you help us win buyers in a new country?",
+     "a": "Yes. That usually combines a website that explains what you supply to that market, search visibility for what buyers there search for, and targeted outreach within that country’s email rules."
+    }
+   ],
+   "sources": [
+    {
+     "label": "ICO: UK GDPR and PECR guidance",
+     "url": "https://ico.org.uk/for-organisations/direct-marketing/business-to-business-marketing/"
+    },
+    {
+     "label": "Government of Canada: CASL",
+     "url": "https://ised-isde.canada.ca/site/canada-anti-spam-legislation/en"
+    },
+    {
+     "label": "ACMA: Spam rules",
+     "url": "https://www.acma.gov.au/avoid-sending-spam"
+    }
+   ],
+   "related": [
+    "website-development",
+    "technical-seo",
+    "b2b-lead-generation"
+   ]
+  }
  }
 }

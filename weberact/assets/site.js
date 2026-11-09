@@ -66,7 +66,7 @@
 
   // smooth scrolling
   if (!reduce){
-    const sc = d.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js';
+    const sc = d.createElement('script'); sc.src = 'assets/vendor/lenis.min.js';
     sc.onload = () => { try {
       const l = new Lenis({ lerp:.1 }); const raf = t => { l.raf(t); requestAnimationFrame(raf); }; requestAnimationFrame(raf);
       d.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => { const id = a.getAttribute('href'); const t = id.length > 1 && d.querySelector(id); if (t){ e.preventDefault(); l.scrollTo(t, { offset:-90 }); } }));
@@ -74,6 +74,34 @@
     } catch(e){} };
     d.head.appendChild(sc);
   }
+
+  // analytics: Google Analytics loads only after the visitor accepts (the ID is set in the admin panel).
+  // Events: generate_lead (proposal sent), whatsapp_click, email_click, phone_click, booking_click, cta_click.
+  const GA = window.WA_GA;
+  let consent = null; try { consent = localStorage.getItem('wa-consent'); } catch(e){}
+  window.dataLayer = window.dataLayer || [];
+  function loadGA(){
+    if (!GA || window.gtag) return;
+    window.gtag = function(){ dataLayer.push(arguments); };
+    gtag('js', new Date()); gtag('config', GA, { anonymize_ip:true });
+    const g = d.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA); d.head.appendChild(g);
+  }
+  window.WA_track = (name, params) => { try { if (window.gtag) gtag('event', name, params || {}); } catch(e){} };
+  if (GA && consent === 'granted') loadGA();
+  if (GA && !consent){
+    const box = d.createElement('div'); box.className = 'consent'; box.setAttribute('role', 'region'); box.setAttribute('aria-label', 'Analytics cookies');
+    box.innerHTML = '<span>We use Google Analytics cookies to see which pages help visitors, only if you agree. <a href="privacy.html#p9">Privacy policy</a></span><div class="row"><button class="yes" type="button">Accept analytics</button><button class="no" type="button">No thanks</button></div>';
+    const choose = v => { try { localStorage.setItem('wa-consent', v); } catch(e){} box.remove(); if (v === 'granted') loadGA(); };
+    box.querySelector('.yes').addEventListener('click', () => choose('granted'));
+    box.querySelector('.no').addEventListener('click', () => choose('denied'));
+    d.body.appendChild(box);
+  }
+  d.addEventListener('click', e => {
+    const a = e.target.closest('a[href]'); if (!a) return;
+    const href = a.getAttribute('href') || '';
+    const name = a.dataset.track || (/^https:\/\/(wa\.me|api\.whatsapp\.com)\//.test(href) ? 'whatsapp_click' : href.startsWith('mailto:') ? 'email_click' : href.startsWith('tel:') ? 'phone_click' : /proposal\.html/.test(href) ? 'cta_click' : '');
+    if (name) WA_track(name, { link_url: href.slice(0, 200), page: location.pathname });
+  });
 
   // reading progress: a gold hairline across the top
   const bar = d.createElement('div'); bar.className = 'progress-line'; bar.setAttribute('aria-hidden', 'true'); d.body.appendChild(bar);

@@ -15,12 +15,14 @@ const R = ctx.WA_RENDER, content = JSON.parse(readFileSync(contentFile, 'utf8'))
 const py = JSON.parse(execFileSync('python3', ['-c', `
 import json, sys; sys.path.insert(0, ${JSON.stringify(here)}); import cms
 c = json.load(open(${JSON.stringify(contentFile)}))
-print(json.dumps({k: f(c) for k, f in cms.RENDER.items()}))`], { encoding: 'utf8', maxBuffer: 1 << 26 }));
+out = {k: f(c) for k, f in cms.RENDER.items()}
+out.update({'page.' + slug: cms.r_page(c, slug) for slug in c.get('pages', {})})
+print(json.dumps(out))`], { encoding: 'utf8', maxBuffer: 1 << 26 }));
 let bad = 0;
-const keys = new Set([...Object.keys(py), ...Object.keys(R.RENDER)]);
+const keys = new Set([...Object.keys(py), ...Object.keys(R.RENDER), ...Object.keys(content.pages || {}).map(s => 'page.' + s)]);
 for (const k of keys){
-  if (!(k in py) || !(k in R.RENDER)){ console.log('missing on one side:', k); bad++; continue; }
-  const js = R.RENDER[k](content);
+  const js = R.renderKey(k, content);
+  if (!(k in py) || js == null){ console.log('missing on one side:', k); bad++; continue; }
   if (js !== py[k]){
     let i = 0; while (i < js.length && js[i] === py[k][i]) i++;
     console.log(`DIFF ${k} at ${i}\n  py: ${JSON.stringify(py[k].slice(Math.max(0, i - 60), i + 60))}\n  js: ${JSON.stringify(js.slice(Math.max(0, i - 60), i + 60))}`); bad++;

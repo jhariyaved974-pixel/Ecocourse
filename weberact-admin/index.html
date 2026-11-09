@@ -384,8 +384,8 @@ a.mini{text-decoration:none;display:inline-block}
   const C = window.WA_CONNECT || { ready: false };
   const STATUS = [['new', 'New'], ['contacted', 'Contacted'], ['proposal_sent', 'Proposal sent'], ['won', 'Won'], ['lost', 'Lost']];
   const SL = Object.fromEntries(STATUS);
-  const SERVICES = ['Premium website', 'Web system', 'Automations', 'Search optimisation (SEO)', 'Not sure yet'];
-  const SHORT = { 'Premium website': 'Website', 'Web system': 'Web system', 'Automations': 'Automation', 'Search optimisation (SEO)': 'SEO', 'Not sure yet': 'Not sure' };
+  const SERVICES = ['Premium website', 'Web system', 'Automations', 'Search optimisation (SEO)', 'B2B lead generation', 'Not sure yet'];
+  const SHORT = { 'Premium website': 'Website', 'Web system': 'Web system', 'Automations': 'Automation', 'Search optimisation (SEO)': 'SEO', 'B2B lead generation': 'Lead gen', 'Not sure yet': 'Not sure' };
   const KEY = 'wa-admin-session';
   const APP_VIEWS = ['overview', 'enquiries', 'privacy', 'website', 'account'];
   const S = { mode: C.ready ? 'live' : 'sample', session: null, rows: [], priv: [], view: 'overview', open: null, dirty: false, loadedAt: null };
@@ -708,7 +708,27 @@ a.mini{text-decoration:none;display:inline-block}
   const STEP_LIST = (p, label, max, noun) => LS(p, label, STEP, { min: 1, max, noun, name: x => x.title, blank: () => ({ title: '', text: '' }) });
   const HERO = p => LN(p, 'Headline', { min: 1, max: 5, len: 34, help: 'One row per line, the way it breaks on a large screen.' });
   const SEO_PAGES = [['index', 'Home', ''], ['services', 'Services', 'services'], ['work', 'Work', 'work'], ['method', 'Method', 'method'], ['about', 'About', 'about'],
-    ['proposal', 'Request a proposal', 'proposal'], ['terms', 'Terms and conditions', 'terms'], ['privacy', 'Privacy policy', 'privacy']];
+    ['proposal', 'Request a proposal', 'proposal'], ['terms', 'Terms and conditions', 'terms'], ['privacy', 'Privacy policy', 'privacy'],
+    ['website-development', 'Website development', 'website-development'], ['technical-seo', 'Technical SEO', 'technical-seo'], ['ai-automation', 'AI business automation', 'ai-automation'],
+    ['b2b-lead-generation', 'B2B lead generation', 'b2b-lead-generation'], ['international', 'International clients', 'international']];
+  // one editor for every dedicated page (content.pages[slug]); the build turns it into the page and its structured data
+  const PAGE_EDITOR = (slug, nav) => { const b = 'pages.' + slug, card = [T('title', 'Title', { max: 70 }), TA('text', 'Text', { max: 320 })];
+    const cards = (k, label, max, noun) => LS(`${b}.${k}`, label, card, { min: 1, max, noun, name: x => x.title, blank: () => ({ title: '', text: '' }) });
+    return { id: slug, nav, grp: 'Service pages', page: slug + '.html', pre: [b], groups: [
+      G('Top of the page', [HERO(`${b}.hero`), TA(`${b}.lede`, 'Introduction', { max: 320 }), ROW(T(`${b}.crumb`, 'Short name', { max: 40, help: 'Used in the breadcrumb, the footer and related links.' }), T(`${b}.cta_label`, 'Main button', { max: 40 }))]),
+      G('Direct answer', [T(`${b}.answer_q`, 'Question', { max: 110 }), TA(`${b}.answer`, 'Answer', { max: 600, help: 'Two to four sentences that answer the question on their own. Search engines and AI answer engines quote this part.' })],
+        'The first thing under the heading: a plain answer to the main question people ask.'),
+      G('Who it is for', [T(`${b}.who_title`, 'Section title', { max: 70 }), cards('who', 'Cards', 6, 'card')]),
+      G('What is included', [T(`${b}.included_title`, 'Section title', { max: 70 }), cards('included', 'Items', 8, 'item')]),
+      G('How it works', [T(`${b}.process_title`, 'Section title', { max: 70 }), cards('process', 'Steps', 6, 'step')]),
+      G('Cost or details', [T(`${b}.cost_title`, 'Section title', { max: 110 }), LN(`${b}.cost_text`, 'Paragraphs', { min: 1, max: 4, area: true, noun: 'paragraph', len: 700 }),
+        LN(`${b}.cost_factors`, 'Checklist', { min: 0, max: 8, noun: 'point', len: 140 })]),
+      G('Questions and answers', [T(`${b}.faq_title`, 'Section title', { max: 70 }), LS(`${b}.faq`, 'Questions', [T('q', 'Question', { max: 140 }), TA('a', 'Answer', { max: 800 })],
+        { min: 1, max: 10, noun: 'question', name: x => x.q, blank: () => ({ q: '', a: '' }) })], 'Each answer is also published as structured data, so keep it exactly as true as the page.'),
+      G('Sources', [LS(`${b}.sources`, 'Sources', [T('label', 'Name', { max: 80 }), T('url', 'Address', { type: 'url', ph: 'https://' })],
+        { min: 0, max: 6, noun: 'source', name: x => x.label, blank: () => ({ label: '', url: '' }) })], 'Official sources for facts quoted on the page.'),
+    ] };
+  };
 
   const SECTIONS = [
     { id: 'home', nav: 'Home', grp: 'Pages', page: 'index.html', pre: ['home'], groups: [
@@ -771,9 +791,17 @@ a.mini{text-decoration:none;display:inline-block}
     ] },
     { id: 'settings', nav: 'Header, footer and contact', grp: 'Across the site', page: 'index.html', pre: ['settings'], groups: [
       G('Header', [T('settings.topline', 'Line above the header', { max: 60 }), T('settings.header_button', 'Header button', { max: 28 })]),
-      G('Contact details', [ROW(T('settings.email', 'Email', { type: 'email', ph: 'hello@weberact.co' }), T('settings.whatsapp', 'WhatsApp number', { ph: '+91 98765 43210', help: 'Include the country code.' }))],
+      G('Brand', [T('settings.tagline', 'Tagline', { max: 60, help: 'Used in search data and on the social share image.' }),
+        TA('settings.org_description', 'Company description', { max: 320, help: 'One factual sentence or two about what WeberAct does. Used in structured data for search and AI answer engines.' }),
+        LN('settings.areas_served', 'Countries served', { min: 0, max: 12, noun: 'country' })]),
+      G('Contact details', [ROW(T('settings.email', 'Email', { type: 'email', ph: 'hello@weberact.co' }), T('settings.whatsapp', 'WhatsApp number', { ph: '+91 98765 43210', help: 'Include the country code.' })),
+        T('settings.booking_url', 'Booking link', { type: 'url', ph: 'https://cal.com/…', help: 'Optional. A “Book a call” link appears in the footer once this is filled in.' })],
         'Shown on the proposal page, in the closing links and in the terms and privacy policy.'),
       G('Footer', [TA('settings.footer_blurb', 'Short description', { max: 160 }), ROW(T('settings.footer_left', 'Bottom line, left', { max: 40, help: '“© year WeberAct” follows it.' }), T('settings.footer_right', 'Bottom line, right', { max: 40 }))]),
+      G('Search engines and analytics', [ROW(T('settings.google_site_verification', 'Google Search Console code', { help: 'Only the code from the HTML tag method, not the whole tag.' }),
+          T('settings.bing_site_verification', 'Bing Webmaster Tools code', { help: 'Only the code from the meta tag method.' })),
+        T('settings.ga4_id', 'Google Analytics 4 measurement ID', { ph: 'G-XXXXXXXXXX', help: 'When set, visitors are asked for consent and analytics loads only if they accept.' })],
+        'Changes reach the website at the next publish.'),
       G('Social profiles', [T('settings.linkedin', 'LinkedIn', { type: 'url', ph: 'https://www.linkedin.com/company/…' }), T('settings.instagram', 'Instagram', { type: 'url', ph: 'https://www.instagram.com/…' }), T('settings.x', 'X', { type: 'url', ph: 'https://x.com/…' })],
         'Each link appears in the footer once it is filled in.'),
     ] },
@@ -791,6 +819,8 @@ a.mini{text-decoration:none;display:inline-block}
         ROW(T('legal.payment_providers', 'Payments and accounting'), T('legal.analytics_tool', 'Analytics'))]),
       G('How long data is kept', [T('legal.retention_requests', 'Months to keep enquiries that do not become projects'), ROW(T('legal.retention_projects', 'Years to keep project records'), T('legal.retention_accounts', 'Years to keep accounting records'))]),
     ] },
+    PAGE_EDITOR('website-development', 'Website development'), PAGE_EDITOR('technical-seo', 'Technical SEO'), PAGE_EDITOR('ai-automation', 'AI business automation'),
+    PAGE_EDITOR('b2b-lead-generation', 'B2B lead generation'), PAGE_EDITOR('international', 'International clients'),
     { id: 'media', nav: 'Images', grp: 'Library', custom: () => renderMedia() },
     { id: 'history', nav: 'History and backups', grp: 'Library', custom: () => renderHistory() },
   ];
@@ -983,7 +1013,7 @@ a.mini{text-decoration:none;display:inline-block}
     let d; try { d = fr.contentDocument; } catch (e) { return; }
     if (!d) return;
     let el = d.querySelector(`[data-cms="${p}"]`);
-    if (!el) for (const x of d.querySelectorAll('[data-cms-list]')){ const k = x.getAttribute('data-cms-list'), cp = RD.LIST_PATH[k] || k; if (p === cp || p.startsWith(cp + '.')){ el = x; break; } }
+    if (!el) for (const x of d.querySelectorAll('[data-cms-list]')){ const k = x.getAttribute('data-cms-list'), cp = RD.LIST_PATH[k] || (k.startsWith('page.') ? 'pages.' + k.slice(5) : k); if (p === cp || p.startsWith(cp + '.')){ el = x; break; } }
     if (!el) el = p === 'settings.topline' ? d.querySelector('.topline') : p === 'settings.header_button' ? d.querySelector('.head') : p.startsWith('settings.') || p.startsWith('services.items') ? d.querySelector('.foot') : null;
     if (!el) return;
     const w = d.defaultView, r = el.getBoundingClientRect();

@@ -34,14 +34,16 @@
 
   // ------------------------------------------------------------------ renderers
   function lines(items, delays){
-    return (items || []).map((t, i) => { const d = delays(i); return `<span class="line-mask"><span${d ? ` style="transition-delay:${d}s"` : ''}>${E(t)}</span></span>`; }).join('');
+    return (items || []).map((t, i) => { const d = delays(i); return `<span class="line-mask"><span${d ? ` style="transition-delay:${d}s"` : ''}>${E(t)}</span></span>`; }).join(' ');
   }
   const sec = x => x.toFixed(2).replace(/0+$/, '').replace(/\.$/, '').replace(/^0+/, '') || '0';
   const rHomeHero = c => lines(c.home.hero, i => sec(.05 + i * .1));
   const pageLines = key => c => lines(get(c, key), i => i ? sec(i * .12) : null);
 
+  // the dedicated page for a service key (websites, search, ...), if there is one
+  const pageFor = (c, key) => { for (const [slug, p] of Object.entries(c.pages || {})) if (p.service_key === key) return slug + '.html'; return null; };
   function rMake(c){
-    return c.home.make.map(m => `\n      <a class="col rv" href="services.html#${m.key}">${m.badge ? `<span class="new">${E(m.badge)}</span>` : ''}<span class="ic">${ICON[m.key]}</span><h3>${E(m.title)}</h3>` +
+    return c.home.make.map(m => `\n      <a class="col rv" href="${pageFor(c, m.key) || 'services.html#' + m.key}">${m.badge ? `<span class="new">${E(m.badge)}</span>` : ''}<span class="ic">${ICON[m.key]}</span><h3>${E(m.title)}</h3>` +
       `<p>${E(m.text)}</p><span class="more">Explore →</span></a>`).join('') + '\n    ';
   }
   function rTerminal(c){
@@ -49,7 +51,7 @@
     return '\n      <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>' + t.map((row, i) =>
       `\n      <div class="cmd" data-cmd="${A(row.cmd)}"><b>$</b> ${E(row.cmd)}</div>\n      <div class="out">${E(row.out)}${i === t.length - 1 ? ' <span class="ok">✓</span>' : ''}</div>`).join('') + '\n    ';
   }
-  const rMethodTitle = c => c.common.method.title.map(t => `<span>${E(t)}</span>`).join('');
+  const rMethodTitle = c => c.common.method.title.map(t => `<span>${E(t)}</span>`).join(' ');
   function slides(items){
     return items.map((t, i) => {
       const who = [t.role, t.company].filter(Boolean).join(', ');
@@ -73,12 +75,22 @@
     const used = Object.keys(CATS).filter(k => c.work.projects.some(p => p.category === k));
     return '\n      <button aria-pressed="true" data-f="all">All</button>' + used.map(k => `<button aria-pressed="false" data-f="${k}">${labels[k]}</button>`).join('') + '\n    ';
   }
-  const rServicesIndex = c => c.services.items.map(s => `<a href="#${s.key}">${E(s.chip)}</a>`).join('');
+  function rServicesIndex(c){
+    const keys = new Set(c.services.items.map(s => s.key));
+    const extra = Object.entries(c.pages || {}).filter(([, p]) => p.service_key && !keys.has(p.service_key));
+    return c.services.items.map(s => `<a href="#${s.key}">${E(s.chip)}</a>`).join('') + extra.map(([slug, p]) => `<a href="${slug}.html">${E(p.crumb)}</a>`).join('');
+  }
   const FLOW = '\n        <div class="flow rv" id="flow" aria-label="An automation running: enquiry, qualify, reply, CRM, alert" role="img">' +
     '\n          <span class="lab">Live example · one enquiry</span>' +
     '\n          <ol><li><i>01</i>Enquiry arrives</li><li><i>02</i>Qualified</li><li><i>03</i>WhatsApp reply</li><li><i>04</i>Logged in CRM</li><li><i>05</i>Owner alerted</li></ol>' +
     '\n          <div class="clock" id="clock">00.0 s</div>\n        </div>';
   const EXTRA_LINK = { websites: '<a class="ulink" href="work.html">See work</a>', automations: '<a class="ulink" href="./#method">How it runs</a>' };
+  const more = (c, s) => {
+    const page = pageFor(c, s.key); if (!page) return EXTRA_LINK[s.key] || '';
+    let name = c.pages[page.slice(0, -5)].crumb;
+    if (!(name.length > 1 && name[1] === name[1].toUpperCase() && name[1] !== name[1].toLowerCase())) name = name.charAt(0).toLowerCase() + name.slice(1);  // "technical SEO", "AI business automation"
+    return `<a class="ulink" href="${page}">More about ${E(name)}</a>`;
+  };
   function rServices(c){
     return c.services.items.map(s => {
       const pts = s.points.map((p, i) => `\n          <div class="rv"><span class="k">${String.fromCharCode(97 + i)}</span><div><b>${E(p.title)}</b><p>${E(p.text)}</p></div></div>`).join('');
@@ -86,7 +98,7 @@
       const facts = s.facts.map(f => `<div><span>${E(f.label)}</span><b>${E(f.value)}</b></div>`).join('');
       return `\n    <article class="svc" id="${s.key}">` +
         `\n      <div class="stick rv"><span class="num">${E(s.label)}</span><h2>${E(s.heading)}</h2><p>${E(s.intro)}</p>` +
-        `\n        <div class="row"><a class="btn solid" href="proposal.html#${s.key}">Request a proposal</a>${EXTRA_LINK[s.key] || ''}</div></div>` +
+        `\n        <div class="row"><a class="btn solid" href="proposal.html#${s.key}">Request a proposal</a>${more(c, s)}</div></div>` +
         `\n      <div>\n        <div class="list">${pts}\n        </div>${s.key === 'automations' ? FLOW : ''}` +
         `\n        <div class="facts rv"${style}>${facts}</div>\n      </div>\n    </article>\n`;
     }).join('') + '  ';
@@ -115,6 +127,35 @@
     return n.map((s, i) => `\n          <div${i === n.length - 1 ? ' style="border-bottom:0"' : ''}><span class="n">${roman(i)}</span><div><b>${E(s.title)}</b><p>${E(s.text)}</p></div></div>`).join('') + '\n        ';
   }
 
+  // dedicated service and information pages, rendered from content.pages[slug] (mirrors r_page in tools/cms.py)
+  function rPage(c, slug){
+    const p = c.pages[slug], svc = p.service_key || '', cta = 'proposal.html' + (svc ? '#' + svc : '');
+    const crumbs = '<a href="./">Home</a><span>/</span>' + (svc ? '<a href="services.html">Services</a><span>/</span>' : '') + `<span>${E(p.crumb)}</span>`;
+    const section = (cls, title, body, sid) => `\n  <section class="sp-sec ${cls}"${sid ? ` id="${sid}"` : ''}><div class="wrap sp-grid">` +
+      `\n    <h2 class="h2 rv">${E(title)}</h2>\n    <div class="rv">${body}</div>\n  </div></section>`;
+    let out = `\n  <section class="page-hero"><div class="wrap">` +
+      `\n    <nav class="crumbs" aria-label="Breadcrumb">${crumbs}</nav>` +
+      `\n    <h1 class="display">${lines(p.hero, i => i ? sec(i * .12) : null)}</h1>` +
+      `\n    <p class="lede rv">${E(p.lede)}</p>` +
+      `\n    <div class="sp-cta rv"><a class="btn solid" href="${cta}">${E(p.cta_label || 'Request a proposal')}</a><a class="ulink" href="#faq">Questions answered</a></div>` +
+      `\n  </div></section>` +
+      `\n  <section class="sp-answer"><div class="wrap"><div class="sp-box rv"><h2>${E(p.answer_q)}</h2><p>${E(p.answer)}</p></div></div></section>`;
+    out += section('sp-who', p.who_title, '<div class="sp-cards">' + p.who.map(i => `<div><h3>${E(i.title)}</h3><p>${E(i.text)}</p></div>`).join('') + '</div>');
+    out += section('sp-inc', p.included_title, '<div class="list">' + p.included.map((i, n) => `<div><span class="k">${String.fromCharCode(97 + n)}</span><div><h3>${E(i.title)}</h3><p>${E(i.text)}</p></div></div>`).join('') + '</div>');
+    out += section('sp-proc', p.process_title, '<ol class="sp-steps">' + p.process.map((i, n) => `<li><span class="n">${String(n + 1).padStart(2, '0')}</span><div><h3>${E(i.title)}</h3><p>${E(i.text)}</p></div></li>`).join('') + '</ol>');
+    let cost = p.cost_text.map(t => `<p>${E(t)}</p>`).join('');
+    if (p.cost_factors && p.cost_factors.length) cost += '<ul class="sp-ticks">' + p.cost_factors.map(t => `<li>${E(t)}</li>`).join('') + '</ul>';
+    out += section('sp-cost', p.cost_title, cost);
+    let faq = p.faq.map(f => `<details><summary><h3>${E(f.q)}</h3></summary><p>${E(f.a)}</p></details>`).join('');
+    const src = (p.sources || []).filter(s => safeUrl(s.url));
+    if (src.length) faq += '<p class="sp-src">Sources: ' + src.map(s => `<a href="${A(safeUrl(s.url))}" rel="noopener" target="_blank">${E(s.label)}</a>`).join(' · ') + '</p>';
+    out += section('sp-faq', p.faq_title, faq, 'faq');
+    const rel = (p.related || []).filter(r => c.pages[r] && r !== slug);
+    if (rel.length) out += section('sp-rel', 'Related services', '<div class="sp-related">' + rel.map(r => `<a href="${r}.html"><b>${E(c.pages[r].crumb)}</b><span>${E(c.pages[r].answer_q)}</span></a>`).join('') + '</div>');
+    return out + '\n';
+  }
+  const renderKey = (key, c) => key.startsWith('page.') ? rPage(c, key.slice(5)) : RENDER[key] ? RENDER[key](c) : null;
+
   const RENDER = {
     'home.hero': rHomeHero, 'home.make': rMake, 'home.testimonials': c => slides(c.home.testimonials), 'home.steps': c => steps(c.home.steps),
     'home.work': rHomeWork, 'method.terminal': rTerminal, 'method.title': rMethodTitle,
@@ -131,7 +172,7 @@
 
   // Apply content to a loaded page (used on the preview frame). Shared header and footer text too.
   function apply(doc, c){
-    doc.querySelectorAll('[data-cms-list]').forEach(el => { const f = RENDER[el.getAttribute('data-cms-list')]; if (f) el.innerHTML = f(c); });
+    doc.querySelectorAll('[data-cms-list]').forEach(el => { const k = el.getAttribute('data-cms-list'); if (!k.startsWith('page.') && !RENDER[k]) return; el.innerHTML = renderKey(k, c); });
     doc.querySelectorAll('[data-cms]').forEach(el => { el.textContent = String(get(c, el.getAttribute('data-cms'))); });
     const st = c.settings || {}, q = s => doc.querySelector(s);
     if (q('.topline span')) q('.topline span').textContent = st.topline || '';
@@ -144,5 +185,5 @@
     if (base.length >= 2){ base[0].firstChild.textContent = (st.footer_left || '') + ' © '; base[base.length - 1].textContent = st.footer_right || ''; }
   }
 
-  root.WA_RENDER = { E, A, safeUrl, get, RENDER, LIST_PATH, CATS, apply };
+  root.WA_RENDER = { E, A, safeUrl, get, RENDER, LIST_PATH, CATS, apply, renderKey };
 })(typeof window !== 'undefined' ? window : globalThis);
