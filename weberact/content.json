@@ -1,10 +1,10 @@
 {
  "settings": {
-  "topline": "Built to represent your business",
+  "topline": "Built to act.",
   "header_button": "Request a proposal",
   "footer_blurb": "Premium websites, web systems, automations and search, built on a written promise.",
   "footer_left": "Built on a promise.",
-  "footer_right": "Replies within one working day",
+  "footer_right": "",
   "email": "[EMAIL]",
   "whatsapp": "[WHATSAPP NUMBER]",
   "linkedin": "",
@@ -166,7 +166,7 @@
   "lede": "Before anyone calls, they look you up. We design and build websites, web systems and automations that make that first impression worthy of the business behind it, and we promise in writing what they will deliver.",
   "cta_primary": "Book a consultation",
   "cta_secondary": "View selected work",
-  "stamp": "Built to represent",
+  "stamp": "Built to act.",
   "make_title": "What we make",
   "make": [
    {
@@ -235,8 +235,8 @@
  },
  "services": {
   "hero": [
-   "Four ways we make",
-   "a business look",
+   "Four ways we make.",
+   "a business look.",
    "and work established."
   ],
   "lede": "Each service has a fixed scope, a fixed fee and a launch date, agreed in writing before we begin. Use one, or let them work together.",
@@ -868,7 +868,7 @@
    "faq": [
     {
      "q": "How long does SEO take to work?",
-     "a": "Fixes for serious technical problems, such as pages blocked from search or broken redirects, can show results soon after search engines recrawl the pages. Ranking for competitive commercial searches usually takes months. Google says that in most cases SEOs need four months to a year to implement improvements and then see potential benefit."
+     "a": "Fixes for serious technical problems, such as pages blocked from search or broken redirects, can show results soon after search engines recrawl the pages. Ranking for competitive commercial searches usually takes months rather than weeks, and depends on the competition, the site’s history and how much work goes in. We report progress every month, so you can see what is changing."
     },
     {
      "q": "How does technical SEO improve organic visibility?",
@@ -1116,7 +1116,7 @@
     },
     {
      "q": "Is cold email to businesses legal in the US, UK, Canada, Australia and the UAE?",
-     "a": "It depends on the country. In the US, the CAN-SPAM Act covers business email and requires an accurate sender and a working opt-out. In the UK, the PECR rules allow email to companies without prior consent if you identify yourself and offer an opt-out, while sole traders need consent. Canada’s CASL and Australia’s Spam Act require consent, which can be implied or inferred when a business publishes an address and the message relates to that person’s role. The UAE has its own personal data protection law. We check the rules for each campaign. This is general information, not legal advice."
+     "a": "It depends on the country. In the US, the CAN-SPAM Act covers business email too: it requires accurate sender details, a valid postal address and a working opt-out, which must be honoured promptly. In the UK, the PECR rules allow email to companies without prior consent if you identify yourself and offer an opt-out, while sole traders need consent. Canada’s CASL and Australia’s Spam Act require consent, which can be implied or inferred when a business publishes an address and the message relates to that person’s role. The UAE has its own personal data protection law. We check the rules for each campaign. This is general information, not legal advice."
     },
     {
      "q": "How long does it take to see results?",

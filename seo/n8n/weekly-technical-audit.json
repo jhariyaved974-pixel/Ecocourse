@@ -1,0 +1,184 @@
+{
+  "name": "WeberAct · Weekly technical SEO audit (read-only)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "name": "Every Monday 05:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://weberact.co/sitemap.xml",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "name": "Fetch sitemap",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const xml = $input.first().json.data || '';\nconst urls = [...xml.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(m => m[1]);\nreturn urls.map(url => ({ json: { url } }));"
+      },
+      "name": "List URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "name": "Fetch each page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Same core checks as tools/seo_audit.py, without third-party code.\nconst dec = s => s.replace(/&quot;/g, '\"').replace(/&#x27;|&#39;/g, \"'\").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');\nconst out = [];\nfor (const [n, i] of $input.all().entries()) {\n  const url = $('List URLs').all()[n].json.url, html = i.json.body || '', status = i.json.statusCode;\n  const title = dec((html.match(/<title>([^<]*)<\\/title>/) || [, ''])[1]);\n  const desc = dec((html.match(/<meta name=\"description\" content=\"([^\"]*)\"/) || [, ''])[1]);\n  const canonical = (html.match(/<link rel=\"canonical\" href=\"([^\"]+)\"/) || [, ''])[1];\n  const h1 = (html.match(/<h1[\\s>]/g) || []).length;\n  const ld = (html.match(/application\\/ld\\+json/g) || []).length;\n  const issues = [];\n  if (status !== 200) issues.push('HTTP ' + status);\n  if (title.length < 30 || title.length > 65) issues.push('title length ' + title.length);\n  if (desc.length < 70 || desc.length > 165) issues.push('description length ' + desc.length);\n  if (canonical !== url) issues.push('canonical ' + (canonical || 'missing'));\n  if (h1 !== 1) issues.push(h1 + ' H1');\n  if (!ld) issues.push('no JSON-LD');\n  if (/name=\"robots\" content=\"[^\"]*noindex/.test(html)) issues.push('noindex on a sitemap URL');\n  out.push({ json: { date: new Date().toISOString().slice(0, 10), url, status, title_chars: title.length, description_chars: desc.length, h1, jsonld_blocks: ld, issues: issues.join('; ') || 'none' } });\n}\nreturn out;"
+      },
+      "name": "Check pages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "PASTE_GOOGLE_SHEET_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Technical audit"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "name": "Append to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1100,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Every Monday 05:00": {
+      "main": [
+        [
+          {
+            "node": "Fetch sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch sitemap": {
+      "main": [
+        [
+          {
+            "node": "List URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List URLs": {
+      "main": [
+        [
+          {
+            "node": "Fetch each page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch each page": {
+      "main": [
+        [
+          {
+            "node": "Check pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check pages": {
+      "main": [
+        [
+          {
+            "node": "Append to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
