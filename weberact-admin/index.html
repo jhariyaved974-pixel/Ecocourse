@@ -170,6 +170,13 @@ a.mini{text-decoration:none;display:inline-block}
 .f input:focus,.f textarea:focus,.f select:focus{border-color:var(--brand);outline:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
 .help{font-size:12.5px;color:var(--muted);margin:0}
 .help b{color:var(--ink)}
+.tbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;align-items:end}
+.tlist{display:grid;gap:14px}
+.trow .fl label{font-weight:500;color:var(--muted);font-size:12.5px;line-height:1.45}
+.trow.on .fl label{color:var(--ink)}
+.trow.on input,.trow.on textarea{border-color:var(--brand)}
+.tx-frame{position:absolute;left:-10000px;top:0;width:1280px;height:900px;visibility:hidden;border:0}
+@media (max-width:640px){.tbar{grid-template-columns:1fr}}
 .cnt{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
 .cnt.over{color:#b42318;font-weight:600}
 .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
@@ -797,7 +804,10 @@ a.mini{text-decoration:none;display:inline-block}
       G('Contact details', [ROW(T('settings.email', 'Email', { type: 'email', ph: 'hello@weberact.co' }), T('settings.whatsapp', 'WhatsApp number', { ph: '+91 98765 43210', help: 'Include the country code.' })),
         T('settings.booking_url', 'Booking link', { type: 'url', ph: 'https://cal.com/…', help: 'Optional. A “Book a call” link appears in the footer once this is filled in.' })],
         'Shown on the proposal page, in the closing links and in the terms and privacy policy.'),
-      G('Footer', [TA('settings.footer_blurb', 'Short description', { max: 160 }), ROW(T('settings.footer_left', 'Bottom line, left', { max: 40, help: '“© year WeberAct” follows it.' }), T('settings.footer_right', 'Bottom line, right', { max: 40 }))]),
+      G('Footer', [TA('settings.footer_blurb', 'Short description', { max: 160 }), T('settings.footer_all_services', 'Last link under Services', { max: 30 }),
+        ROW(T('settings.footer_left', 'Bottom line, left', { max: 40, help: '“© year WeberAct” follows it.' }), T('settings.footer_right', 'Bottom line, right', { max: 40 }))]),
+      G('Cookie notice', [TA('settings.consent_text', 'Message', { max: 200 }), ROW(T('settings.consent_accept', 'Accept button', { max: 30 }), T('settings.consent_decline', 'Decline button', { max: 30 }))],
+        'Shown to visitors only when a Google Analytics ID is set below. A link to the privacy policy follows the message.'),
       G('Search engines and analytics', [ROW(T('settings.google_site_verification', 'Google Search Console code', { help: 'Only the code from the HTML tag method, not the whole tag.' }),
           T('settings.bing_site_verification', 'Bing Webmaster Tools code', { help: 'Only the code from the meta tag method.' })),
         T('settings.ga4_id', 'Google Analytics 4 measurement ID', { ph: 'G-XXXXXXXXXX', help: 'When set, visitors are asked for consent and analytics loads only if they accept.' })],
@@ -821,6 +831,7 @@ a.mini{text-decoration:none;display:inline-block}
     ] },
     PAGE_EDITOR('website-development', 'Website development'), PAGE_EDITOR('technical-seo', 'Technical SEO'), PAGE_EDITOR('ai-automation', 'AI business automation'),
     PAGE_EDITOR('b2b-lead-generation', 'B2B lead generation'), PAGE_EDITOR('international', 'International clients'),
+    { id: 'texts', nav: 'Every other text', grp: 'Across the site', pre: ['texts'], get page(){ return CM.tpage; }, custom: () => renderTexts() },
     { id: 'media', nav: 'Images', grp: 'Library', custom: () => renderMedia() },
     { id: 'history', nav: 'History and backups', grp: 'Library', custom: () => renderHistory() },
   ];
@@ -874,6 +885,58 @@ a.mini{text-decoration:none;display:inline-block}
       `<div class="items">${items || '<p class="help">None yet.</p>'}</div>${addBtn(p, arr.length, f)}${help}</div>`;
   }
 
+  // ----- every other text -----
+  // Any wording on any page that has no field of its own: buttons, labels, small print, form questions, hidden
+  // labels for screen readers. content.texts maps the original wording to the new one, and an edit applies
+  // everywhere the same words appear (cms.apply_texts in the build, WA_RENDER.applyTexts in the browser).
+  const TEXT_PAGES = SEO_PAGES.map(([k, label]) => [(k === 'index' ? 'index' : k) + '.html', label]).concat([['404.html', 'Page not found (404)']]);
+  CM.tpage = 'index.html'; CM.tx = {}; CM.tq = '';
+  const WHERE = ['Page', 'Form', 'Header and footer', 'Hidden label (aria-label)', 'Hidden label (alt)', 'Hidden label (title)', 'Hidden label (placeholder)'];
+  function extractTexts(page){
+    return new Promise(done => {
+      const f = document.createElement('iframe'); f.name = 'wa-extract'; f.className = 'tx-frame'; f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      const finish = list => { clearTimeout(t); f.remove(); done(list); };
+      const t = setTimeout(() => finish(null), 15000);
+      f.addEventListener('load', () => setTimeout(() => {
+        try {
+          const d = f.contentDocument, w = f.contentWindow, list = RD.collectTexts(d), seen = new Set(list.map(x => x.text));
+          if (w.WA_FORM_TEXTS) w.WA_FORM_TEXTS().forEach(t => { t = RD.norm(t); if (t && /[A-Za-z]/.test(t) && !seen.has(t)){ seen.add(t); list.push({ text: t, where: 'Form' }); } });
+          finish(list);
+        } catch (e) { finish(null); }
+      }, 300));
+      f.src = SITE + page; document.body.appendChild(f);
+    });
+  }
+  function renderTexts(){
+    const page = CM.tpage, list = CM.tx[page], texts = CM.draft.texts || {};
+    const pick = `<div class="f"><div class="fl"><label for="tPage">Page</label></div><select id="tPage" data-tpage>${TEXT_PAGES.map(([v, l]) => `<option value="${v}"${v === page ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
+    const find = `<div class="f"><div class="fl"><label for="tFind">Find</label><span class="cnt" id="tCount"></span></div><input id="tFind" type="search" data-tfind value="${esc(CM.tq)}" placeholder="Type a few words" autocomplete="off"></div>`;
+    const head = `<section class="group"><h2>Every other text</h2><p class="hint">Every word on the page that has no field of its own: buttons, labels, small print, form questions and the hidden labels screen readers announce. ` +
+      `Change the wording in the box; empty the box to go back to the original. A change applies everywhere the same words appear on the website. Headlines, lists and contact details are edited in their own sections.</p><div class="tbar">${pick}${find}</div></section>`;
+    if (list === undefined){
+      CM.tx[page] = null;  // reading
+      extractTexts(page).then(r => { CM.tx[page] = r || false; if (CM.sec === 'texts' && CM.tpage === page) renderSection(true); });
+    }
+    if (!list) return head + `<section class="group"><p class="help">${list === false ? 'This page could not be read. Reload the dashboard and try again.' : 'Reading the page…'}</p></section>`;
+    const rows = k => { const v = Object.prototype.hasOwnProperty.call(texts, k) ? texts[k] : k, on = v !== k, id = 't-' + (CM.tn = (CM.tn || 0) + 1);
+      const input = k.length > 90 ? `<textarea id="${id}" data-tk="${esc(k)}" rows="${Math.min(6, Math.ceil(k.length / 70))}">${esc(v)}</textarea>` : `<input id="${id}" data-tk="${esc(k)}" value="${esc(v)}" autocomplete="off">`;
+      return `<div class="f trow${on ? ' on' : ''}" data-q="${esc((k + ' ' + v).toLowerCase())}"><div class="fl"><label for="${id}">${esc(k)}</label>${on ? `<button type="button" class="mini" data-act="treset" data-tk="${esc(k)}">Original</button>` : ''}</div>${input}</div>`; };
+    const groups = WHERE.map(w => [w, list.filter(x => x.where === w)]).filter(([, l]) => l.length);
+    return head + groups.map(([w, l]) => `<section class="group" data-tgroup><h2>${esc(w === 'Page' ? 'On this page' : w === 'Form' ? 'The form' : w)}</h2>` +
+      (w === 'Header and footer' ? '<p class="hint">The same on every page.</p>' : w.startsWith('Hidden') ? '<p class="hint">Not shown on screen: read aloud by screen readers, or shown when an image cannot load.</p>' : '') +
+      `<div class="tlist">${l.map(x => rows(x.text)).join('')}</div></section>`).join('');
+  }
+  function filterTexts(){
+    const q = CM.tq.trim().toLowerCase(); let n = 0, all = 0;
+    $$('#editor .trow').forEach(r => { const hit = !q || r.dataset.q.includes(q); r.hidden = !hit; all++; if (hit) n++; });
+    $$('#editor [data-tgroup]').forEach(g => { g.hidden = !g.querySelector('.trow:not([hidden])'); });
+    const c = $('#tCount'); if (c) c.textContent = q ? `${n} of ${all}` : `${all} texts`;
+  }
+  function setText(k, v){
+    const texts = CM.draft.texts = CM.draft.texts || {};
+    if (!v.trim() || RD.norm(v) === k) delete texts[k]; else texts[k] = v;
+  }
+
   // ----- page -----
   function renderCms(){
     if (!CM.draft){
@@ -890,6 +953,7 @@ a.mini{text-decoration:none;display:inline-block}
     const body = s.custom ? s.custom() : s.groups.map(g => `<section class="group"><h2>${esc(g.title)}</h2>${g.hint ? `<p class="hint">${g.hint}</p>` : ''}${g.fields.map(f => field(f)).join('')}</section>`).join('');
     $('#editor').innerHTML = body + `<div class="savebar" id="saveBar" hidden><span>You have unsaved changes</span><span class="actions"><button type="button" class="btn ghost" data-act="discard">Discard</button><button type="button" class="btn" data-act="save">Save draft</button></span></div>`;
     $$('#snav button').forEach(b => b.setAttribute('aria-current', String(b.dataset.sec === CM.sec)));
+    if (s.id === 'texts') filterTexts();
     if (keep) scrollTo(0, y);
     syncBars(); loadPreview();
   }
@@ -928,7 +992,17 @@ a.mini{text-decoration:none;display:inline-block}
 
   const ed = $('#editor');
   ed.addEventListener('input', e => {
-    const el = e.target, p = el.dataset.p; if (!p || !CM.draft) return;
+    const el = e.target;
+    if (el.dataset.tpage !== undefined){ CM.tpage = el.value; CM.tq = ''; renderSection(); return; }
+    if (el.dataset.tfind !== undefined){ CM.tq = el.value; filterTexts(); return; }
+    if (el.dataset.tk !== undefined && CM.draft){
+      const k = el.dataset.tk; setText(k, el.value);
+      const row = el.closest('.trow'), on = !!(CM.draft.texts && CM.draft.texts[k] !== undefined);
+      if (row && row.classList.contains('on') !== on){ row.classList.toggle('on', on); const fl = row.querySelector('.fl'), b = fl.querySelector('[data-act="treset"]');
+        if (on && !b) fl.insertAdjacentHTML('beforeend', `<button type="button" class="mini" data-act="treset" data-tk="${esc(k)}">Original</button>`); else if (!on && b) b.remove(); }
+      changed(); return;
+    }
+    const p = el.dataset.p; if (!p || !CM.draft) return;
     setP(CM.draft, p, el.value);
     const c = ed.querySelector(`[data-cnt="${p}"]`);
     if (c){ const n = el.value.length, m = +c.dataset.max; c.textContent = n + ' / ' + m; c.classList.toggle('over', n > m); }
@@ -939,7 +1013,7 @@ a.mini{text-decoration:none;display:inline-block}
     changed();
   });
   ed.addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.item) d.open ? CM.open.add(d.dataset.item) : CM.open.delete(d.dataset.item); }, true);
-  ed.addEventListener('focusin', e => { const p = e.target.dataset && e.target.dataset.p; if (p) spot(p); });
+  ed.addEventListener('focusin', e => { const ds = e.target.dataset || {}; if (ds.p) spot(ds.p); else if (ds.tk !== undefined) spotText(ds.tk); });
   ed.addEventListener('click', async e => {
     const b = e.target.closest('[data-act],[data-goto]'); if (!b) return;
     if (b.closest('summary')) e.preventDefault();
@@ -955,6 +1029,7 @@ a.mini{text-decoration:none;display:inline-block}
     else if (act === 'upload') chooseFiles(false, async files => { try { toast('Uploading…'); setImage(b.dataset.path, await uploadImage(files[0])); toast('Image added'); } catch (err){ handle(err); toast(err.message); } });
     else if (act === 'clear') setImage(b.dataset.path, '');
     else if (act === 'save') saveDraftUI();
+    else if (act === 'treset'){ setText(b.dataset.tk, ''); changed(); renderSection(true); }
     else if (act === 'discard'){ if (!arm(b, 'Discard all?')) return; CM.draft = JSON.parse(CM.saved); renderSection(true); changed(); toast('Changes discarded'); }
     else if (act === 'mupload') chooseFiles(true, uploadMany);
     else if (act === 'mcopy') copyText(b.dataset.url, b);
@@ -998,6 +1073,8 @@ a.mini{text-decoration:none;display:inline-block}
       d.head.appendChild(st);
       d.addEventListener('click', ev => { const a = ev.target.closest('a[href]'); if (a){ ev.preventDefault(); } }, true);
       d.addEventListener('submit', ev => ev.preventDefault(), true);  // the preview never sends forms
+      new d.defaultView.MutationObserver(ms => { if (!CM.draft || !CM.draft.texts) return; ms.forEach(m => m.addedNodes.forEach(n => { const el = n.nodeType === 1 ? n : n.parentElement; if (el && el.isConnected) RD.applyTexts(el, CM.draft.texts); })); })
+        .observe(d.body, { childList: true, subtree: true });
     } catch (e) {}
     paint();
   });
@@ -1019,6 +1096,19 @@ a.mini{text-decoration:none;display:inline-block}
     const w = d.defaultView, r = el.getBoundingClientRect();
     w.scrollTo(0, Math.max(0, r.top + w.scrollY - Math.max(40, (w.innerHeight - r.height) / 2)));
     el.style.outline = '3px solid #c6a24e'; el.style.outlineOffset = '6px';
+    clearTimeout(el._wa); el._wa = setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1600);
+  }
+  function spotText(k){
+    if (!CM.pv || fr.hidden) return;
+    let d; try { d = fr.contentDocument; } catch (e) { return; }
+    if (!d || !d.body) return;
+    let el = [...d.querySelectorAll('[data-t]')].find(x => x.getAttribute('data-t') === k);
+    if (!el){ const w = d.createTreeWalker(d.body, 4); for (let n = w.nextNode(); n; n = w.nextNode()) if (RD.norm(n.nodeValue) === k){ el = n.parentElement; break; } }
+    if (!el) el = [...d.body.querySelectorAll('[aria-label],[alt],[title],[placeholder]')].find(x => ['aria-label', 'alt', 'title', 'placeholder'].some(a => RD.norm(x.getAttribute('data-t-' + a) || x.getAttribute(a) || '') === k));
+    if (!el || !el.getClientRects().length) return;
+    const w = d.defaultView, r = el.getBoundingClientRect();
+    w.scrollTo(0, Math.max(0, r.top + w.scrollY - Math.max(40, (w.innerHeight - r.height) / 2)));
+    el.style.outline = '3px solid #c6a24e'; el.style.outlineOffset = '4px';
     clearTimeout(el._wa); el._wa = setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1600);
   }
   $('#pvToggle').addEventListener('click', () => { CM.pv = !CM.pv; loadPreview(); });
@@ -1070,8 +1160,8 @@ a.mini{text-decoration:none;display:inline-block}
     const pend = diff(CM.draft, CM.live || {});
     if (!pend.length){ if (isDirty()) await saveDraftUI(); toast('Nothing new to publish: the website already shows this version.'); return; }
     const by = {}; pend.forEach(p => { const s = secFor(p); by[s] = (by[s] || 0) + 1; });
-    const how = S.mode === 'sample' ? 'This is a preview, so nothing is sent anywhere.' : CM.hook ? 'The website rebuilds straight away and shows the changes in about a minute.'
-      : 'The website shows these changes after its next build. To make that automatic, add a deploy hook in Settings.';
+    const how = S.mode === 'sample' ? 'This is a preview, so nothing is sent anywhere.' : CM.hook ? 'Visitors see the changes as soon as you publish, and the website rebuilds for search engines in about a minute.'
+      : 'Visitors see the changes as soon as you publish. Search engines see them after the next rebuild; add a deploy hook in Settings to rebuild automatically.';
     const ok = await modal({ title: 'Publish these changes?', ok: 'Publish', body: `<ul class="changes">${Object.entries(by).map(([k, n]) => `<li><b>${esc(k)}</b>: ${n} ${n === 1 ? 'change' : 'changes'}</li>`).join('')}</ul><p class="help">${how} Every published version is kept, so you can go back.</p>` });
     if (!ok) return;
     $('#publishBtn').disabled = true;
@@ -1082,9 +1172,9 @@ a.mini{text-decoration:none;display:inline-block}
         CM.liveMeta = out[0]; CM.hist = null;
       } else { CM.liveMeta = { updated_at: new Date().toISOString(), updated_by: 'you' }; sampleHist('live'); try { localStorage.setItem('wa-cms-live', JSON.stringify(CM.draft)); } catch (e) {} }
       CM.live = clone(CM.draft);
-      let msg = S.mode === 'sample' ? 'Published in this preview only' : 'Published. The website shows it after its next build.';
+      let msg = S.mode === 'sample' ? 'Published in this preview only' : 'Published. Visitors see it now; reload the website to check.';
       if (S.mode === 'live' && CM.hook){
-        try { await fetch(CM.hook, { method: 'POST', mode: 'no-cors' }); msg = 'Published. The website is rebuilding and updates in about a minute.'; }
+        try { await fetch(CM.hook, { method: 'POST', mode: 'no-cors' }); msg = 'Published. Visitors see it now, and the website is rebuilding for search engines.'; }
         catch (e){ msg = 'Published, but the rebuild did not start. Check the deploy hook in Settings.'; }
       }
       toast(msg);

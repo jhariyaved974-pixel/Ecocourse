@@ -22,7 +22,11 @@
   "booking_url": "",
   "google_site_verification": "",
   "bing_site_verification": "",
-  "ga4_id": ""
+  "ga4_id": "",
+  "footer_all_services": "All services",
+  "consent_text": "We use Google Analytics cookies to see which pages help visitors, only if you agree.",
+  "consent_accept": "Accept analytics",
+  "consent_decline": "No thanks"
  },
  "legal": {
   "legal_name": "[WeberAct legal name]",
@@ -564,14 +568,14 @@
   "people": [
    {
     "role": "Founder",
-    "name": "[Founder name]",
+    "name": "VED JHARIYA",
     "bio": "[Two lines: background, what they lead at WeberAct, and what clients rely on them for.]",
     "initials": "F",
     "photo": ""
    },
    {
     "role": "Co-founder",
-    "name": "[Co-founder name]",
+    "name": "ARJUN BABU",
     "bio": "[Two lines: background, what they lead at WeberAct, and how clients reach them.]",
     "initials": "CF",
     "photo": ""
@@ -1277,5 +1281,7 @@
     "b2b-lead-generation"
    ]
   }
- }
+ },
+ "texts": {},
+ "_published_at": "2026-11-10T06:55:57.037997+00:00"
 }

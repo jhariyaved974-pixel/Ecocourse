@@ -41,9 +41,25 @@ live preview edits in place (marked noindex; `robots.txt` blocks the whole deplo
 
 ## Editing the website
 
-Sign in to the dashboard, open **Website**, edit, **Save draft**, then **Publish**. With a deploy hook
-saved under **Settings**, Publish rebuilds the website straight away (about a minute). Without one,
-published changes appear at the next build.
+Sign in to the dashboard, open **Website**, edit, **Save draft**, then **Publish**.
+
+**Visitors see a publish at once.** Every page carries the time of the copy it was built from
+(`<meta name="wa-version">`). On each visit `site.js` asks the database for the time of the latest
+publish (one small request). If it is newer, the page downloads the published copy, draws it with
+`assets/cms-render.js` (the same renderer the dashboard preview uses) and only then starts its
+animations, carousel and filters. If the database is slow (over 1.2 seconds) or unreachable, the
+page starts with what it was built with, and a late answer is still applied.
+
+**Search engines see a publish after the next build**, because they read the built HTML. With a
+deploy hook saved under **Settings**, Publish rebuilds the website straight away (about a minute).
+
+**Every word is editable.** Headlines, lists, images, contact details and SEO have their own fields.
+Everything else (buttons, labels, small print, the proposal form's questions and messages, hidden
+labels for screen readers) is under **Every other text**: pick a page, find the words, type the new
+wording. It is stored in `content.texts` as original wording → new wording and applies everywhere
+the same words appear. The build writes it into the HTML (`cms.apply_texts`), the browser applies
+it to text drawn by scripts (`WA_RENDER.applyTexts`); both keep the original in `data-t` so an edit
+can be changed or removed later.
 
 Create the deploy hook in Vercel: project `weberact`, Settings, Git, Deploy Hooks, name it
 "Dashboard publish", branch `claude/interactive-website-templates-x9gt0s`, then copy the URL into
@@ -59,4 +75,4 @@ In Supabase, Authentication, URL Configuration:
 
 ## Tests
 
-    node tools/test_cms_parity.mjs     # the dashboard preview and the build render the same HTML
+    node tools/test_cms_parity.mjs     # the dashboard preview, live updates and the build render the same HTML

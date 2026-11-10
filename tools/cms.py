@@ -235,6 +235,11 @@ def r_page(c, slug):
     return out + '\n'
 
 
+def r_footer_services(c):
+    out = ''.join(f'<li><a href="{slug}.html">{E(p["crumb"])}</a></li>' for slug, p in c.get('pages', {}).items() if p.get('service_key'))
+    return out + f'<li><a href="services.html">{E(get(c, "settings.footer_all_services") or "All services")}</a></li>'
+
+
 def render_key(key, c):
     if key.startswith('page.'): return r_page(c, key[5:])
     return RENDER[key](c)
@@ -248,7 +253,7 @@ RENDER = {
     'methodpage.hero': page_lines('method.hero'), 'methodpage.phases': r_phases,
     'about.hero': page_lines('about.hero'), 'about.story': r_story, 'about.people': r_people, 'about.values': r_values,
     'about.testimonials': lambda c: slides(c['about']['testimonials']), 'about.steps': lambda c: steps(c['about']['steps']),
-    'proposal.hero': page_lines('proposal.hero'), 'proposal.next': r_next,
+    'proposal.hero': page_lines('proposal.hero'), 'proposal.next': r_next, 'footer.services': r_footer_services,
 }
 
 
@@ -291,3 +296,71 @@ def apply(page_html, content, page_key=None):
             s = re.sub(r'<meta property="og:title" content="[^"]*">', lambda m: f'<meta property="og:title" content="{A(seo.get("og_title") or seo["title"])}">', s, count=1)
             s = re.sub(r'<meta property="og:description" content="[^"]*">', lambda m: f'<meta property="og:description" content="{A(seo.get("og_description") or seo["description"])}">', s, count=1)
     return s
+
+
+# ------------------------------------------------------------------ every other text (content["texts"])
+# content["texts"] maps an original text, exactly as written in the page with spaces collapsed, to its
+# replacement. Replaced text is wrapped in <span data-t="original">, replaced attributes keep the original in
+# data-t-<attr>; each build first restores the originals, then applies the current edits, so edits can be
+# changed or removed at any time. Elements filled from content fields (data-cms, data-cms-list) are left alone:
+# they have their own editors. assets/cms-render.js (applyTexts) does the same in the browser.
+T_ATTRS = ('placeholder', 'aria-label', 'alt', 'title')
+T_SKIP = {'script', 'style', 'svg', 'noscript', 'template', 'textarea', 'title', 'option', 'head'}
+_TOKEN = re.compile(r'(<!--.*?-->|<[^>]+>)', re.S)
+_MARK = re.compile(r'<span data-t="([^"]*)">([^<]*)</span>')
+
+
+def norm(t):
+    return ' '.join(html.unescape(t).split())
+
+
+def _restore_attrs(tag):
+    for a in T_ATTRS:
+        m = re.search(rf'\sdata-t-{a}="([^"]*)"', tag)
+        if m:
+            tag = tag.replace(m.group(0), '')
+            tag = re.sub(rf'(\s{a}=")[^"]*(")', lambda x: x.group(1) + m.group(1) + x.group(2), tag, count=1)
+    return tag
+
+
+def apply_texts(page_html, texts):
+    texts = {k: v for k, v in (texts or {}).items() if isinstance(v, str)}
+    head, sep, body = page_html.partition('<body')
+    if not sep:
+        return page_html
+    body = _MARK.sub(lambda m: m.group(1), body)          # back to the original wording
+    out, stack = [], []
+    for part in _TOKEN.split(body):
+        if not part:
+            continue
+        if part.startswith('<!--'):
+            out.append(part); continue
+        if part.startswith('<'):
+            m = re.match(r'<(/?)([a-zA-Z][a-zA-Z0-9-]*)', part)
+            if not m:
+                out.append(part); continue
+            name = m.group(2).lower()
+            if m.group(1):
+                while stack:
+                    if stack.pop()[0] == name: break
+                out.append(part); continue
+            part = _restore_attrs(part)
+            # attributes of a textarea or option (placeholder, aria-label) are editable, their contents are not
+            attr_skip = bool(stack and stack[-1][1]) or name in T_SKIP - {'textarea', 'option'} or re.search(r'\sdata-cms(-list)?="', part) is not None
+            skip = attr_skip or name in T_SKIP
+            if not attr_skip:
+                for a in T_ATTRS:
+                    am = re.search(rf'(\s{a}=")([^"]*)(")', part)
+                    if am and norm(am.group(2)) in texts:
+                        key = norm(am.group(2))
+                        part = part.replace(am.group(0), f'{am.group(1)}{A(texts[key])}{am.group(3)} data-t-{a}="{A(key)}"', 1)
+            if not (part.endswith('/>') or name in VOID):
+                stack.append((name, bool(skip)))
+            out.append(part); continue
+        key = norm(part)
+        if stack and not stack[-1][1] and key and key in texts:
+            lead = part[:len(part) - len(part.lstrip())]
+            trail = part[len(part.rstrip()):]
+            part = f'{lead}<span data-t="{A(key)}">{E(texts[key])}</span>{trail}'
+        out.append(part)
+    return head + sep + ''.join(out)

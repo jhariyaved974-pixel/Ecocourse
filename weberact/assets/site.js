@@ -24,8 +24,6 @@
     d.addEventListener('keydown', e => { if (e.key === 'Escape' && drawer.classList.contains('open')){ setOpen(false); burger.focus(); } });
   }
   if (head) addEventListener('scroll', () => head.classList.toggle('scrolled', scrollY > 30), { passive:true });
-  d.querySelectorAll('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
-  d.querySelectorAll('[data-mark]').forEach(el => { if (!el.querySelector('svg')) el.innerHTML = MARK; });
 
   // hero lines rise once fonts are in
   const ready = () => d.body.classList.add('ready');
@@ -34,11 +32,6 @@
 
   // reveal on scroll, staggered within a group; hairlines draw across
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); if (e.target.matches('.term')) typeTerm(e.target); } }), { threshold:.15, rootMargin:'0px 0px -6% 0px' });
-  if (!reduce) d.querySelectorAll('.term [data-cmd], .term .out').forEach(l => l.style.visibility = 'hidden');
-  d.querySelectorAll('.rv, .rule, .term').forEach(el => {
-    if (el.classList.contains('rv') && el.dataset.stagger !== 'off'){ const i = [...el.parentElement.children].filter(c => c.classList.contains('rv')).indexOf(el); el.style.setProperty('--d', Math.max(0, Math.min(i, 5)) * 90 + 'ms'); }
-    io.observe(el);
-  });
 
   // terminal: types each command, then prints its output
   function typeTerm(t){
@@ -90,7 +83,9 @@
   if (GA && consent === 'granted') loadGA();
   if (GA && !consent){
     const box = d.createElement('div'); box.className = 'consent'; box.setAttribute('role', 'region'); box.setAttribute('aria-label', 'Analytics cookies');
-    box.innerHTML = '<span>We use Google Analytics cookies to see which pages help visitors, only if you agree. <a href="privacy.html#p9">Privacy policy</a></span><div class="row"><button class="yes" type="button">Accept analytics</button><button class="no" type="button">No thanks</button></div>';
+    const T = Object.assign({ consent_text: 'We use Google Analytics cookies to see which pages help visitors, only if you agree.', consent_accept: 'Accept analytics', consent_decline: 'No thanks' }, window.WA_CONSENT || {});
+    const esc = v => String(v || '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    box.innerHTML = `<span>${esc(T.consent_text)} <a href="privacy.html#p9">Privacy policy</a></span><div class="row"><button class="yes" type="button">${esc(T.consent_accept)}</button><button class="no" type="button">${esc(T.consent_decline)}</button></div>`;
     const choose = v => { try { localStorage.setItem('wa-consent', v); } catch(e){} box.remove(); if (v === 'granted') loadGA(); };
     box.querySelector('.yes').addEventListener('click', () => choose('granted'));
     box.querySelector('.no').addEventListener('click', () => choose('denied'));
@@ -108,14 +103,14 @@
   const prog = () => { const h = d.documentElement.scrollHeight - innerHeight; bar.style.transform = `scaleX(${h > 0 ? Math.min(1, scrollY / h) : 0})`; };
   addEventListener('scroll', prog, { passive:true }); addEventListener('resize', prog); prog();
 
-  // service icons draw their lines when they come into view
-  d.querySelectorAll('.col .ic svg *').forEach(el => el.setAttribute('pathLength', '100'));
-
   // testimonials carousel: auto-advances, pauses on hover or focus, arrows, dots, swipe, keyboard
-  d.querySelectorAll('.tcar').forEach(car => {
+  function initCarousel(car){
+    if (car._waStop) car._waStop();  // set up again after a live update: drop the old listeners and timer
+    const ac = new AbortController(), on = (el, ev, fn, o) => el.addEventListener(ev, fn, Object.assign({ signal: ac.signal }, o));
     const slides = [...car.querySelectorAll('.tslide')], dots = car.querySelector('.tdots'), count = car.querySelector('.tcount');
     const wait = +car.dataset.auto || 7000; let i = 0, timer = null, t0 = 0, left = wait, paused = false;
-    slides.forEach((s, k) => { const b = d.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', `Show testimonial ${k + 1}`); b.innerHTML = '<i></i>'; b.addEventListener('click', () => go(k, true)); dots.appendChild(b);
+    dots.innerHTML = ''; car.classList.remove('paused');
+    slides.forEach((s, k) => { const b = d.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', `Show testimonial ${k + 1}`); b.innerHTML = '<i></i>'; on(b, 'click', () => go(k, true)); dots.appendChild(b);
       if (s.tagName !== 'FIGURE') s.setAttribute('role', 'group'); s.setAttribute('aria-roledescription', 'slide'); s.setAttribute('aria-label', `${k + 1} of ${slides.length}`); });
     const dbtns = [...dots.children];
     function show(){
@@ -125,19 +120,70 @@
     }
     function schedule(ms){ clearTimeout(timer); if (reduce || paused) return; t0 = performance.now(); left = ms; timer = setTimeout(() => go(i + 1), ms); }
     function go(k, user){ i = (k + slides.length) % slides.length; show(); schedule(wait); if (user) car.querySelector('.tslides').focus({ preventScroll:true }); }
-    car.querySelector('.prev').addEventListener('click', () => go(i - 1));
-    car.querySelector('.next').addEventListener('click', () => go(i + 1));
+    on(car.querySelector('.prev'), 'click', () => go(i - 1));
+    on(car.querySelector('.next'), 'click', () => go(i + 1));
     const pause = () => { if (paused) return; paused = true; clearTimeout(timer); left = Math.max(400, left - (performance.now() - t0)); car.classList.add('paused'); };
     const resume = () => { if (!paused) return; paused = false; car.classList.remove('paused'); schedule(left); };
-    car.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') pause(); });
-    car.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') resume(); });
-    car.addEventListener('focusin', pause); car.addEventListener('focusout', e => { if (!car.contains(e.relatedTarget)) resume(); });
-    car.addEventListener('keydown', e => { if (e.key === 'ArrowRight'){ e.preventDefault(); go(i + 1); } if (e.key === 'ArrowLeft'){ e.preventDefault(); go(i - 1); } });
-    let sx = null; car.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive:true });
-    car.addEventListener('touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1)); sx = null; });
+    on(car, 'pointerenter', e => { if (e.pointerType === 'mouse') pause(); });
+    on(car, 'pointerleave', e => { if (e.pointerType === 'mouse') resume(); });
+    on(car, 'focusin', pause); on(car, 'focusout', e => { if (!car.contains(e.relatedTarget)) resume(); });
+    on(car, 'keydown', e => { if (e.key === 'ArrowRight'){ e.preventDefault(); go(i + 1); } if (e.key === 'ArrowLeft'){ e.preventDefault(); go(i - 1); } });
+    let sx = null; on(car, 'touchstart', e => { sx = e.touches[0].clientX; }, { passive:true });
+    on(car, 'touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1)); sx = null; });
     const startIo = new IntersectionObserver(([e]) => { if (e.isIntersecting){ show(); schedule(wait); startIo.disconnect(); } }, { threshold:.3 });
     show(); startIo.observe(car);
+    car._waStop = () => { ac.abort(); clearTimeout(timer); startIo.disconnect(); };
+  }
+
+  // everything that depends on the words and lists on the page; runs after any live update, and again if one
+  // arrives late (elements already shown or typed are left as they are)
+  function initContent(){
+    d.querySelectorAll('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
+    d.querySelectorAll('[data-mark]').forEach(el => { if (!el.querySelector('svg')) el.innerHTML = MARK; });
+    if (!reduce) d.querySelectorAll('.term:not([data-done]) [data-cmd], .term:not([data-done]) .out').forEach(l => l.style.visibility = 'hidden');
+    d.querySelectorAll('.rv:not(.in), .rule:not(.in), .term:not(.in)').forEach(el => {
+      if (el.classList.contains('rv') && el.dataset.stagger !== 'off'){ const i = [...el.parentElement.children].filter(c => c.classList.contains('rv')).indexOf(el); el.style.setProperty('--d', Math.max(0, Math.min(i, 5)) * 90 + 'ms'); }
+      io.observe(el);
+    });
+    d.querySelectorAll('.col .ic svg *').forEach(el => el.setAttribute('pathLength', '100'));  // service icons draw their lines
+    d.querySelectorAll('.tcar').forEach(initCarousel);
+    window.WA_READY = true; d.dispatchEvent(new Event('wa:ready'));  // page scripts (work filters, automation demo) start now
+  }
+
+  // live updates: when something newer than this build has been published from the admin panel, show it now,
+  // without waiting for the next rebuild. One small request per page view; nothing runs inside the admin preview.
+  const C = window.WA_CONNECT, inAdmin = /^wa-(preview|extract)$/.test(window.name);
+  const loadRender = () => window.WA_RENDER ? Promise.resolve() : new Promise((ok, no) => { const sc = d.createElement('script'); sc.src = 'assets/cms-render.js'; sc.onload = ok; sc.onerror = no; d.head.appendChild(sc); });
+  let textObserver = null;
+  function watchTexts(){  // text drawn later by a script (the proposal form) gets the edited wording too
+    if (textObserver || !window.WA_TEXTS || !Object.keys(window.WA_TEXTS).length) return;
+    textObserver = new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { const el = n.nodeType === 1 ? n : n.parentElement; if (el) WA_RENDER.applyTexts(el, window.WA_TEXTS); })));
+    textObserver.observe(d.body, { childList:true, subtree:true });
+    WA_RENDER.applyTexts(d.body, window.WA_TEXTS);
+  }
+  async function liveUpdate(){
+    if (!C || !C.ready || inAdmin) return;
+    const built = (d.querySelector('meta[name="wa-version"]') || {}).content || '';
+    const get = q => fetch(C.url + '/rest/v1/site_content?id=eq.live&select=' + q, { headers: C.headers(), cache: 'no-store' }).then(r => r.ok ? r.json() : []);
+    const head = await get('updated_at');
+    if (!head[0] || (built && Date.parse(head[0].updated_at) <= Date.parse(built))) return false;
+    const [row, def] = await Promise.all([get('content'), fetch('content.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : {}), loadRender()]);
+    if (!row[0]) return false;
+    const c = WA_RENDER.merge(def, row[0].content), key = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
+    WA_RENDER.apply(d, c); WA_RENDER.applyMeta(d, c, key);
+    window.WA_TEXTS = c.texts || {};
+    return true;
+  }
+  const hasTexts = () => !inAdmin && window.WA_TEXTS && Object.keys(window.WA_TEXTS).length;
+  if (hasTexts()) loadRender().then(watchTexts).catch(() => {});
+  let started = false;
+  const update = liveUpdate().catch(() => false);
+  update.then(changed => {
+    if (changed && started) initContent();  // arrived after the page had started: set up the new parts too
+    if (changed && hasTexts()) watchTexts();
   });
+  // the page starts as soon as the check answers, and never waits longer than 1.2 seconds for it
+  Promise.race([update, new Promise(ok => setTimeout(ok, 1200))]).then(() => { started = true; initContent(); });
 
   // legal pages: highlight the section in view
   const toc = d.querySelector('.toc');

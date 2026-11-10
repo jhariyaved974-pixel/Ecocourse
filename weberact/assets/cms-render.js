@@ -1,6 +1,7 @@
-// WeberAct content renderer for the admin panel's live preview.
-// It mirrors tools/cms.py exactly (tools/test_cms_parity.mjs checks that both produce the same HTML),
-// so what you see in the preview is what the next build publishes. The public pages do not load this file.
+// WeberAct content renderer. It mirrors tools/cms.py exactly (tools/test_cms_parity.mjs checks that both
+// produce the same HTML), so the admin preview shows what the next build publishes. The website loads it only
+// when something newer than its build has been published (live updates, see site.js) or when edited texts
+// must be applied to text drawn by a script (the proposal form).
 (function(root){
   const E = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const A = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[c]));
@@ -156,6 +157,11 @@
   }
   const renderKey = (key, c) => key.startsWith('page.') ? rPage(c, key.slice(5)) : RENDER[key] ? RENDER[key](c) : null;
 
+  function rFooterServices(c){
+    return Object.entries(c.pages || {}).filter(([, p]) => p.service_key).map(([slug, p]) => `<li><a href="${slug}.html">${E(p.crumb)}</a></li>`).join('') +
+      `<li><a href="services.html">${E(get(c, 'settings.footer_all_services') || 'All services')}</a></li>`;
+  }
+
   const RENDER = {
     'home.hero': rHomeHero, 'home.make': rMake, 'home.testimonials': c => slides(c.home.testimonials), 'home.steps': c => steps(c.home.steps),
     'home.work': rHomeWork, 'method.terminal': rTerminal, 'method.title': rMethodTitle,
@@ -164,7 +170,7 @@
     'methodpage.hero': pageLines('method.hero'), 'methodpage.phases': rPhases,
     'about.hero': pageLines('about.hero'), 'about.story': rStory, 'about.people': rPeople, 'about.values': rValues,
     'about.testimonials': c => slides(c.about.testimonials), 'about.steps': c => steps(c.about.steps),
-    'proposal.hero': pageLines('proposal.hero'), 'proposal.next': rNext,
+    'proposal.hero': pageLines('proposal.hero'), 'proposal.next': rNext, 'footer.services': rFooterServices,
   };
   // which content path each list element shows (for jumping from a field to its place on the page)
   const LIST_PATH = { 'method.terminal': 'common.method.terminal', 'method.title': 'common.method.title', 'methodpage.hero': 'method.hero', 'methodpage.phases': 'method.phases',
@@ -174,16 +180,62 @@
   function apply(doc, c){
     doc.querySelectorAll('[data-cms-list]').forEach(el => { const k = el.getAttribute('data-cms-list'); if (!k.startsWith('page.') && !RENDER[k]) return; el.innerHTML = renderKey(k, c); });
     doc.querySelectorAll('[data-cms]').forEach(el => { el.textContent = String(get(c, el.getAttribute('data-cms'))); });
-    const st = c.settings || {}, q = s => doc.querySelector(s);
-    if (q('.topline span')) q('.topline span').textContent = st.topline || '';
-    if (q('.foot .wrap > div:first-child p')) q('.foot .wrap > div:first-child p').textContent = st.footer_blurb || '';
-    const cta = st.header_button || 'Request a proposal';
-    doc.querySelectorAll('.head .right > .btn, #drawer > .btn').forEach(el => { el.textContent = cta; });
-    const svc = doc.querySelector('.foot .wrap > div:nth-child(2) ul');
-    if (svc && c.services) svc.innerHTML = c.services.items.map(x => `<li><a href="services.html#${x.key}">${E(x.chip)}</a></li>`).join('');
-    const base = doc.querySelectorAll('.foot .base > span');
-    if (base.length >= 2){ base[0].firstChild.textContent = (st.footer_left || '') + ' © '; base[base.length - 1].textContent = st.footer_right || ''; }
+    if (doc.body) applyTexts(doc.body, c.texts);
   }
 
-  root.WA_RENDER = { E, A, safeUrl, get, RENDER, LIST_PATH, CATS, apply, renderKey };
+  // ------------------------------------------------------------------ every other text (content.texts)
+  // content.texts maps an original text, exactly as written in the page (spaces collapsed), to its replacement.
+  // The build wraps replaced text in <span data-t="original"> and keeps replaced attributes in data-t-<attr>,
+  // so a later edit, or removing the edit, always finds the original again (tools/cms.py apply_texts).
+  const T_ATTRS = ['placeholder', 'aria-label', 'alt', 'title'];
+  const T_SKIP = 'script,style,svg,noscript,template,textarea,title,[data-cms],[data-cms-list]';
+  const norm = s => String(s).replace(/\s+/g, ' ').trim();
+  function applyTexts(root, texts){
+    texts = texts || {};
+    const doc = root.ownerDocument || root, has = k => Object.prototype.hasOwnProperty.call(texts, k);
+    root.querySelectorAll('[data-t]').forEach(el => { const k = el.getAttribute('data-t'); const v = has(k) ? texts[k] : k; if (el.textContent !== v) el.textContent = v; });
+    T_ATTRS.forEach(a => root.querySelectorAll(`[data-t-${a}]`).forEach(el => { const k = el.getAttribute('data-t-' + a); el.setAttribute(a, has(k) ? texts[k] : k); }));
+    if (!Object.keys(texts).length) return;
+    const skip = el => !el || el.closest(T_SKIP) || el.closest('[data-t]');
+    const walker = doc.createTreeWalker(root, 4), hits = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()){ const k = norm(n.nodeValue); if (k && has(k) && !skip(n.parentElement)) hits.push([n, k]); }
+    hits.forEach(([n, k]) => {
+      const lead = n.nodeValue.match(/^\s*/)[0], trail = n.nodeValue.match(/\s*$/)[0];
+      if (n.parentElement.closest('option')){ n.nodeValue = lead + texts[k] + trail; return; }  // no markup inside <option>
+      const span = doc.createElement('span'); span.setAttribute('data-t', k); span.textContent = texts[k];
+      const f = doc.createDocumentFragment(); if (lead) f.append(lead); f.append(span); if (trail) f.append(trail);
+      n.replaceWith(f);
+    });
+    T_ATTRS.forEach(a => root.querySelectorAll(`[${a}]`).forEach(el => {
+      if (el.hasAttribute('data-t-' + a) || el.closest('script,style,svg,noscript,template,title,head,[data-cms],[data-cms-list]')) return;
+      const k = norm(el.getAttribute(a)); if (has(k)){ el.setAttribute('data-t-' + a, k); el.setAttribute(a, texts[k]); }
+    }));
+  }
+  // every editable text on a page, as the original wording (used by the admin's "Every other text" editor)
+  function collectTexts(doc){
+    const out = [], seen = new Set(), add = (k, where) => { k = norm(k); if (k && /[A-Za-z]/.test(k) && !seen.has(k)){ seen.add(k); out.push({ text: k, where }); } };
+    const walker = doc.createTreeWalker(doc.body, 4);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()){
+      const el = n.parentElement; if (!el || el.closest('script,style,svg,noscript,template,textarea,title,[data-cms],[data-cms-list]')) continue;
+      const t = el.closest('[data-t]');
+      add(t ? t.getAttribute('data-t') : n.nodeValue, (el.closest('header,footer,nav,.topline,.drawer') ? 'Header and footer' : el.closest('form,.pane') ? 'Form' : 'Page'));
+    }
+    T_ATTRS.forEach(a => doc.body.querySelectorAll(`[${a}]`).forEach(el => { if (!el.closest('svg,[data-cms],[data-cms-list]')) add(el.getAttribute('data-t-' + a) || el.getAttribute(a), 'Hidden label (' + a + ')'); }));
+    return out;
+  }
+  // saved values win; keys the saved copy lacks get the defaults (same rule as tools/fetch_content.py)
+  function merge(base, nw){
+    const obj = x => x && typeof x === 'object' && !Array.isArray(x);
+    if (obj(base) && obj(nw)){ const out = {}; new Set([...Object.keys(base), ...Object.keys(nw)]).forEach(k => { out[k] = k in base && k in nw ? merge(base[k], nw[k]) : k in nw ? nw[k] : base[k]; }); return out; }
+    if (base == null) return nw;
+    return Array.isArray(base) === Array.isArray(nw) && typeof base === typeof nw ? nw : base;
+  }
+  // title and description for the page the document shows
+  function applyMeta(doc, c, key){
+    const seo = (c.seo || {})[key]; if (!seo) return;
+    if (seo.title) doc.title = seo.title;
+    const d = doc.querySelector('meta[name="description"]'); if (d && seo.description) d.setAttribute('content', seo.description);
+  }
+
+  root.WA_RENDER = { E, A, safeUrl, get, RENDER, LIST_PATH, CATS, apply, renderKey, applyTexts, collectTexts, merge, applyMeta, norm };
 })(typeof window !== 'undefined' ? window : globalThis);

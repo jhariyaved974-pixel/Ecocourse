@@ -56,19 +56,18 @@ def chrome_top(page, mark, st):
     right = ''.join(link(i, page) for i in NAV_R)
     drawer = ''.join(link(i, page) for i in [*NAV_L, *NAV_R])
     return (
-        f'<div class="topline"><div class="wrap"><span>{cms.E(st.get("topline", ""))}</span></div></div>\n'
+        f'<div class="topline"><div class="wrap"><span data-cms="settings.topline">{cms.E(st.get("topline", ""))}</span></div></div>\n'
         f'<header class="head"><div class="wrap">\n  <nav aria-label="Primary">{left}</nav>\n'
         f'  <a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a>\n'
-        f'  <div class="right"><nav aria-label="Secondary">{right}</nav><a class="btn line" href="proposal.html">{cta}</a></div>\n'
+        f'  <div class="right"><nav aria-label="Secondary">{right}</nav><a class="btn line" href="proposal.html" data-cms="settings.header_button">{cta}</a></div>\n'
         '  <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer"><i></i><i></i><i></i></button></div></header>\n'
-        f'<div class="drawer" id="drawer">{drawer}<a class="btn solid" href="proposal.html">{cta}</a></div>'
+        f'<div class="drawer" id="drawer">{drawer}<a class="btn solid" href="proposal.html" data-cms="settings.header_button">{cta}</a></div>'
     )
 
 
 def chrome_foot(mark, st, content):
     pages = content.get('pages', {})
-    svc = ''.join(f'<li><a href="{slug}.html">{cms.E(pg["crumb"])}</a></li>' for slug, pg in pages.items() if pg.get('service_key'))
-    svc += '<li><a href="services.html">All services</a></li>'
+    svc = cms.r_footer_services(content)
     intl = '<li><a href="international.html">International clients</a></li>' if 'international' in pages else ''
     contact = contact_links(st)
     contact = f'<span class="contact">{contact}</span>' if contact else ''
@@ -76,11 +75,11 @@ def chrome_foot(mark, st, content):
     social = f'<span class="social">{social}</span>' if social else ''
     return (
         '<footer class="foot"><div class="wrap">\n'
-        f'  <div><a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a><p>{cms.E(st.get("footer_blurb", ""))}</p></div>\n'
-        f'  <div><h2>Services</h2><ul>{svc}</ul></div>\n'
+        f'  <div><a class="logo" href="./" aria-label="WeberAct home">{mark}<b>WeberAct</b></a><p data-cms="settings.footer_blurb">{cms.E(st.get("footer_blurb", ""))}</p></div>\n'
+        f'  <div><h2>Services</h2><ul data-cms-list="footer.services">{svc}</ul></div>\n'
         f'  <div><h2>Studio</h2><ul><li><a href="work.html">Work</a></li><li><a href="method.html">Method</a></li><li><a href="about.html">About</a></li>{intl}<li><a href="proposal.html">Request a proposal</a></li></ul></div>\n'
         '  <div><h2>Legal</h2><ul><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div>\n'
-        f'  <div class="base"><span>{cms.E(st.get("footer_left", ""))} © <span data-year>2026</span> WeberAct</span>{contact}{social}<span>{cms.E(st.get("footer_right", ""))}</span></div></div></footer>'
+        f'  <div class="base"><span><span data-cms="settings.footer_left">{cms.E(st.get("footer_left", ""))}</span> © <span data-year>2026</span> WeberAct</span>{contact}{social}<span data-cms="settings.footer_right">{cms.E(st.get("footer_right", ""))}</span></div></div></footer>'
     )
 
 
@@ -108,6 +107,10 @@ def head_block(name, domain, content):
     if name == 'method.html':
         lines.append(f'<link rel="preload" href="{FONT_COND}" as="font" type="font/woff2" crossorigin>')
     lines.append('<meta name="referrer" content="strict-origin-when-cross-origin">')
+    lines.append(f'<meta name="wa-version" content="{cms.A(content.get("_published_at", ""))}">')
+    texts = content.get('texts') or {}
+    if name == 'proposal.html' and texts:  # the proposal form is drawn by a script, so its edited texts are applied in the browser too
+        lines.append('<script>window.WA_TEXTS=' + json.dumps(texts, ensure_ascii=False).replace('</', '<\\/') + '</script>')
     if name in EXTRA:
         lines.append('<meta name="robots" content="noindex">')
     for meta, val in (('google-site-verification', st.get('google_site_verification')), ('msvalidate.01', st.get('bing_site_verification'))):
@@ -115,8 +118,9 @@ def head_block(name, domain, content):
         if name == 'index.html' and re.fullmatch(r'[A-Za-z0-9_\-]{10,100}', val):
             lines.append(f'<meta name="{meta}" content="{val}">')
     ga = (st.get('ga4_id') or '').strip()
-    if re.fullmatch(r'G-[A-Z0-9]{4,20}', ga):
-        lines.append(f"<script>window.WA_GA='{ga}'</script>")  # site.js loads Google Analytics only after the visitor accepts
+    if re.fullmatch(r'G-[A-Z0-9]{4,20}', ga):  # site.js loads Google Analytics only after the visitor accepts
+        consent = {k: st.get(k, '') for k in ('consent_text', 'consent_accept', 'consent_decline')}
+        lines.append(f"<script>window.WA_GA='{ga}';window.WA_CONSENT=" + json.dumps(consent, ensure_ascii=False).replace('</', '<\\/') + '</script>')
     if domain and name not in EXTRA:
         base = f'https://{domain}/'
         url = base + ('' if name == 'index.html' else name)
@@ -173,6 +177,7 @@ def main():
         s = put(s, 'foot', chrome_foot(mark, st, content), r'<script src="assets/site\.js"', 'before')
         # words, lists and SEO from content.json
         s = cms.apply(s, content, name[:-5])
+        s = cms.apply_texts(s, content.get('texts'))
         s = s.replace('<script src="assets/site.js"></script>', '<script src="assets/site.js" defer></script>')
         # logo marks that site.js used to fill in
         s = re.sub(r'(<div[^>]*\bdata-mark\b[^>]*>)\s*(?:<svg.*?</svg>)?\s*(</div>)', lambda m: m.group(1) + mark + m.group(2), s, flags=re.S)

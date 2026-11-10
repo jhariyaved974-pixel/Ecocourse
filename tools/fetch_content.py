@@ -30,7 +30,16 @@ def merge(base, new):
     """The published copy wins; keys it lacks (added to the site later) keep the committed value."""
     if isinstance(base, dict) and isinstance(new, dict):
         return {k: merge(base[k], new[k]) if k in base and k in new else new.get(k, base.get(k)) for k in {**base, **new}}
-    return new if type(new) is type(base) or base is None else base
+    return shape(new, base) if type(new) is type(base) or base is None else base
+
+
+def shape(new, base):
+    """Keep the committed key order inside lists, so the file's history stays readable (the database sorts keys)."""
+    if isinstance(new, dict) and isinstance(base, dict):
+        return {k: shape(new[k], base.get(k)) for k in [k for k in base if k in new] + [k for k in new if k not in base]}
+    if isinstance(new, list) and isinstance(base, list) and base:
+        return [shape(x, base[min(i, len(base) - 1)]) for i, x in enumerate(new)]
+    return new
 
 
 def main():
@@ -50,6 +59,7 @@ def main():
     if not rows:
         print('fetch_content: nothing published from the dashboard yet; using the committed content.json'); return
     content = merge(committed, rows[0]['content'])
+    content['_published_at'] = rows[0]['updated_at']  # the website compares this with the newest publish (live updates)
     try:
         for f in cms.RENDER.values():
             f(content)

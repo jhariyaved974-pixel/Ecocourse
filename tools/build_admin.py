@@ -28,6 +28,7 @@ def main():
     for f in (ADMIN / 'assets').iterdir():
         shutil.copy(f, OUT / 'assets' / f.name)
     shutil.copy(SITE / 'assets/connect.js', OUT / 'assets/connect.js')
+    shutil.copy(SITE / 'assets/cms-render.js', OUT / 'assets/cms-render.js')  # the same renderer the website uses for live updates
     shutil.copy(SITE / 'assets/favicon.svg', OUT / 'assets/favicon.svg')
     shutil.copytree(SITE / 'assets/fonts', OUT / 'assets/fonts')
     # the preview copy of the website, kept out of search results
