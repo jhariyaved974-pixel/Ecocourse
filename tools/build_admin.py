@@ -25,8 +25,9 @@ def main():
     (OUT / 'assets').mkdir(parents=True)
     # the dashboard
     shutil.copy(ADMIN / 'index.html', OUT / 'index.html')
-    for f in (ADMIN / 'assets').iterdir():
-        shutil.copy(f, OUT / 'assets' / f.name)
+    if (ADMIN / 'assets').is_dir():  # optional: the dashboard's own scripts (the renderer is shared with the site)
+        for f in (ADMIN / 'assets').iterdir():
+            shutil.copy(f, OUT / 'assets' / f.name)
     shutil.copy(SITE / 'assets/connect.js', OUT / 'assets/connect.js')
     shutil.copy(SITE / 'assets/cms-render.js', OUT / 'assets/cms-render.js')  # the same renderer the website uses for live updates
     shutil.copy(SITE / 'assets/favicon.svg', OUT / 'assets/favicon.svg')
