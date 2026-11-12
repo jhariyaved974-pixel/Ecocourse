@@ -33,7 +33,6 @@ export default async function Dashboard() {
   const deadlines = active.filter(p => p.due_date && (daysUntil(p.due_date) ?? -1) >= 0).sort((a, b) => a.due_date!.localeCompare(b.due_date!));
   const unreadCount = ((unread ?? []) as { unread: number }[]).reduce((s, r) => s + Number(r.unread), 0);
   const first = (v.profile.full_name || v.email).split(/[\s@]/)[0];
-  const hour = new Date().getHours();
 
   return (
     <>
@@ -43,7 +42,7 @@ export default async function Dashboard() {
         <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-coral-500/10 blur-3xl" aria-hidden />
         <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow mb-3">{hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'} · {v.organization.name}</p>
+            <p className="eyebrow mb-3">{v.organization.name} · Client portal</p>
             <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.03em] md:text-[40px]">Welcome back, {first}</h1>
             <p className="mt-3 max-w-xl text-[15px] text-fg-muted">
               {active.length ? `${active.length} ${active.length === 1 ? 'project is' : 'projects are'} moving forward.` : 'Your projects will appear here as soon as they are set up.'}

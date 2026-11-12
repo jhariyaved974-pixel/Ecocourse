@@ -31,7 +31,7 @@ async function clean() {
   must(await sb.rpc('delete_demo_data'), 'delete demo rows');
   if (paths.length) await sb.storage.from('portal').remove(paths);
   const { data: users } = await sb.auth.admin.listUsers({ perPage: 1000 });
-  for (const u of users?.users ?? []) if (u.email?.endsWith('@' + DOMAIN)) await sb.auth.admin.deleteUser(u.id);
+  for (const u of users?.users ?? []) if ([CLIENT, CLIENT2, MANAGER].includes(u.email ?? '')) await sb.auth.admin.deleteUser(u.id);  // only the demo accounts
   console.log('Demo data removed.');
 }
 

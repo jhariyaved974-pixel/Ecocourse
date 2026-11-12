@@ -28,7 +28,7 @@ test('sign-in rejects a wrong password and protects every page', async ({ page }
   await page.getByLabel('Work email').fill(CLIENT.email);
   await page.getByLabel('Password', { exact: true }).fill('not-the-password');
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('alert')).toContainText('not right');
+  await expect(page.getByText('The email or password is not right.').first()).toBeVisible();
   await shot(page, '01-login');
   const api = await page.request.get('/api/invoices/00000000-0000-0000-0000-000000000000/pdf');
   expect(api.status()).toBe(401);
@@ -38,14 +38,14 @@ test('client dashboard, project page, stages and files', async ({ page }) => {
   await login(page, CLIENT);
   await expect(page).toHaveURL(/\/dashboard/);
   await expect(page.getByRole('heading', { name: /Welcome back, Demo/ })).toBeVisible();
-  await expect(page.getByText('Active projects')).toBeVisible();
+  await expect(page.getByText('Active projects').first()).toBeVisible();
   await expect(page.getByRole('link', { name: /Export website redesign/ }).first()).toBeVisible();
   await shot(page, '02-client-dashboard');
   await page.getByRole('link', { name: /Export website redesign/ }).first().click();
-  await expect(page.getByText('Current stage')).toBeVisible();
+  await expect(page.getByText('Current stage').first()).toBeVisible();
   await expect(page.getByText('— Development').first()).toBeVisible();
-  await expect(page.getByText('The build is on the staging link')).toBeVisible();
-  await expect(page.getByText('Sitemap (demo).pdf')).toBeVisible();
+  await expect(page.getByText('The build is on the staging link').first()).toBeVisible();
+  await expect(page.getByText('Sitemap (demo).pdf').first()).toBeVisible();
   projectUrl = page.url();
   await shot(page, '03-client-project');
 });
@@ -53,7 +53,7 @@ test('client dashboard, project page, stages and files', async ({ page }) => {
 test('client billing: invoice statuses, details and PDF', async ({ page }) => {
   await login(page, CLIENT);
   await page.goto('/billing');
-  await expect(page.getByText('Remaining balance')).toBeVisible();
+  await expect(page.getByText('Remaining balance').first()).toBeVisible();
   await expect(page.getByText('Overdue').first()).toBeVisible();   // demo invoice 1 is past due and part paid
   await shot(page, '04-client-billing');
   await page.getByRole('link', { name: /^WA-\d{4}-\d{4}$/ }).first().click();
@@ -75,8 +75,8 @@ test('client accepts a contract electronically', async ({ page }) => {
   await page.getByLabel('Your full name').fill('Demo Client');
   await page.getByText('I have read the contract').click();
   await page.getByRole('button', { name: 'Accept contract' }).click();
-  await expect(page.getByText('Accepted electronically')).toBeVisible();
-  await expect(page.getByText('Document fingerprint')).toBeVisible();
+  await expect(page.getByText('Accepted electronically').first()).toBeVisible();
+  await expect(page.getByText('Document fingerprint').first()).toBeVisible();
   await shot(page, '06-client-contract-accepted');
 });
 
@@ -92,12 +92,12 @@ test('client onboarding: autosave, upload and submit', async ({ page }) => {
   await page.getByLabel('Business description').fill('We export precision industrial valves to buyers in Europe and the Middle East.');
   await page.getByLabel('Project objectives').fill('Double qualified overseas RFQs within six months.');
   await page.getByLabel('Target audience').fill('Procurement managers at EPC contractors.');
-  await expect(page.getByText(/Saved/)).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText(/Saved/).first()).toBeVisible({ timeout: 8000 });
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.locator('input[type=file]').setInputFiles({ name: 'logo.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>') });
-  await expect(page.getByText('logo.svg')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText('logo.svg').first()).toBeVisible({ timeout: 15000 });
   await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page.getByText('Double qualified overseas RFQs')).toBeVisible();
+  await expect(page.getByText('Double qualified overseas RFQs').first()).toBeVisible();
   await page.getByText('I confirm these details are correct').click();
   await shot(page, '07-client-onboarding-review');
   await page.getByRole('button', { name: 'Submit onboarding' }).click();
@@ -108,17 +108,17 @@ test('client messages and revision request', async ({ page }) => {
   await login(page, CLIENT);
   await page.goto('/messages');
   await page.getByRole('button', { name: /Homepage copy/ }).click();
-  await expect(page.getByText('It will be on the staging link by Thursday.')).toBeVisible();
+  await expect(page.getByText('It will be on the staging link by Thursday.').first()).toBeVisible();
   const text = `Thanks, looking forward to it (${run})`;
   await page.getByLabel('Message', { exact: true }).fill(text);
   await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByText(text)).toBeVisible();
+  await expect(page.getByText(text).first()).toBeVisible();
   await shot(page, '08-client-messages');
   await page.goto('/requests');
   await page.getByLabel('Title').fill(`Swap the hero photo (${run})`);
   await page.getByLabel('Details').fill('Use the night shot of the factory.');
   await page.getByRole('button', { name: 'Send request' }).click();
-  await expect(page.getByText(`Swap the hero photo (${run})`)).toBeVisible();
+  await expect(page.getByText(`Swap the hero photo (${run})`).first()).toBeVisible();
 });
 
 test('another client cannot reach this client by URL or API', async ({ page }) => {
@@ -138,19 +138,19 @@ test('another client cannot reach this client by URL or API', async ({ page }) =
 test('admin overview, stage update reaches the client', async ({ page, browser }) => {
   await login(page, ADMIN);
   await expect(page).toHaveURL(/\/admin$/);
-  await expect(page.getByText('Monthly revenue')).toBeVisible();
+  await expect(page.getByText('Monthly revenue').first()).toBeVisible();
   await shot(page, '09-admin-overview');
   await page.goto('/admin/projects');
   await page.getByRole('link', { name: /Export website redesign/ }).click();
   await page.getByRole('button', { name: 'Advance here' }).click();
-  await expect(page.getByText('Stage updated')).toBeVisible();
+  await expect(page.getByText('Stage updated').first()).toBeVisible();
   await shot(page, '10-admin-project');
   const ctx = await browser.newContext(); const client = await ctx.newPage();
   await login(client, CLIENT);
   await client.goto(projectUrl);
   await expect(client.getByText('— Review').first()).toBeVisible();
   await client.goto('/notifications');
-  await expect(client.getByText('Export website redesign: Review')).toBeVisible();
+  await expect(client.getByText('Export website redesign: Review').first()).toBeVisible();
   await ctx.close();
 });
 
@@ -160,10 +160,10 @@ test('admin creates a client, project, invoice and records payment', async ({ pa
   await page.getByRole('button', { name: 'New client' }).click();
   await page.getByLabel('Company name').fill(`Test Co ${run}`);
   await page.getByLabel('Full name').fill('Test Person');
-  await page.getByLabel('Email', { exact: true }).fill(`test.${run}@weberact.test`);
+  await page.getByRole('textbox', { name: 'Email*' }).fill(`test.${run}@weberact.test`);
   await page.getByRole('button', { name: 'Create client' }).click();
   await expect(page.getByRole('heading', { name: new RegExp(`Test Co ${run}`) })).toBeVisible();
-  await expect(page.getByText(`test.${run}@weberact.test`)).toBeVisible();
+  await expect(page.getByText(`test.${run}@weberact.test`).first()).toBeVisible();
   await shot(page, '11-admin-client');
   await page.getByRole('link', { name: 'New project' }).click();
   await page.getByLabel('Project name').fill(`Launch site ${run}`);
@@ -189,14 +189,14 @@ test('admin sees the client message and onboarding', async ({ page }) => {
   await login(page, ADMIN);
   await page.goto('/admin/messages');
   await page.getByRole('button', { name: /Homepage copy/ }).click();
-  await expect(page.getByText(`Thanks, looking forward to it (${run})`)).toBeVisible();
+  await expect(page.getByText(`Thanks, looking forward to it (${run})`).first()).toBeVisible();
   await page.goto('/admin/onboarding');
   await expect(page.getByText('Meridian Exports (Demo)').first()).toBeVisible();
   await page.getByText('Meridian Exports (Demo)').first().click();
-  await expect(page.getByText('Double qualified overseas RFQs')).toBeVisible();
+  await expect(page.getByText('Double qualified overseas RFQs').first()).toBeVisible();
   await shot(page, '13-admin-onboarding');
   await page.goto('/admin/seo');
-  await expect(page.getByText('Leave a field empty when the number is not available')).toBeVisible();
+  await expect(page.getByText('Leave a field empty when the number is not available').first()).toBeVisible();
 });
 
 test('mobile layout and no page errors', async ({ browser }) => {

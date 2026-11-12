@@ -20,7 +20,7 @@ begin
   delete from public.invoices where organization_id in (select id from public.organizations where is_demo);
   delete from public.organizations where is_demo;
   get diagnostics n = row_count;
-  delete from public.team_members where email like '%@weberact.test';
+  delete from public.team_members where email = 'demo.manager@weberact.test';
   perform set_config('weberact.demo_cleanup', 'off', true);
   return n;
 end $$;

@@ -19,7 +19,9 @@ export function MessageCenter({ conversations, unread, people, me, staff, orgs =
   orgs?: { id: string; name: string }[]; projects: { id: string; name: string; organization_id: string }[]; initialId?: string; newForProject?: string;
 }) {
   const router = useRouter();
-  const [active, setActive] = useState<string | null>(initialId ?? (typeof window !== 'undefined' && window.innerWidth >= 1024 ? conversations[0]?.id ?? null : null));
+  // the same first render on the server and in the browser; on phones the list shows until a conversation is opened
+  const [active, setActive] = useState<string | null>(initialId ?? conversations[0]?.id ?? null);
+  const [showThread, setShowThread] = useState(Boolean(initialId));
   const [q, setQ] = useState(''); const [orgFilter, setOrgFilter] = useState('');
   const [reads, setReads] = useState(unread);
   const [composeOpen, setComposeOpen] = useState(!!newForProject);
@@ -29,7 +31,7 @@ export function MessageCenter({ conversations, unread, people, me, staff, orgs =
 
   return (
     <div className="card grid h-[calc(100dvh-210px)] min-h-[520px] overflow-hidden lg:grid-cols-[340px_1fr]">
-      <aside className={cn('flex min-h-0 flex-col border-r border-line', conv && 'hidden lg:flex')}>
+      <aside className={cn('flex min-h-0 flex-col border-r border-line', showThread && conv && 'hidden lg:flex')}>
         <div className="space-y-2.5 border-b border-line p-3">
           <div className="flex gap-2">
             <div className="relative flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-faint" /><Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search" className="h-9 pl-9" aria-label="Search conversations" /></div>
@@ -43,7 +45,7 @@ export function MessageCenter({ conversations, unread, people, me, staff, orgs =
             const n = reads[c.id] ?? 0;
             return (
               <li key={c.id}>
-                <button onClick={() => setActive(c.id)} className={cn('flex w-full items-start gap-3 border-b border-line/60 px-4 py-3.5 text-left transition', c.id === active ? 'bg-white/[0.05]' : 'hover:bg-white/[0.025]')}>
+                <button onClick={() => { setActive(c.id); setShowThread(true); }} className={cn('flex w-full items-start gap-3 border-b border-line/60 px-4 py-3.5 text-left transition', c.id === active ? 'bg-white/[0.05]' : 'hover:bg-white/[0.025]')}>
                   <span className={cn('mt-2 h-2 w-2 shrink-0 rounded-full', n ? 'bg-coral-500' : 'bg-transparent')} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
@@ -59,13 +61,13 @@ export function MessageCenter({ conversations, unread, people, me, staff, orgs =
           })}
         </ul>
       </aside>
-      <section className={cn('min-h-0', !conv && 'hidden lg:block')}>
-        {conv ? <Thread key={conv.id} conv={conv} me={me} byId={byId} staff={staff} onBack={() => setActive(null)} onRead={() => setReads(r => ({ ...r, [conv.id]: 0 }))} />
+      <section className={cn('min-h-0', !(showThread && conv) && 'hidden lg:block')}>
+        {conv ? <Thread key={conv.id} conv={conv} me={me} byId={byId} staff={staff} onBack={() => setShowThread(false)} onRead={() => setReads(r => ({ ...r, [conv.id]: 0 }))} />
           : <EmptyState className="h-full" icon={<MessagesSquare className="h-6 w-6" />} title="Choose a conversation" body={staff ? 'Messages from every client, in one place.' : 'Talk to your project team. Replies arrive here and in your notifications.'}
               action={<Button onClick={() => setComposeOpen(true)}><Plus className="h-4 w-4" /> New conversation</Button>} />}
       </section>
       <Compose open={composeOpen} onClose={() => setComposeOpen(false)} staff={staff} orgs={orgs} projects={projects} defaultProject={newForProject}
-        onCreated={id => { setComposeOpen(false); setActive(id); router.refresh(); }} />
+        onCreated={id => { setComposeOpen(false); setActive(id); setShowThread(true); router.refresh(); }} />
     </div>
   );
 }

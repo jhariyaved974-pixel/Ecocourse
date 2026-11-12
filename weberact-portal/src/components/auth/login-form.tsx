@@ -60,9 +60,12 @@ export function LoginForm({ siteUrl }: { siteUrl: string }) {
         <Input id="email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" />
       </Field>
       {mode === 'password' && (
-        <Field label={<span className="flex justify-between">Password <Link href="/forgot-password" className="text-[12.5px] font-normal text-fg-muted hover:text-coral-400">Forgot password?</Link></span>} htmlFor="password">
-          <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
-        </Field>
+        <div>
+          <Field label="Password" htmlFor="password">
+            <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
+          </Field>
+          <div className="mt-2 text-right"><Link href="/forgot-password" className="text-[12.5px] text-fg-muted hover:text-coral-400">Forgot password?</Link></div>
+        </div>
       )}
       {error && <p className="rounded-xl border border-bad/30 bg-bad/10 px-4 py-3 text-[13px] text-bad" role="alert">{error}</p>}
       <Button type="submit" size="lg" className="w-full" loading={busy} disabled={!email || (mode === 'password' && !password)}>

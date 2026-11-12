@@ -91,19 +91,19 @@ export async function invoicePdf(inv: Invoice, items: InvoiceItem[], payments: P
   w.y -= 40; w.rule(4);
 
   // items
-  const cols = { desc: M, qty: 360, price: 440, tax: 478, amount: W - M };
+  const cols = { desc: M, qty: 330, price: 412, tax: 456, amount: W - M };
   w.y -= 4;
   w.page.drawText('DESCRIPTION', { x: cols.desc, y: w.y - 8, size: 7, font: w.bold, color: MUTED });
   w.right('QTY', cols.qty, w.y - 8, 7, true, MUTED); w.right('UNIT PRICE', cols.price, w.y - 8, 7, true, MUTED);
-  w.right('TAX', cols.tax + 18, w.y - 8, 7, true, MUTED); w.right('AMOUNT', cols.amount, w.y - 8, 7, true, MUTED);
+  w.right('TAX', cols.tax, w.y - 8, 7, true, MUTED); w.right('AMOUNT', cols.amount, w.y - 8, 7, true, MUTED);
   w.y -= 18;
   for (const it of items) {
     w.ensure(30);
     const rowTop = w.y;
-    w.text(it.description, { size: 9.5, maxWidth: 280, lineHeight: 13 });
+    w.text(it.description, { size: 9.5, maxWidth: 240, lineHeight: 13 });
     w.right(String(Number(it.quantity)), cols.qty, rowTop - 9.5, 9.5);
     w.right(pdfMoney(it.unit_price, '').trim(), cols.price, rowTop - 9.5, 9.5);
-    w.right(`${Number(it.tax_rate)}%`, cols.tax + 18, rowTop - 9.5, 9.5);
+    w.right(`${Number(it.tax_rate)}%`, cols.tax, rowTop - 9.5, 9.5);
     w.right(pdfMoney(it.amount, '').trim(), cols.amount, rowTop - 9.5, 9.5, true);
     w.y = Math.min(w.y, rowTop - 14) - 6;
     w.page.drawLine({ start: { x: M, y: w.y + 2 }, end: { x: W - M, y: w.y + 2 }, thickness: 0.4, color: LINE });
