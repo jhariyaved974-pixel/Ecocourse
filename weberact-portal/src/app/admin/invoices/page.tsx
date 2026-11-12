@@ -21,7 +21,7 @@ export default async function AdminInvoices() {
   return (
     <>
       <PageHeader eyebrow="Finance" title="Invoices" description="Create, issue and track invoices. Numbers are assigned in sequence when an invoice is issued."
-        actions={v.isAdmin ? <Suspense><NewInvoiceButton opts={{ orgs: orgs.filter(o => o), projects, defaults: { tax: Number((s as { default_tax_rate: number } | null)?.default_tax_rate ?? 0), days: (s as { payment_terms_days: number } | null)?.payment_terms_days ?? 7 } }} /></Suspense> : undefined} />
+        actions={v.isAdmin ? <Suspense><NewInvoiceButton opts={{ orgs, projects, defaultCurrency: cur, defaults: { tax: Number((s as { default_tax_rate: number } | null)?.default_tax_rate ?? 0), days: (s as { payment_terms_days: number } | null)?.payment_terms_days ?? 7 } }} /></Suspense> : undefined} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={`Invoiced (${cur})`} value={money(sum(i => i.status === 'issued', 'total'), cur)} />
         <StatCard label="Collected" value={money(sum(i => i.status === 'issued', 'amount_paid'), cur)} />

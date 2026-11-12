@@ -185,6 +185,40 @@ test('admin creates a client, project, invoice and records payment', async ({ pa
   await shot(page, '12-admin-invoice');
 });
 
+test('admin adds a client from inside the contract form, then invoices and records payment from the Payments page', async ({ page }) => {
+  await login(page, ADMIN);
+  await page.goto('/admin/contracts');
+  await page.getByRole('button', { name: 'New contract' }).click();
+  await page.locator('#ct-org').selectOption('__new__');
+  await page.getByLabel('Company name').fill(`Inline Co ${run}`);
+  await page.getByLabel('Billing currency').selectOption('INR');
+  await page.getByLabel('Contact person').fill('Inline Person');
+  await page.getByLabel('Contact email').fill(`inline.${run}@weberact.test`);
+  await page.getByRole('button', { name: 'Add client' }).click();
+  await expect(page.locator('#ct-org option:checked')).toHaveText(`Inline Co ${run}`);
+  await expect(page.locator('#ct-cur')).toHaveValue('INR');
+  await page.getByLabel('Contract title').fill(`Agreement ${run}`);
+  await page.getByRole('button', { name: 'Save and send to client' }).click();
+  await expect(page.getByRole('heading', { name: new RegExp(`Agreement ${run}`) })).toBeVisible();
+
+  await page.goto('/admin/invoices?new=1');
+  await page.locator('#in-org').selectOption({ label: `Inline Co ${run}` });
+  await page.getByLabel('Description').fill('Retainer, month 1');
+  await page.getByLabel('Unit price').fill('25000');
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: 'Issue invoice' }).click();
+  const number = (await page.getByRole('heading', { name: /^WA-\d{4}-\d{4}$/ }).innerText()).trim();
+
+  await page.goto('/admin/payments');
+  await page.getByRole('button', { name: 'Record payment' }).click();
+  const value = await page.locator('#py-inv option', { hasText: number }).getAttribute('value');
+  await page.locator('#py-inv').selectOption(value!);
+  await page.locator('#py-amt').fill('10000');
+  await page.locator('#py-ref').fill(`PAY-${run}`);
+  await page.getByRole('dialog').getByRole('button', { name: 'Record payment' }).click();
+  await expect(page.getByText(`PAY-${run}`).first()).toBeVisible();
+});
+
 test('admin sees the client message and onboarding', async ({ page }) => {
   await login(page, ADMIN);
   await page.goto('/admin/messages');

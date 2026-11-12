@@ -2,12 +2,17 @@ import 'server-only';
 import type { Viewer } from '@/lib/auth';
 
 export async function projectFormOptions(v: Viewer) {
-  const [{ data: orgs }, { data: services }, { data: team }] = await Promise.all([
+  const [{ data: orgs }, { data: services }, { data: team }, cur] = await Promise.all([
     v.supabase.from('organizations').select('id,name,currency').eq('status', 'active').order('name'),
     v.supabase.from('services').select('id,name').eq('is_active', true).order('sort'),
     v.supabase.from('team_members').select('id,full_name').eq('is_active', true).order('full_name'),
+    defaultCurrency(v),
   ]);
-  return { orgs: (orgs ?? []) as { id: string; name: string; currency: string }[], services: (services ?? []) as { id: string; name: string }[], team: (team ?? []) as { id: string; full_name: string }[] };
+  return { defaultCurrency: cur, orgs: (orgs ?? []) as { id: string; name: string; currency: string }[], services: (services ?? []) as { id: string; name: string }[], team: (team ?? []) as { id: string; full_name: string }[] };
+}
+export async function defaultCurrency(v: Viewer) {
+  const { data } = await v.supabase.from('portal_settings').select('default_currency').eq('id', 1).maybeSingle();
+  return (data?.default_currency as string | undefined) ?? 'USD';
 }
 export async function orgOptions(v: Viewer) {
   const { data } = await v.supabase.from('organizations').select('id,name,currency').order('name');

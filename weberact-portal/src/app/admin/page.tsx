@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AlertCircle, CalendarClock, CheckCircle2, CircleDollarSign, FolderKanban, Plus, Users, Wallet } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, Circle, CircleDollarSign, FolderKanban, Plus, Users, Wallet } from 'lucide-react';
 import { requireStaff } from '@/lib/auth';
 import { PROJECT_SELECT } from '@/lib/queries';
 import type { Activity, Invoice, Organization, Payment, Project, SupportRequest } from '@/lib/types';
@@ -17,7 +17,8 @@ export default async function AdminOverview() {
   const v = await requireStaff();
   const sb = v.supabase;
   const since = new Date(); since.setMonth(since.getMonth() - 11, 1);
-  const [{ data: orgs }, { data: projects }, { data: invoices }, { data: payments }, { data: activity }, { data: requests }, { data: onboarding }, { data: settings }] = await Promise.all([
+  const count = (t: 'contracts' | 'invoices' | 'payments') => sb.from(t).select('id', { count: 'exact', head: true }).then(r => r.count ?? 0);
+  const [{ data: orgs }, { data: projects }, { data: invoices }, { data: payments }, { data: activity }, { data: requests }, { data: onboarding }, { data: settings }, nContracts, nInvoices, nPayments] = await Promise.all([
     sb.from('organizations').select('id,status,currency,is_demo'),
     sb.from('projects').select(PROJECT_SELECT).order('due_date', { ascending: true, nullsFirst: false }),
     sb.from('invoice_summaries').select('*').eq('status', 'issued'),
@@ -26,6 +27,7 @@ export default async function AdminOverview() {
     sb.from('support_requests').select('*, organization:organizations(id,name)').in('status', ['open', 'in_progress']).order('created_at', { ascending: false }).limit(5),
     sb.from('onboarding_submissions').select('id, organization:organizations(id,name), submitted_at').eq('status', 'submitted').order('submitted_at', { ascending: false }),
     sb.from('portal_settings').select('default_currency').eq('id', 1).single(),
+    count('contracts'), count('invoices'), count('payments'),
   ]);
   const cur = (settings as { default_currency: string } | null)?.default_currency ?? 'USD';
   const O = (orgs ?? []) as Pick<Organization, 'id' | 'status' | 'currency' | 'is_demo'>[], P = (projects ?? []) as Project[], I = (invoices ?? []) as Invoice[];
@@ -42,6 +44,13 @@ export default async function AdminOverview() {
   const byStage = STAGES.slice(0, 7).map(s => ({ label: String(s.n).padStart(2, '0'), name: s.name, projects: active.filter(p => p.stage === s.n).length }));
   const due = active.filter(p => p.due_date && (daysUntil(p.due_date) ?? 99) <= 14).slice(0, 6);
   const otherCur = [...new Set(I.map(i => i.currency).filter(c => c !== cur))];
+  const steps = [
+    { done: O.length > 0, title: 'Add a client', body: 'The company and the person you deal with.', href: '/admin/clients?new=1' },
+    { done: P.length > 0, title: 'Create a project', body: 'Services, dates and the 8 delivery stages.', href: '/admin/projects?new=1' },
+    { done: nContracts > 0, title: 'Send a contract', body: 'Write or upload it; the client accepts it in the portal.', href: '/admin/contracts?new=1' },
+    { done: nInvoices > 0, title: 'Create an invoice', body: 'Line items and tax; issuing gives it a number.', href: '/admin/invoices?new=1' },
+    { done: nPayments > 0, title: 'Record a payment', body: 'Bank, UPI or cash against an issued invoice.', href: '/admin/payments?new=1' },
+  ];
 
   return (
     <>
@@ -49,6 +58,25 @@ export default async function AdminOverview() {
       <PageHeader eyebrow="Control center" title={`Good to see you, ${(v.profile.full_name || 'there').split(' ')[0]}`}
         description={`${active.length} active ${active.length === 1 ? 'project' : 'projects'} across ${O.filter(o => o.status === 'active').length} clients.${overdue.length ? ` ${overdue.length} ${overdue.length === 1 ? 'invoice is' : 'invoices are'} overdue.` : ''}`}
         actions={<><Button variant="secondary" href="/admin/projects?new=1"><Plus className="h-4 w-4" /> New project</Button><Button href="/admin/clients?new=1"><Plus className="h-4 w-4" /> New client</Button></>} />
+      {steps.some(st => !st.done) && (
+        <Card className="mb-6">
+          <CardHeader eyebrow="Getting started" title={`${steps.filter(st => st.done).length} of ${steps.length} done`} description="Each step opens the right form. You can add a client from inside any of them too." />
+          <ol className="grid gap-px overflow-hidden border-t border-line bg-line sm:grid-cols-2 xl:grid-cols-5">
+            {steps.map((st, i) => (
+              <li key={st.title} className="bg-ink-900">
+                <Link href={st.href} className="group flex h-full items-start gap-3 px-5 py-4 transition hover:bg-white/[0.02]">
+                  {st.done ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-ok" /> : <Circle className="mt-0.5 h-4 w-4 shrink-0 text-fg-faint" />}
+                  <span className="min-w-0 flex-1">
+                    <span className={st.done ? 'block text-[13.5px] font-medium text-fg-muted line-through decoration-fg-faint' : 'block text-[13.5px] font-medium'}>{i + 1}. {st.title}</span>
+                    <span className="mt-0.5 block text-[12.5px] leading-relaxed text-fg-faint">{st.body}</span>
+                  </span>
+                  {!st.done && <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-fg-faint transition group-hover:text-coral-400" />}
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </Card>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <StatCard label="Total clients" value={O.filter(o => o.status === 'active').length} icon={<Users className="h-4 w-4" />} href="/admin/clients" hint={`${O.filter(o => o.status === 'inactive').length} inactive`} />
         <StatCard label="Active projects" value={active.length} icon={<FolderKanban className="h-4 w-4" />} href="/admin/projects" accent />

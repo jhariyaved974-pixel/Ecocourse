@@ -10,21 +10,23 @@ import type { Contract } from '@/lib/types';
 import { safeFileName, sha256Hex, uid } from '@/lib/utils';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/modal';
+import { useClientPicker } from './client-picker';
 
-type Opts = { orgs: { id: string; name: string; currency: string }[]; projects: { id: string; name: string; organization_id: string }[] };
+type Opts = { orgs: { id: string; name: string; currency: string }[]; projects: { id: string; name: string; organization_id: string }[]; defaultCurrency?: string };
 const DEFAULT_TERMS = '50% on signing, 30% on design and development approval, 20% before final handover. Invoices are due within 7 days.';
 
 export function useContractForm({ opts, contract, onDone }: { opts: Opts; contract?: Contract; onDone: (id: string) => void }) {
   const params = useSearchParams();
-  const presetOrg = params.get('org') ?? opts.orgs[0]?.id ?? '';
+  const presetOrg = contract?.organization_id ?? params.get('org') ?? opts.orgs[0]?.id ?? '';
   const [v, setV] = useState({
     organization_id: contract?.organization_id ?? presetOrg, project_id: contract?.project_id ?? params.get('project') ?? '', title: contract?.title ?? '', scope: contract?.scope ?? '',
     payment_terms: contract?.payment_terms ?? DEFAULT_TERMS, start_date: contract?.start_date ?? '', end_date: contract?.end_date ?? '',
-    value: contract?.value != null ? String(contract.value) : '', currency: contract?.currency ?? opts.orgs.find(o => o.id === presetOrg)?.currency ?? 'USD',
+    value: contract?.value != null ? String(contract.value) : '', currency: contract?.currency ?? opts.orgs.find(o => o.id === presetOrg)?.currency ?? opts.defaultCurrency ?? 'USD',
   });
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState<'draft' | 'send' | null>(null);
   async function save(send: boolean) {
+    if (!client.ready) return toast.error('Choose a client, or add a new one first.');
     if (v.title.trim().length < 2) return toast.error('Add a title.');
     if (file && file.type !== 'application/pdf') return toast.error('Upload the contract as a PDF.');
     setBusy(send ? 'send' : 'draft');
@@ -42,14 +44,17 @@ export function useContractForm({ opts, contract, onDone }: { opts: Opts; contra
     } catch (e) { toast.error((e as Error).message); }
     finally { setBusy(null); }
   }
+  const client = useClientPicker({ id: 'ct-org', orgs: opts.orgs, value: v.organization_id, locked: !!contract, defaultCurrency: opts.defaultCurrency,
+    onPick: o => setV(cur => ({ ...cur, organization_id: o.id, project_id: '', currency: o.currency })) });
   const projects = opts.projects.filter(p => p.organization_id === v.organization_id);
   return {
     body: (
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Client" htmlFor="ct-org"><Select id="ct-org" value={v.organization_id} disabled={!!contract} onChange={e => setV({ ...v, organization_id: e.target.value, project_id: '', currency: opts.orgs.find(o => o.id === e.target.value)?.currency ?? v.currency })}>{opts.orgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</Select></Field>
+          <Field label="Client" htmlFor="ct-org">{client.select}</Field>
           <Field label="Project" htmlFor="ct-proj"><Select id="ct-proj" value={v.project_id} onChange={e => setV({ ...v, project_id: e.target.value })}><option value="">General agreement</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
         </div>
+        {client.panel}
         <Field label="Contract title" htmlFor="ct-title" required><Input id="ct-title" value={v.title} onChange={e => setV({ ...v, title: e.target.value })} placeholder="e.g. Website development agreement" /></Field>
         <Field label="Scope of work" htmlFor="ct-scope"><Textarea id="ct-scope" rows={6} value={v.scope} onChange={e => setV({ ...v, scope: e.target.value })} /></Field>
         <Field label="Payment terms" htmlFor="ct-terms"><Textarea id="ct-terms" rows={3} value={v.payment_terms} onChange={e => setV({ ...v, payment_terms: e.target.value })} /></Field>
@@ -82,7 +87,7 @@ export function NewContractButton({ opts }: { opts: Opts }) {
   const { body, footer } = useContractForm({ opts, onDone: id => { setOpen(false); router.push(`/admin/contracts/${id}`); } });
   return (
     <>
-      <Button onClick={() => setOpen(true)} disabled={!opts.orgs.length}><Plus className="h-4 w-4" /> New contract</Button>
+      <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New contract</Button>
       <Modal open={open} onClose={() => setOpen(false)} size="lg" title="New contract" description="Save as a draft, or send it: the client is notified and can accept it in the portal." footer={footer}>{body}</Modal>
     </>
   );

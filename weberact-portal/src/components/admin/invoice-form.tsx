@@ -9,8 +9,9 @@ import type { Invoice, InvoiceItem } from '@/lib/types';
 import { money } from '@/lib/format';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui/primitives';
 import { Modal } from '@/components/ui/modal';
+import { useClientPicker } from './client-picker';
 
-type Opts = { orgs: { id: string; name: string; currency: string }[]; projects: { id: string; name: string; organization_id: string }[]; defaults: { tax: number; days: number } };
+type Opts = { orgs: { id: string; name: string; currency: string }[]; projects: { id: string; name: string; organization_id: string }[]; defaults: { tax: number; days: number }; defaultCurrency?: string };
 type Row = { description: string; quantity: string; unit_price: string; tax_rate: string };
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -19,7 +20,7 @@ function useInvoiceForm({ opts, invoice, items, onDone }: { opts: Opts; invoice?
   const presetOrg = invoice?.organization_id ?? params.get('org') ?? opts.orgs[0]?.id ?? '';
   const today = new Date(), due = new Date(); due.setDate(due.getDate() + opts.defaults.days);
   const [h, setH] = useState({
-    organization_id: presetOrg, project_id: invoice?.project_id ?? params.get('project') ?? '', currency: invoice?.currency ?? opts.orgs.find(o => o.id === presetOrg)?.currency ?? 'USD',
+    organization_id: presetOrg, project_id: invoice?.project_id ?? params.get('project') ?? '', currency: invoice?.currency ?? opts.orgs.find(o => o.id === presetOrg)?.currency ?? opts.defaultCurrency ?? 'USD',
     issue_date: invoice?.issue_date ?? iso(today), due_date: invoice?.due_date ?? iso(due), notes: invoice?.notes ?? '',
   });
   const [rows, setRows] = useState<Row[]>(items?.length ? items.map(i => ({ description: i.description, quantity: String(i.quantity), unit_price: String(i.unit_price), tax_rate: String(i.tax_rate) }))
@@ -31,6 +32,7 @@ function useInvoiceForm({ opts, invoice, items, onDone }: { opts: Opts; invoice?
   }, { sub: 0, tax: 0 }), [rows]);
   const set = (i: number, k: keyof Row, val: string) => setRows(rows.map((r, j) => (j === i ? { ...r, [k]: val } : r)));
   async function save(issue: boolean) {
+    if (!client.ready) return toast.error('Choose a client, or add a new one first.');
     const clean = rows.filter(r => r.description.trim() || r.unit_price);
     if (issue && !confirm(`Issue this invoice for ${money(totals.sub + totals.tax, h.currency)}? It gets its number and the client is notified. Issued invoices cannot be edited.`)) return;
     setBusy(issue ? 'issue' : 'draft');
@@ -40,17 +42,20 @@ function useInvoiceForm({ opts, invoice, items, onDone }: { opts: Opts; invoice?
     if (!r.ok) return toast.error(r.error);
     toast.success(r.message ?? 'Saved'); onDone(r.data!.id);
   }
+  const client = useClientPicker({ id: 'in-org', orgs: opts.orgs, value: h.organization_id, locked: !!invoice, defaultCurrency: opts.defaultCurrency,
+    onPick: o => setH(cur => ({ ...cur, organization_id: o.id, project_id: '', currency: o.currency })) });
   const projects = opts.projects.filter(p => p.organization_id === h.organization_id);
   return {
     body: (
       <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="Client" htmlFor="in-org"><Select id="in-org" value={h.organization_id} disabled={!!invoice} onChange={e => setH({ ...h, organization_id: e.target.value, project_id: '', currency: opts.orgs.find(o => o.id === e.target.value)?.currency ?? h.currency })}>{opts.orgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</Select></Field>
+          <Field label="Client" htmlFor="in-org">{client.select}</Field>
           <Field label="Project" htmlFor="in-proj"><Select id="in-proj" value={h.project_id} onChange={e => setH({ ...h, project_id: e.target.value })}><option value="">None</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
           <Field label="Currency" htmlFor="in-cur"><Select id="in-cur" value={h.currency} onChange={e => setH({ ...h, currency: e.target.value })}>{CURRENCIES.map(c => <option key={c}>{c}</option>)}</Select></Field>
           <Field label="Issue date" htmlFor="in-issue"><Input id="in-issue" type="date" value={h.issue_date} onChange={e => setH({ ...h, issue_date: e.target.value })} /></Field>
           <Field label="Due date" htmlFor="in-due"><Input id="in-due" type="date" value={h.due_date} min={h.issue_date} onChange={e => setH({ ...h, due_date: e.target.value })} /></Field>
         </div>
+        {client.panel}
         <div>
           <p className="mb-2 text-[13px] font-medium text-fg-soft">Items</p>
           <div className="space-y-2">
@@ -84,7 +89,7 @@ export function NewInvoiceButton({ opts }: { opts: Opts }) {
   const router = useRouter(); const params = useSearchParams();
   const [open, setOpen] = useState(() => Boolean(params.get('new')));
   const { body, footer } = useInvoiceForm({ opts, onDone: id => { setOpen(false); router.push(`/admin/invoices/${id}`); } });
-  return <><Button onClick={() => setOpen(true)} disabled={!opts.orgs.length}><Plus className="h-4 w-4" /> New invoice</Button><Modal open={open} onClose={() => setOpen(false)} size="xl" title="New invoice" description="Drafts are private. Issuing assigns the next invoice number and notifies the client." footer={footer}>{body}</Modal></>;
+  return <><Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New invoice</Button><Modal open={open} onClose={() => setOpen(false)} size="xl" title="New invoice" description="Drafts are private. Issuing assigns the next invoice number and notifies the client." footer={footer}>{body}</Modal></>;
 }
 export function EditInvoice({ opts, invoice, items }: { opts: Opts; invoice: Invoice; items: InvoiceItem[] }) {
   const router = useRouter(); const [open, setOpen] = useState(false);

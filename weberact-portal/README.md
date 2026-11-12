@@ -95,6 +95,10 @@ Then, in Supabase:
 4. Move the project through its 8 stages. The client sees each change live and gets a notification.
 5. Upload deliverables, send contracts, issue invoices and record payments.
 
+The overview shows a getting-started checklist until each of these has been done once. The project,
+contract and invoice forms can add a new client inline ("+ New client"). Payments can be recorded from
+the Payments page or from the invoice itself.
+
 ## Run locally
 
 ```bash

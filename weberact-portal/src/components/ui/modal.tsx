@@ -1,14 +1,19 @@
 'use client';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const noop = () => () => {};
+/** False during server rendering and hydration, true after: lets a modal that starts open (?new=1) hydrate cleanly. */
+const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
+
 export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: {
   open: boolean; onClose: () => void; title: ReactNode; description?: ReactNode; children: ReactNode; footer?: ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl';
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const mounted = useMounted();
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -18,7 +23,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
     const t = setTimeout(() => panel.current?.querySelector<HTMLElement>('input,textarea,select,button[data-autofocus]')?.focus(), 60);
     return () => { document.removeEventListener('keydown', key); document.body.style.overflow = ''; clearTimeout(t); prev?.focus?.(); };
   }, [open, onClose]);
-  if (typeof document === 'undefined') return null;
+  if (!mounted) return null;
   const w = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-5xl' }[size];
   return createPortal(
     <AnimatePresence>
