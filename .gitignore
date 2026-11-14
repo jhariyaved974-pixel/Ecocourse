@@ -52,3 +52,7 @@ __pycache__/
 
 # WeberAct dashboard build output (tools/build_admin.py)
 /dist-admin/
+
+# Internal pricing documents (costs and margins): keep out of this public repository
+business/*-Internal.pdf
+business/source/
