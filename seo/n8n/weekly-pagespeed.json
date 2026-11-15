@@ -1,0 +1,67 @@
+{
+  "name": "WeberAct · Weekly PageSpeed (read-only)",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "weeks", "weeksInterval": 1, "triggerAtDay": [1], "triggerAtHour": 6 }] } },
+      "name": "Every Monday 06:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pages to measure. Keep in step with weberact/sitemap.xml.\nconst base = 'https://weberact.co/';\nconst pages = ['', 'services.html', 'website-development.html', 'technical-seo.html', 'ai-automation.html', 'b2b-lead-generation.html', 'international.html', 'proposal.html'];\nreturn pages.map(p => ({ json: { url: base + p } }));"
+      },
+      "name": "Pages to test",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [
+          { "name": "url", "value": "={{ $json.url }}" },
+          { "name": "strategy", "value": "mobile" },
+          { "name": "category", "value": "performance" },
+          { "name": "key", "value": "={{ $env.PSI_API_KEY }}" }
+        ] },
+        "options": { "timeout": 120000, "batching": { "batch": { "batchSize": 1, "batchInterval": 3000 } } }
+      },
+      "name": "PageSpeed Insights API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Field data (real users, CrUX) when Google has enough of it; lab data always.\nreturn $input.all().map(i => {\n  const d = i.json, f = (d.loadingExperience || {}).metrics || {}, a = d.lighthouseResult.audits;\n  const p75 = k => f[k] ? f[k].percentile : '';\n  return { json: {\n    date: new Date().toISOString().slice(0, 10), url: d.id,\n    field_lcp_ms: p75('LARGEST_CONTENTFUL_PAINT_MS'), field_inp_ms: p75('INTERACTION_TO_NEXT_PAINT'), field_cls_x100: p75('CUMULATIVE_LAYOUT_SHIFT_SCORE'),\n    lab_performance: Math.round(d.lighthouseResult.categories.performance.score * 100),\n    lab_lcp_ms: Math.round(a['largest-contentful-paint'].numericValue), lab_cls: a['cumulative-layout-shift'].numericValue,\n    lab_tbt_ms: Math.round(a['total-blocking-time'].numericValue)\n  } };\n});"
+      },
+      "name": "Extract Core Web Vitals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "url", "value": "PASTE_GOOGLE_SHEET_URL" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "PageSpeed" },
+        "columns": { "mappingMode": "autoMapInputData", "value": {} },
+        "options": {}
+      },
+      "name": "Append to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [880, 0]
+    }
+  ],
+  "connections": {
+    "Every Monday 06:00": { "main": [[{ "node": "Pages to test", "type": "main", "index": 0 }]] },
+    "Pages to test": { "main": [[{ "node": "PageSpeed Insights API", "type": "main", "index": 0 }]] },
+    "PageSpeed Insights API": { "main": [[{ "node": "Extract Core Web Vitals", "type": "main", "index": 0 }]] },
+    "Extract Core Web Vitals": { "main": [[{ "node": "Append to Google Sheet", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

@@ -1,0 +1,1412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WeberAct Dashboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<style>
+/* Layout: sticky top bar with tabs; Overview = KPI row, two chart panels, latest enquiries; Enquiries = filters + table; detail opens in a side panel */
+@font-face{font-family:"Schibsted Grotesk";font-weight:400 900;font-display:swap;src:url(assets/fonts/schibsted-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:100 800;font-display:swap;src:url(assets/fonts/jetbrains-mono-latin.woff2) format("woff2")}
+:root{
+  --bg:#f6f3ef; --surface:#ffffff; --raised:#faf8f5; --ink:#1c1519; --muted:#6c6168; --faint:#958a90; --line:#e8e1d8; --line-strong:#d9cfc3;
+  --brand:#7a1c33; --brand-2:#5f1427; --brand-ink:#ffffff; --gold:#c6a24e; --gold-ink:#7d6220; --bar:#7a1c33; --bar-hover:#94263f; --track:#efe8df;
+  --new:#9a5b00; --new-bg:#fbefd6; --contacted:#2c5a96; --contacted-bg:#e2ebf7; --proposal:#5f45a8; --proposal-bg:#ebe5f7; --won:#1f7444; --won-bg:#dff1e6; --lost:#5f565c; --lost-bg:#ece8e9;
+  --shadow:0 1px 2px rgba(28,21,25,.06),0 8px 24px -12px rgba(28,21,25,.18);
+  --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141012; --surface:#1d181b; --raised:#231d21; --ink:#f3ecef; --muted:#b3a7ad; --faint:#8d8187; --line:#33292e; --line-strong:#43383e;
+  --brand:#c0475f; --brand-2:#a73a51; --brand-ink:#ffffff; --gold:#d6b462; --gold-ink:#e3c57a; --bar:#c0475f; --bar-hover:#d35a72; --track:#2b2327;
+  --new:#f0b955; --new-bg:#3a2c12; --contacted:#86aee6; --contacted-bg:#1d2a3d; --proposal:#b39cf0; --proposal-bg:#2a2340; --won:#6fcf97; --won-bg:#16301f; --lost:#b3a7ad; --lost-bg:#2c2629;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.6); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#141012; --surface:#1d181b; --raised:#231d21; --ink:#f3ecef; --muted:#b3a7ad; --faint:#8d8187; --line:#33292e; --line-strong:#43383e;
+  --brand:#c0475f; --brand-2:#a73a51; --brand-ink:#ffffff; --gold:#d6b462; --gold-ink:#e3c57a; --bar:#c0475f; --bar-hover:#d35a72; --track:#2b2327;
+  --new:#f0b955; --new-bg:#3a2c12; --contacted:#86aee6; --contacted-bg:#1d2a3d; --proposal:#b39cf0; --proposal-bg:#2a2340; --won:#6fcf97; --won-bg:#16301f; --lost:#b3a7ad; --lost-bg:#2c2629;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.6); color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font:400 14.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:22px;min-height:62px;flex-wrap:wrap;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--brand);text-decoration:none;white-space:nowrap}
+.brand svg{height:16px;width:auto}
+.brand b{font-weight:600;font-size:17px;letter-spacing:-.02em}
+.brand span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-left:10px;border-left:1px solid var(--line)}
+.tabs{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto}
+.tabs button{border:0;background:none;cursor:pointer;padding:8px 12px;border-radius:8px;color:var(--muted);font-weight:500;white-space:nowrap;display:inline-flex;gap:7px;align-items:center}
+.tabs button:hover{color:var(--ink);background:var(--raised)}
+.tabs button[aria-selected="true"]{color:var(--ink);background:var(--raised);box-shadow:inset 0 -2px 0 var(--brand)}
+.count{font:600 11px var(--sans);min-width:20px;padding:1px 6px;border-radius:99px;background:var(--new-bg);color:var(--new);text-align:center;font-variant-numeric:tabular-nums}
+.count.zero{background:var(--track);color:var(--muted)}
+.right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.updated{font-size:12px;color:var(--muted);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:9px;padding:9px 14px;font-weight:600;font-size:13.5px;cursor:pointer;background:var(--brand);color:var(--brand-ink);transition:background .2s}
+.btn:hover{background:var(--brand-2)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn.ghost:hover{background:var(--raised)}
+.btn.danger{background:transparent;color:#b42318;box-shadow:inset 0 0 0 1px currentColor}
+.btn:disabled{opacity:.55;cursor:default}
+.banner{background:var(--new-bg);color:var(--new);border-bottom:1px solid var(--line)}
+.banner .wrap{padding-block:10px;font-size:13.5px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner b{font-weight:700}
+main{padding-block:26px 60px}
+.view{display:grid;gap:18px}
+h1{font:600 26px/1.15 var(--sans);letter-spacing:-.03em;margin:0;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted)}
+.head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.panel h2{font:600 15px var(--sans);letter-spacing:-.01em;margin:0 0 2px}
+.panel .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:4px;min-width:0}
+.kpi span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi b{font:600 30px/1.1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.kpi em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.kpi.alert{border-color:var(--new);box-shadow:inset 3px 0 0 var(--new)}
+.kpi.alert b{color:var(--new)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px}
+.chart svg{width:100%;height:auto;display:block}
+.chart .barr{fill:var(--bar);transition:fill .15s}
+.chart .barr:hover{fill:var(--bar-hover)}
+.chart .base{stroke:var(--line-strong);stroke-width:1}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart text{fill:var(--muted);font:500 11px var(--sans)}
+.chart text.val{fill:var(--ink);font-weight:600}
+.hbars{display:grid;gap:10px}
+.hbar{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:10px;align-items:center}
+.hbar .lab{font-size:13px;margin-bottom:4px;display:flex;justify-content:space-between}
+.hbar .track{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
+.hbar .fill{height:100%;border-radius:4px;background:var(--bar)}
+.hbar .n{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.funnel{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.funnel div{border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.funnel b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.funnel span{font-size:12px;font-weight:600}
+.s-new{background:var(--new-bg);color:var(--new)} .s-contacted{background:var(--contacted-bg);color:var(--contacted)} .s-proposal_sent{background:var(--proposal-bg);color:var(--proposal)}
+.s-won{background:var(--won-bg);color:var(--won)} .s-lost{background:var(--lost-bg);color:var(--lost)} .s-open{background:var(--new-bg);color:var(--new)} .s-done{background:var(--won-bg);color:var(--won)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:8px 11px;min-width:0}
+.filters input{flex:1 1 220px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--raised);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr{cursor:pointer;transition:background .15s}
+tbody tr:hover{background:var(--raised)}
+tbody tr:last-child td{border-bottom:0}
+td .who{font-weight:600}
+td .biz{color:var(--muted);font-size:12.5px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-size:11.5px;padding:2px 7px;border-radius:6px;background:var(--track);white-space:nowrap}
+.when{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.latest{display:grid}
+.latest button{all:unset;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:11px 4px;border-bottom:1px solid var(--line)}
+.latest button:last-child{border-bottom:0}
+.latest button:hover{background:var(--raised)}
+.latest button:focus-visible{outline:2px solid var(--gold)}
+.latest .t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.latest .d{grid-column:1/-1;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* side panel */
+.scrim{position:fixed;inset:0;background:rgba(20,16,18,.38);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);z-index:41;background:var(--surface);box-shadow:-20px 0 50px -20px rgba(0,0,0,.35);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.drawer header{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.drawer h3{font:600 20px/1.2 var(--sans);letter-spacing:-.02em;margin:0}
+.drawer .biz{color:var(--muted);margin-top:2px}
+.drawer .x{border:0;background:var(--raised);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px;line-height:1}
+.drawer .body{overflow-y:auto;padding:18px 20px;display:grid;gap:18px}
+.kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:8px 14px;font-size:13.5px;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+.brief{white-space:pre-wrap;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;margin:0}
+.field{display:grid;gap:6px}
+.field label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.field select,.field textarea,.field input{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;width:100%}
+.field textarea{min-height:100px;resize:vertical}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mini{border:0;background:var(--raised);border-radius:7px;padding:4px 9px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+a.mini{text-decoration:none;display:inline-block}
+.saved{font-size:12.5px;color:var(--won)}
+.danger-zone{border-top:1px solid var(--line);padding-top:14px}
+/* sign-in */
+.auth{max-width:420px;margin:30px auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px;display:grid;gap:14px;box-shadow:var(--shadow)}
+.auth h1{font-size:24px}
+.auth .msg{font-size:13.5px;margin:0}
+.auth .msg.err{color:#b42318} .auth .msg.ok{color:var(--won)}
+.linkish{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;padding:0;justify-self:start}
+.sample-tag{font:600 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--new-bg);color:var(--new)}
+/* website editor: section list | form | live preview */
+.cms{display:grid;grid-template-columns:210px minmax(0,1fr);gap:18px;align-items:start}
+.cms.pv-on{grid-template-columns:210px minmax(0,1fr) minmax(0,1.05fr)}
+.snav{position:sticky;top:78px;display:grid;gap:16px;max-height:calc(100vh - 96px);overflow-y:auto;padding-bottom:8px}
+.snav div{display:grid;gap:1px}
+.snav h3{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 4px 10px}
+.snav button{border:0;background:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;color:var(--muted);font-weight:500;text-align:left}
+.snav button:hover{background:var(--surface);color:var(--ink)}
+.snav button[aria-current="true"]{background:var(--surface);color:var(--ink);box-shadow:inset 2px 0 0 var(--brand)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex:none}
+.editor{display:grid;gap:14px;min-width:0}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:16px;min-width:0}
+.group > h2{font:600 15px var(--sans);margin:0}
+.group > .hint{margin:-12px 0 0;font-size:12.5px;color:var(--muted)}
+.f{display:grid;gap:6px;min-width:0;align-content:start}
+.fl{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.f label,.fl > span:first-child{font-weight:600;font-size:13px}
+.f input,.f textarea,.f select{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;width:100%;min-width:0}
+.f textarea{min-height:76px;resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--brand);outline:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+.help{font-size:12.5px;color:var(--muted);margin:0}
+.help b{color:var(--ink)}
+.tbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;align-items:end}
+.tlist{display:grid;gap:14px}
+.trow .fl label{font-weight:500;color:var(--muted);font-size:12.5px;line-height:1.45}
+.trow.on .fl label{color:var(--ink)}
+.trow.on input,.trow.on textarea{border-color:var(--brand)}
+.tx-frame{position:absolute;left:-10000px;top:0;width:1280px;height:900px;visibility:hidden;border:0}
+@media (max-width:640px){.tbar{grid-template-columns:1fr}}
+.cnt{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cnt.over{color:#b42318;font-weight:600}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.items{display:grid;gap:8px}
+.item{border:1px solid var(--line);border-radius:11px;background:var(--raised);min-width:0}
+.item > summary{display:flex;align-items:center;gap:10px;padding:9px 10px 9px 12px;cursor:pointer;list-style:none;min-height:44px}
+.item > summary::-webkit-details-marker{display:none}
+.item > summary::before{content:"";width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(-45deg);transition:transform .2s;flex:none}
+.item[open] > summary::before{transform:rotate(45deg)}
+.item .ttl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:13.5px}
+.item .ttl em{font-style:normal;color:var(--faint);font-weight:500;margin-right:6px}
+.ctl{display:flex;gap:4px;flex:none}
+.ctl button,.line button{border:0;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);border-radius:7px;min-width:30px;height:30px;padding:0 8px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+.ctl button:hover,.line button:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ctl button:disabled,.line button:disabled{opacity:.35;cursor:default}
+.ctl button.arm,.line button.arm{color:#b42318;box-shadow:inset 0 0 0 1px currentColor}
+.item .inner{padding:4px 12px 14px;display:grid;gap:14px}
+.lines{display:grid;gap:8px}
+.line{display:flex;gap:6px;align-items:start}
+.line input,.line textarea{flex:1;min-width:0}
+.line .cnt{align-self:center;min-width:54px;text-align:right}
+.add{border:1px dashed var(--line-strong);background:none;border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--brand);font-weight:600;justify-self:start}
+.add:hover{background:var(--raised)}
+.add:disabled{color:var(--faint);cursor:default}
+.img{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.thumb{width:96px;height:64px;border-radius:8px;background:var(--track) center/cover no-repeat;border:1px solid var(--line);flex:none;display:grid;place-items:center;font-size:11px;color:var(--faint)}
+.img .f{flex:1 1 220px}
+.snip{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--raised);display:grid;gap:2px;font-family:Arial,system-ui,sans-serif}
+.snip .u{font-size:12px;color:var(--muted)}
+.snip b{font-size:18px;font-weight:400;color:#1a0dab;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snip p{margin:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+:root[data-theme="dark"] .snip b{color:#8ab4f8}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .snip b{color:#8ab4f8} }
+.savebar{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:var(--shadow)}
+.savebar .btn.ghost{color:var(--bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bg) 40%,transparent)}
+.savebar .btn.ghost:hover{background:color-mix(in srgb,var(--bg) 12%,transparent)}
+.preview{position:sticky;top:78px;height:calc(100vh - 96px);min-height:420px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.preview > header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.preview > header b{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:inline-flex;background:var(--raised);border-radius:8px;padding:2px;box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.pvbox{flex:1;position:relative;overflow:hidden;background:var(--track)}
+.pvbox iframe{position:absolute;top:0;left:0;border:0;background:#fff;transform-origin:0 0}
+.pvnone{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:20px}
+.mediagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.mcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--raised);display:grid;min-width:0}
+.mcard .im{aspect-ratio:4/3;background:var(--track) center/cover no-repeat}
+.mcard .meta{padding:8px 10px;display:grid;gap:6px;font-size:12px;min-width:0}
+.mcard .meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.mcard button.pick{all:unset;cursor:pointer;display:block}
+.mcard button.pick:focus-visible{outline:2px solid var(--gold)}
+.drop{border:1.5px dashed var(--line-strong);border-radius:12px;padding:22px;text-align:center;color:var(--muted);display:grid;gap:8px;justify-items:center}
+.drop.over{border-color:var(--brand);background:var(--raised)}
+.hist{display:grid}
+.hist > div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line)}
+.hist > div:last-child{border-bottom:0}
+.hist .when{font-size:12.5px}
+.modal-bg{position:fixed;inset:0;background:rgba(20,16,18,.45);z-index:60;display:grid;place-items:center;padding:16px}
+.modal{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);width:min(560px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden}
+.modal.wide{width:min(900px,100%)}
+.modal > header{padding:18px 20px 0}
+.modal > header h3{font:600 19px/1.25 var(--sans);letter-spacing:-.02em;margin:0}
+.modal .mbody{padding:14px 20px;overflow-y:auto;display:grid;gap:12px}
+.modal footer{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.changes{margin:0;padding-left:18px;display:grid;gap:4px}
+.team{display:grid;gap:0}
+.team > div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.team > div:last-child{border-bottom:0}
+.inline{display:flex;gap:8px;flex-wrap:wrap}
+.inline input{flex:1 1 220px;background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;min-width:0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:13.5px;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+.muted{color:var(--muted);font-size:12.5px}
+.thumb img,.mcard .im img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
+.toast[hidden]{display:none}
+.row-panel{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+@media (max-width:1180px){
+  .cms.pv-on{grid-template-columns:210px minmax(0,1fr)}
+  .cms .preview{position:fixed;inset:auto 0 0 0;top:calc(env(safe-area-inset-top,0px) + 8px);height:auto;z-index:45;border-radius:16px 16px 0 0;box-shadow:0 -20px 50px -20px rgba(0,0,0,.4)}
+}
+@media (max-width:820px){
+  .cms,.cms.pv-on{grid-template-columns:minmax(0,1fr)}
+  .snav{position:static;display:flex;gap:6px;overflow-x:auto;max-height:none;margin:0 -16px;padding:0 16px 4px}
+  .snav div{display:contents}
+  .snav h3{display:none}
+  .snav button{white-space:nowrap;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+  .snav button[aria-current="true"]{box-shadow:inset 0 0 0 1.5px var(--brand)}
+  .two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:980px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .grid2{grid-template-columns:minmax(0,1fr)} .funnel{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:720px){
+  .updated{display:none}
+  .top .wrap{gap:8px 12px}
+  .brand span{display:none}
+  .tabs{order:3;flex:1 1 100%;margin:0 -4px}
+  .right .btn{padding:7px 11px}
+  table.resp thead{display:none}
+  table.resp tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  table.resp td{padding:0;border:0}
+  table.resp td.c-when{grid-column:2;grid-row:1;text-align:right}
+  table.resp td.c-who{grid-column:1;grid-row:1}
+  table.resp td.c-status{grid-column:2;grid-row:2;text-align:right}
+  table.resp td.c-svc{grid-column:1;grid-row:2}
+  table.resp td.c-budget,table.resp td.c-via{display:none}
+  .kv{grid-template-columns:minmax(0,1fr)} .kv dt{margin-top:6px}
+}
+@media (max-width:440px){ .kpis{grid-template-columns:minmax(0,1fr)} .funnel{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./" aria-label="WeberAct dashboard"><svg viewBox="0 0 1146 398" aria-hidden="true" fill="currentColor"><path d="M323.4 397.0C314.7 395.8 309.5 394.3 301.4 390.6C285.2 383.1 275.0 374.0 260.7 354.4C256.2 348.2 243.7 331.3 233.0 316.8C222.3 302.4 202.8 275.9 189.6 258.0C176.4 240.1 157.5 214.5 147.5 201.0C137.5 187.5 119.5 163.2 107.5 147.0C95.5 130.8 81.8 112.3 77.1 106.0C72.4 99.7 59.4 82.1 48.1 67.0C36.9 51.9 21.8 31.6 14.7 22.0C7.5 12.4 1.2 3.9 0.7 3.2C-0.2 2.1 11.3 2.0 64.6 2.2L129.5 2.6L139.2 5.2C158.2 10.4 177.5 21.5 191.1 35.0C196.0 39.9 216.1 65.7 248.5 109.0C289.5 163.7 329.7 217.2 413.7 328.9C417.2 333.5 420.0 337.5 420.0 337.9C420.0 339.3 400.5 362.7 393.1 370.3C384.5 379.1 372.2 387.9 363.0 391.6C351.0 396.5 335.2 398.6 323.4 397.0Z"/><path d="M576.2 397.0C558.0 394.5 540.1 385.0 525.8 370.3C517.2 361.5 502.8 342.0 503.8 340.6C504.3 340.0 507.3 336.1 510.6 332.0C527.7 310.6 672.7 127.1 734.7 48.4C746.9 32.9 758.9 18.5 761.3 16.4C785.3 -4.7 819.2 -5.2 843.7 15.1C850.9 21.0 856.3 27.5 905.5 90.0C925.2 115.0 951.8 148.8 964.6 165.0C977.4 181.2 998.3 207.8 1011.1 224.0C1042.7 264.1 1097.7 333.6 1124.2 366.8C1136.2 381.9 1146.0 394.6 1146.0 395.1C1146.0 395.6 1056.0 396.0 922.9 396.0C707.0 396.0 699.9 395.9 701.2 394.2C701.9 393.2 718.0 372.7 737.0 348.7L771.5 305.0L836.8 305.0C872.8 305.0 902.0 304.6 901.8 304.2C901.6 303.7 893.0 292.6 882.5 279.5C815.8 195.9 803.4 180.4 802.7 180.2C802.0 180.0 790.7 194.0 696.2 312.0C653.1 365.8 650.4 369.0 639.7 377.5C620.6 392.7 597.3 399.9 576.2 397.0Z"/><path d="M460.3 298.8C457.6 295.3 452.7 288.9 449.4 284.5C446.1 280.1 438.9 270.6 433.4 263.5C427.9 256.4 416.8 241.9 408.9 231.5C400.9 221.1 381.1 195.2 364.9 174.0C330.5 129.0 284.2 68.3 254.7 29.4L233.8 1.9L300.2 2.2L366.5 2.6L376.2 5.2C393.0 9.8 407.6 17.6 420.7 28.8C427.2 34.4 450.6 63.8 477.0 99.7L484.5 109.9L549.5 110.1C585.2 110.1 615.7 110.1 617.2 110.0C618.8 109.9 620.0 110.2 620.0 110.5C620.0 111.3 622.1 108.6 565.9 179.5C510.3 249.5 500.6 261.8 481.7 285.8C473.4 296.3 466.3 305.0 465.9 305.0C465.5 305.0 463.0 302.2 460.3 298.8Z"/></svg><b>WeberAct</b><span>Dashboard</span></a>
+  <nav class="tabs" role="tablist" aria-label="Dashboard sections" id="tabs" hidden>
+    <button role="tab" data-view="overview" aria-selected="true">Overview</button>
+    <button role="tab" data-view="enquiries" aria-selected="false">Enquiries <span class="count" id="cNew">0</span></button>
+    <button role="tab" data-view="privacy" aria-selected="false">Privacy requests <span class="count" id="cPriv">0</span></button>
+    <button role="tab" data-view="website" aria-selected="false">Website</button>
+    <button role="tab" data-view="account" aria-selected="false">Settings</button>
+  </nav>
+  <div class="right" id="toolbar" hidden><span class="updated" id="updated" aria-live="polite"></span><button class="btn ghost" id="refresh">Refresh</button><button class="btn ghost" id="signout">Sign out</button></div>
+</div></header>
+<div class="banner" id="banner" hidden><div class="wrap"><span class="sample-tag">Sample data</span><span><b>Preview mode.</b> The enquiries are examples, and website edits are kept in this browser only. Once the dashboard runs on the live site, enquiries are real and Publish updates the website.</span></div></div>
+
+<main class="wrap">
+  <section class="view" id="v-auth" hidden>
+    <form class="auth" id="authForm" novalidate>
+      <div><h1 id="authTitle">Sign in</h1><p class="sub" id="authSub">Enquiries from weberact.co, in one place.</p></div>
+      <div class="field"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" required></div>
+      <div class="field" id="pwField"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password" minlength="8" required></div>
+      <p class="msg" id="authMsg" role="alert" hidden></p>
+      <button class="btn" type="submit" id="authBtn">Sign in</button>
+      <button class="linkish" type="button" id="toForgot">Forgot your password?</button>
+      <button class="linkish" type="button" id="toSignin" hidden>Back to sign in</button>
+    </form>
+  </section>
+
+  <section class="view" id="v-noaccess" hidden>
+    <div class="auth"><h1>No access yet</h1><p class="sub">You are signed in as <b id="naEmail"></b>, which is not the WeberAct admin account. This dashboard has one account only.</p><button class="btn ghost" id="naOut">Sign out</button></div>
+  </section>
+
+  <section class="view" id="v-overview" hidden>
+    <div class="head"><div><h1 id="greet">Overview</h1><p class="sub" id="greetSub"></p></div></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel row-panel"><div><h2>Website</h2><p class="hint" id="siteStatus" style="margin:0">Edit every page, image and setting of the website.</p></div><button type="button" class="btn ghost" id="goWebsite">Edit the website</button></div>
+    <div class="grid2">
+      <div class="panel chart"><h2>Enquiries per week</h2><p class="hint">Last 12 weeks</p><div id="weekly"></div></div>
+      <div class="panel"><h2>What people ask for</h2><p class="hint">Services chosen, all time (an enquiry can pick several)</p><div class="hbars" id="services"></div></div>
+    </div>
+    <div class="panel"><h2>Pipeline</h2><p class="hint">Where every enquiry stands now</p><div class="funnel" id="funnel"></div></div>
+    <div class="grid2">
+      <div class="panel"><h2>Latest enquiries</h2><p class="hint">Newest first. Select one to open it.</p><div class="latest" id="latest"></div></div>
+      <div class="panel"><h2>Where enquiries come from</h2><p class="hint">How each visitor first reached the site</p><div class="hbars" id="sources"></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-enquiries" hidden>
+    <div class="head"><div><h1>Enquiries</h1><p class="sub" id="enqSub"></p></div><button class="btn ghost" id="exportCsv">Export CSV</button></div>
+    <div class="filters">
+      <input id="q" type="search" placeholder="Search name, business, email or message" aria-label="Search enquiries">
+      <select id="fStatus" aria-label="Filter by status"><option value="">All statuses</option></select>
+      <select id="fService" aria-label="Filter by service"><option value="">All services</option></select>
+    </div>
+    <div class="tablewrap"><table class="resp"><thead><tr><th>Received</th><th>Name and business</th><th>Services</th><th>Budget</th><th>Contact by</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table>
+      <div class="empty" id="noRows" hidden><b>No enquiries match</b>Change the search or filters to see more.</div></div>
+  </section>
+
+  <section class="view" id="v-privacy" hidden>
+    <div class="head"><div><h1>Privacy requests</h1><p class="sub">Requests from the form on the privacy policy page. Reply within one working day.</p></div></div>
+    <div class="tablewrap"><table><thead><tr><th>Received</th><th>Request</th><th>Name and contact</th><th>Details</th><th>Status</th><th></th></tr></thead><tbody id="privRows"></tbody></table>
+      <div class="empty" id="noPriv" hidden><b>No privacy requests</b>When someone uses the privacy request form, it appears here.</div></div>
+  </section>
+
+  <section class="view" id="v-website" hidden>
+    <div class="head"><div><h1>Website</h1><p class="sub" id="wsStatus">Every word, list, image and setting on weberact.co.</p></div>
+      <div class="actions"><a class="btn ghost" id="viewSite" href="https://weberact.vercel.app/" target="_blank" rel="noopener">View website</a><button type="button" class="btn ghost" id="pvToggle" aria-pressed="false">Preview</button><button type="button" class="btn ghost" id="saveDraft">Save draft</button><button type="button" class="btn" id="publishBtn">Publish</button></div></div>
+    <div class="cms" id="cms">
+      <nav class="snav" id="snav" aria-label="Website sections"></nav>
+      <div class="editor" id="editor"></div>
+      <aside class="preview" id="preview" hidden aria-label="Live preview">
+        <header><b id="pvTitle">Preview</b><div class="seg" role="group" aria-label="Preview size"><button type="button" data-dev="desktop" aria-pressed="true">Desktop</button><button type="button" data-dev="mobile" aria-pressed="false">Phone</button></div><button type="button" class="mini" id="pvClose">Close</button></header>
+        <div class="pvbox" id="pvBox"><iframe id="pvFrame" name="wa-preview" title="Page preview with your unsaved edits"></iframe><div class="pvnone" id="pvNone" hidden></div></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="v-account" hidden>
+    <div class="head"><div><h1>Settings</h1><p class="sub">Your password, and how Publish reaches the website.</p></div></div>
+    <div class="grid2">
+      <div class="panel"><h2>Your password</h2><p class="hint" id="meEmail"></p>
+        <form id="pwForm" style="display:grid;gap:12px" novalidate><div class="two"><div class="f"><label for="pw1">New password</label><input id="pw1" type="password" autocomplete="new-password"></div><div class="f"><label for="pw2">Type it again</label><input id="pw2" type="password" autocomplete="new-password"></div></div>
+          <button class="btn" style="justify-self:start">Change password</button><p class="help" id="pwMsg" aria-live="polite"></p></form></div>
+      <div class="panel"><h2>Access</h2><p class="hint">This dashboard has a single account. Nobody else can create one, and the database only lets this account read enquiries or change the website.</p></div>
+    </div>
+    <div class="panel"><h2>Publishing</h2><p class="hint">Paste the deploy hook from your hosting (on Vercel: Project, Settings, Git, Deploy Hooks). With it, Publish rebuilds the website straight away. Without it, published changes appear at the next build.</p>
+      <form class="inline" id="hookForm" novalidate><input type="url" id="hookUrl" placeholder="https://api.vercel.com/v1/integrations/deploy/…" aria-label="Deploy hook address" spellcheck="false" autocomplete="off"><button class="btn">Save</button></form>
+      <p class="help" id="hookMsg" aria-live="polite" style="margin-top:8px"></p></div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="dName">
+  <header><div><h3 id="dName"></h3><div class="biz" id="dBiz"></div></div><button class="x" id="dClose" aria-label="Close">×</button></header>
+  <div class="body" id="dBody"></div>
+</aside>
+
+<script src="assets/connect.js"></script>
+<script src="assets/cms-render.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const C = window.WA_CONNECT || { ready: false };
+  const STATUS = [['new', 'New'], ['contacted', 'Contacted'], ['proposal_sent', 'Proposal sent'], ['won', 'Won'], ['lost', 'Lost']];
+  const SL = Object.fromEntries(STATUS);
+  const SERVICES = ['Premium website', 'Web system', 'Automations', 'Search optimisation (SEO)', 'B2B lead generation', 'Not sure yet'];
+  const SHORT = { 'Premium website': 'Website', 'Web system': 'Web system', 'Automations': 'Automation', 'Search optimisation (SEO)': 'SEO', 'B2B lead generation': 'Lead gen', 'Not sure yet': 'Not sure' };
+  const KEY = 'wa-admin-session';
+  const APP_VIEWS = ['overview', 'enquiries', 'privacy', 'website', 'account'];
+  const S = { mode: C.ready ? 'live' : 'sample', session: null, rows: [], priv: [], view: 'overview', open: null, dirty: false, loadedAt: null };
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const day = 864e5;
+
+  // ---------- time helpers ----------
+  function when(iso){
+    const d = new Date(iso), now = new Date(), diff = (now - d) / 1000;
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    const sameDay = d.toDateString() === now.toDateString(), y = new Date(now - day);
+    const hm = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (sameDay) return 'Today ' + hm;
+    if (d.toDateString() === y.toDateString()) return 'Yesterday ' + hm;
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
+  }
+  const full = iso => iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+  function dur(ms){ const h = ms / 36e5; return h < 1 ? Math.max(1, Math.round(h * 60)) + ' min' : h < 48 ? (Math.round(h * 10) / 10) + ' h' : Math.round(h / 24) + ' days'; }
+  const weekStart = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+
+  // ---------- sample data (shown only when the database is not connected) ----------
+  function sample(){
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const pick = a => a[Math.floor(rnd() * a.length)];
+    const people = [['Amelia R.', 'Harbourline Physio'], ['Daniel K.', 'Oakridge Dental'], ['Sofia M.', 'Copperleaf Interiors'], ['James T.', 'Northbeam Logistics'], ['Priya S.', 'Saltmarsh Bakery'],
+      ['Oliver H.', 'Brightwell Tutoring'], ['Layla N.', 'Juniper & Vale Skincare'], ['Ethan W.', 'Ironbark Fitness'], ['Grace L.', 'Lakeside Vets'], ['Noah B.', 'Fieldstone Builders'],
+      ['Mia C.', 'Marigold Events'], ['Lucas F.', 'Atlas Freight'], ['Zara A.', 'Bluefin Charters'], ['Henry P.', 'Cedar Lane Clinic'], ['Ava D.', 'Quarry Street Coffee'],
+      ['Leo G.', 'Kestrel Accounting'], ['Isla V.', 'Willowmere Spa'], ['Omar J.', 'Harper & Stone Law'], ['Chloe E.', 'Tidewater Realty'], ['Ruby O.', 'Pinecrest Academy'], ['Max Y.', 'Redfern Motors'], ['Nina Q.', 'Lumen Optometry']];
+    const types = ['Clinic / Healthcare', 'Professional services', 'Retail / Online store', 'Hospitality', 'Education', 'Manufacturer / Exporter', 'Other'];
+    const results = ['More enquiries', 'Sell online', 'Save staff time', 'Get found on Google', 'A better first impression'];
+    const budgets = ['Under $1,500', '$1,500 – $3,500', '$4,000 – $10,000', '$10,000 – $20,000', 'Monthly retainer', 'Not sure yet'];
+    const timings = ['As soon as possible', 'Within a month', 'In 1–3 months', 'Just exploring'];
+    const sources = [{ referrer: 'https://www.google.com/' }, { referrer: 'https://www.google.com/' }, { referrer: 'https://www.linkedin.com/' }, {}, { utm: { utm_source: 'instagram' } }, { referrer: 'https://www.bing.com/' }, {}];
+    const briefs = ['Our current site is slow and does not show up on Google. We want something that looks as good as our service.',
+      'We get enquiries on WhatsApp, email and Instagram and lose track of them. Looking for one place and automatic replies.',
+      'Opening a second location next quarter and need a site that takes bookings.', 'We sell around 60 products and want an online store with card payments.',
+      'Need a redesign. The site is five years old and does not work well on phones.', 'Looking for monthly SEO help for our main services pages.'];
+    const out = [], now = Date.now();
+    people.forEach(([n, b], i) => {
+      const ageDays = Math.floor(rnd() * 80) + (i < 3 ? 0 : 1);
+      const created = new Date(now - ageDays * day - Math.floor(rnd() * 20) * 36e5);
+      const st = ageDays < 2 ? 'new' : pick(['contacted', 'proposal_sent', 'won', 'lost', 'contacted', 'proposal_sent', 'won']);
+      const svc = [pick(SERVICES.slice(0, 4))]; if (rnd() > .55) svc.push(pick(SERVICES.slice(0, 4)));
+      out.push({ id: 'sample-' + i, created_at: created.toISOString(), updated_at: created.toISOString(), status: st,
+        contacted_at: st === 'new' ? null : new Date(created.getTime() + (1 + rnd() * 20) * 36e5).toISOString(), notes: st === 'won' ? 'Signed. Kick-off call booked.' : null,
+        services: [...new Set(svc)], business: b, business_type: pick(types), city: null, website: rnd() > .4 ? b.toLowerCase().replace(/[^a-z]+/g, '') + '.example' : null,
+        result: pick(results), detail: pick(briefs), currency: 'USD', budget: pick(budgets), timing: pick(timings), name: n + ' (sample)',
+        whatsapp: '+1 555 01' + String(10 + i).padStart(2, '0'), email: n.split(' ')[0].toLowerCase() + '@' + b.toLowerCase().replace(/[^a-z]+/g, '') + '.example',
+        contact_via: pick(['WhatsApp', 'Email', 'Call']), source: Object.assign({ landing: '/', page: '/proposal.html' }, pick(sources)) });
+    });
+    out.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    const priv = [{ id: 'sp1', created_at: new Date(now - 2 * day).toISOString(), status: 'open', request_type: 'Delete my data', name: 'Sample person', contact: 'sample@example.com', details: 'Please remove my enquiry from last year.', notes: null },
+      { id: 'sp2', created_at: new Date(now - 20 * day).toISOString(), status: 'done', request_type: 'See my data', name: 'Another sample', contact: '+1 555 0199', details: null, notes: 'Sent summary by email.' }];
+    return { rows: out, priv };
+  }
+
+  // ---------- Supabase auth + data ----------
+  const saveSession = s => { S.session = s; try { s ? localStorage.setItem(KEY, JSON.stringify(s)) : localStorage.removeItem(KEY); } catch (e) {} };
+  const loadSession = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+  const asSession = j => ({ access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in || 3600) * 1000, email: (j.user && j.user.email) || null });
+  async function auth(path, body, token){
+    const h = C.headers(token ? { Authorization: 'Bearer ' + token } : {});
+    const r = await fetch(C.url + '/auth/v1/' + path, { method: path === 'user' ? 'PUT' : 'POST', headers: h, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.msg || j.error_description || j.message || 'Something went wrong. Please try again.');
+    return j;
+  }
+  async function fresh(){
+    if (!S.session) throw new Error('signed-out');
+    if (S.session.expires_at - Date.now() > 60000) return;
+    try { saveSession(Object.assign(asSession(await auth('token?grant_type=refresh_token', { refresh_token: S.session.refresh_token })), { email: S.session.email })); }
+    catch (e) { saveSession(null); throw new Error('signed-out'); }
+  }
+  async function api(path, opts = {}){
+    await fresh();
+    const h = C.headers({ Authorization: 'Bearer ' + S.session.access_token });
+    if (opts.prefer) h.Prefer = opts.prefer;
+    const r = await fetch(C.url + '/rest/v1/' + path, { method: opts.method || 'GET', headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    if (r.status === 401){ saveSession(null); throw new Error('signed-out'); }
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || 'The database refused the request (' + r.status + ').');
+    const t = await r.text();
+    return t ? JSON.parse(t) : null;
+  }
+
+  // ---------- views ----------
+  function show(view){
+    S.view = view;
+    ['auth', 'noaccess', 'overview', 'enquiries', 'privacy', 'website', 'account'].forEach(v => $('#v-' + v).hidden = v !== view);
+    const inApp = APP_VIEWS.includes(view);
+    $('#tabs').hidden = !inApp; $('#toolbar').hidden = !inApp;
+    $('#signout').hidden = S.mode === 'sample'; $('#exportCsv').hidden = S.mode === 'sample';
+    $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.view === view));
+    if (inApp) try { history.replaceState(null, '', '#' + view + (view === 'website' ? '/' + CM.sec : '')); } catch (e) {}
+    const tab = $('#tabs [aria-selected="true"]'); if (tab && inApp) try { tab.scrollIntoView({ inline: 'nearest', block: 'nearest' }); } catch (e) {}
+    if (view === 'website') renderCms();
+    if (view === 'account') renderAccount();
+  }
+  $$('#tabs button').forEach(b => b.addEventListener('click', () => { show(b.dataset.view); render(); }));
+  $('#goWebsite').addEventListener('click', () => show('website'));
+
+  async function load(){
+    if (S.mode === 'sample'){ const d = sample(); S.rows = d.rows; S.priv = d.priv; }
+    else {
+      const [rows, priv] = await Promise.all([api('enquiries?select=*&order=created_at.desc&limit=2000'), api('privacy_requests?select=*&order=created_at.desc&limit=500')]);
+      S.rows = rows; S.priv = priv;
+    }
+    S.loadedAt = new Date();
+  }
+
+  function kpi(label, value, note, alert){ return `<div class="kpi${alert ? ' alert' : ''}"><span>${label}</span><b>${value}</b><em>${note}</em></div>`; }
+
+  function render(){
+    const R = S.rows, now = new Date();
+    const nNew = R.filter(r => r.status === 'new').length, nOpen = S.priv.filter(p => p.status === 'open').length;
+    $('#cNew').textContent = nNew; $('#cNew').classList.toggle('zero', !nNew);
+    $('#cPriv').textContent = nOpen; $('#cPriv').classList.toggle('zero', !nOpen);
+    $('#updated').textContent = S.loadedAt ? 'Updated ' + S.loadedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '';
+    if (S.view === 'overview') renderOverview(R, now, nNew);
+    if (S.view === 'enquiries') renderTable();
+    if (S.view === 'privacy') renderPrivacy();
+  }
+
+  function renderOverview(R, now, nNew){
+    const hr = now.getHours();
+    $('#greet').textContent = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+    $('#greetSub').textContent = nNew ? `${nNew} new ${nNew === 1 ? 'enquiry is' : 'enquiries are'} waiting for a reply.` : 'Every enquiry has had a reply.';
+    const mStart = new Date(now.getFullYear(), now.getMonth(), 1), pmStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const thisM = R.filter(r => new Date(r.created_at) >= mStart).length, lastM = R.filter(r => { const d = new Date(r.created_at); return d >= pmStart && d < mStart; }).length;
+    const won = R.filter(r => r.status === 'won').length, lost = R.filter(r => r.status === 'lost').length;
+    const replies = R.filter(r => r.contacted_at).map(r => new Date(r.contacted_at) - new Date(r.created_at)).filter(x => x >= 0).sort((a, b) => a - b);
+    const med = replies.length ? replies[Math.floor(replies.length / 2)] : null;
+    const delta = thisM - lastM;
+    $('#kpis').innerHTML = kpi('Waiting for a reply', nNew, nNew ? 'Reply within one working day' : 'All caught up', nNew > 0) +
+      kpi('Enquiries this month', thisM, lastM || thisM ? `${delta >= 0 ? '+' : ''}${delta} vs last month (${lastM})` : 'None yet') +
+      kpi('Won', won, won + lost ? `${Math.round(won / (won + lost) * 100)}% of decided enquiries` : 'No decisions yet') +
+      kpi('Typical reply time', med == null ? '—' : dur(med), replies.length ? `Median of ${replies.length} replies` : 'Shown after the first reply');
+    // weekly bars
+    const ws = weekStart(now), weeks = [...Array(12)].map((_, i) => new Date(ws.getTime() - (11 - i) * 7 * day));
+    const counts = weeks.map(w => R.filter(r => { const d = new Date(r.created_at); return d >= w && d < new Date(w.getTime() + 7 * day); }).length);
+    const max = Math.max(4, ...counts), W = 600, H = 210, padB = 26, padT = 18, bw = W / 12;
+    const step = Math.max(1, Math.ceil(max / 4)), ticks = [...Array(Math.floor(max / step) + 1)].map((_, i) => i * step);
+    const y = v => H - padB - (v / max) * (H - padB - padT);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Enquiries per week for the last 12 weeks">`;
+    ticks.forEach(t => { svg += `<line class="grid" x1="0" x2="${W}" y1="${y(t)}" y2="${y(t)}"/>`; });
+    counts.forEach((c, i) => {
+      const x = i * bw + bw * .22, w = bw * .56, top = y(c), lbl = weeks[i].toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+      if (c) svg += `<path class="barr" d="M${x},${H - padB} V${top + 4} q0,-4 4,-4 h${w - 8} q4,0 4,4 V${H - padB} Z"><title>Week of ${lbl}: ${c} ${c === 1 ? 'enquiry' : 'enquiries'}</title></path>`;
+      if (c) svg += `<text class="val" x="${x + w / 2}" y="${top - 5}" text-anchor="middle">${c}</text>`;
+      if (i % 2 === 1 || i === 11) svg += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${i === 11 ? 'This week' : lbl}</text>`;
+    });
+    svg += `<line class="base" x1="0" x2="${W}" y1="${H - padB}" y2="${H - padB}"/></svg>`;
+    $('#weekly').innerHTML = svg;
+    // services
+    const sc = SERVICES.map(s => [s, R.filter(r => (r.services || []).includes(s)).length]).filter(x => x[1]).sort((a, b) => b[1] - a[1]);
+    const smax = Math.max(1, ...sc.map(x => x[1]));
+    $('#services').innerHTML = sc.length ? sc.map(([s, n]) => `<div class="hbar"><div><div class="lab"><span>${esc(s)}</span></div><div class="track"><div class="fill" style="width:${n / smax * 100}%"></div></div></div><span class="n">${n}</span></div>`).join('') : '<p class="hint">No enquiries yet.</p>';
+    // funnel
+    $('#funnel').innerHTML = STATUS.map(([k, l]) => `<div class="s-${k}"><span>${l}</span><b>${R.filter(r => r.status === k).length}</b></div>`).join('');
+    // latest
+    $('#latest').innerHTML = R.length ? R.slice(0, 6).map(r => `<button data-id="${esc(r.id)}"><span class="t">${esc(r.name)}${r.business ? ' · ' + esc(r.business) : ''}</span><span class="pill s-${r.status}">${SL[r.status] || r.status}</span><span class="d">${when(r.created_at)} · ${esc((r.services || []).join(', ') || 'No service chosen')} · ${esc(r.budget || 'No budget given')}</span></button>`).join('')
+      : '<div class="empty"><b>No enquiries yet</b>When someone sends the proposal form on the website, it appears here.</div>';
+    $$('#latest button').forEach(b => b.addEventListener('click', () => openItem(b.dataset.id)));
+    // sources
+    const src = r => { const s = r.source || {}; if (s.utm && s.utm.utm_source) return s.utm.utm_source; if (s.referrer){ try { const h = new URL(s.referrer).hostname.replace(/^www\./, ''); return /google\./.test(h) ? 'Google' : /bing\./.test(h) ? 'Bing' : /linkedin\./.test(h) ? 'LinkedIn' : /facebook\.|instagram\./.test(h) ? 'Meta' : h; } catch (e) {} } return 'Direct or unknown'; };
+    const m = {}; R.forEach(r => { const k = src(r); m[k] = (m[k] || 0) + 1; });
+    const so = Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 6), somax = Math.max(1, ...so.map(x => x[1]));
+    $('#sources').innerHTML = so.length ? so.map(([s, n]) => `<div class="hbar"><div><div class="lab"><span>${esc(s.charAt(0).toUpperCase() + s.slice(1))}</span></div><div class="track"><div class="fill" style="width:${n / somax * 100}%"></div></div></div><span class="n">${n}</span></div>`).join('') : '<p class="hint">No enquiries yet.</p>';
+  }
+
+  // filters
+  STATUS.forEach(([k, l]) => $('#fStatus').insertAdjacentHTML('beforeend', `<option value="${k}">${l}</option>`));
+  SERVICES.forEach(s => $('#fService').insertAdjacentHTML('beforeend', `<option>${esc(s)}</option>`));
+  ['#q', '#fStatus', '#fService'].forEach(s => $(s).addEventListener('input', renderTable));
+  function filtered(){
+    const q = $('#q').value.trim().toLowerCase(), st = $('#fStatus').value, sv = $('#fService').value;
+    return S.rows.filter(r => (!st || r.status === st) && (!sv || (r.services || []).includes(sv)) &&
+      (!q || [r.name, r.business, r.email, r.whatsapp, r.detail, r.notes].some(v => (v || '').toLowerCase().includes(q))));
+  }
+  function renderTable(){
+    const list = filtered();
+    $('#enqSub').textContent = `${S.rows.length} in total · ${S.rows.filter(r => r.status === 'new').length} waiting for a reply`;
+    $('#rows').innerHTML = list.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td class="c-when when">${when(r.created_at)}</td>
+      <td class="c-who"><div class="who">${esc(r.name)}</div><div class="biz">${esc(r.business || '—')}</div></td>
+      <td class="c-svc"><div class="chips">${(r.services || []).map(s => `<span class="chip">${esc(SHORT[s] || s)}</span>`).join('') || '<span class="biz">—</span>'}</div></td>
+      <td class="c-budget">${esc(r.budget || '—')}</td><td class="c-via">${esc(r.contact_via || '—')}</td>
+      <td class="c-status"><span class="pill s-${r.status}">${SL[r.status] || r.status}</span></td></tr>`).join('');
+    $('#noRows').hidden = !!list.length;
+    $$('#rows tr').forEach(tr => { tr.addEventListener('click', () => openItem(tr.dataset.id)); tr.addEventListener('keydown', e => { if (e.key === 'Enter') openItem(tr.dataset.id); }); });
+  }
+
+  // ---------- detail panel ----------
+  function close(){ if (S.dirty && !confirmLeave()) return; $('#drawer').hidden = true; $('#scrim').hidden = true; S.open = null; S.dirty = false; }
+  function confirmLeave(){ const n = $('#dNotesMsg'); if (n && !n.dataset.warned){ n.textContent = 'You have unsaved notes. Save them, or close again to discard.'; n.style.color = 'var(--new)'; n.dataset.warned = '1'; return false; } return true; }
+  $('#dClose').addEventListener('click', close); $('#scrim').addEventListener('click', close);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#drawer').hidden) close(); });
+
+  function openItem(id){
+    const r = S.rows.find(x => String(x.id) === String(id)); if (!r) return;
+    S.open = r.id; S.dirty = false;
+    $('#dName').textContent = r.name; $('#dBiz').textContent = [r.business, r.business_type].filter(Boolean).join(' · ') || 'No business name given';
+    const digits = (r.whatsapp || '').replace(/\D/g, ''), src = r.source || {};
+    const u = src.utm || {}, camp = [u.utm_medium, u.utm_campaign].filter(Boolean).join(', ');
+    const srcText = [u.utm_source ? u.utm_source + (camp ? ' (' + camp + ')' : '') : '', src.referrer ? 'from ' + src.referrer : '', src.landing ? 'first page ' + src.landing : ''].filter(Boolean).join(' · ') || 'Direct or unknown';
+    const contact = (label, val, href) => val ? `<span>${esc(val)}</span> <button class="mini" data-copy="${esc(val)}">Copy</button>${href ? ` <a class="mini" href="${esc(href)}" target="_blank" rel="noopener">Open</a>` : ''}` : '—';
+    $('#dBody').innerHTML = `
+      <div class="field"><label for="dStatus">Status</label><select id="dStatus">${STATUS.map(([k, l]) => `<option value="${k}"${r.status === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+      <dl class="kv">
+        <dt>Received</dt><dd>${full(r.created_at)}</dd>
+        <dt>First reply</dt><dd>${r.contacted_at ? full(r.contacted_at) + ' (' + dur(new Date(r.contacted_at) - new Date(r.created_at)) + ' later)' : 'Not yet'}</dd>
+        <dt>Services</dt><dd>${esc((r.services || []).join(', ') || '—')}</dd>
+        <dt>Result wanted</dt><dd>${esc(r.result || '—')}</dd>
+        <dt>Budget</dt><dd>${esc(r.budget || '—')}${r.currency ? ' <span class="biz">(' + esc(r.currency) + ')</span>' : ''}</dd>
+        <dt>Launch</dt><dd>${esc(r.timing || '—')}</dd>
+        <dt>Location</dt><dd>${esc(r.city || '—')}</dd>
+        <dt>Current website</dt><dd>${r.website ? esc(r.website) : '—'}</dd>
+        <dt>Prefers</dt><dd>${esc(r.contact_via || '—')}</dd>
+        <dt>WhatsApp</dt><dd>${contact('WhatsApp', r.whatsapp, digits.length >= 8 ? 'https://wa.me/' + digits : '')}</dd>
+        <dt>Email</dt><dd>${contact('Email', r.email, r.email ? 'mailto:' + r.email : '')}</dd>
+        <dt>Source</dt><dd>${esc(srcText)}</dd>
+      </dl>
+      <div class="field"><label>Their message</label><p class="brief">${esc(r.detail || 'No message.')}</p></div>
+      <div class="field"><label for="dNotes">Notes (only your team sees these)</label><textarea id="dNotes" placeholder="Calls, quotes sent, next steps">${esc(r.notes || '')}</textarea></div>
+      <div class="actions"><button class="btn" id="dSave">Save changes</button><span class="saved" id="dNotesMsg" aria-live="polite"></span></div>
+      <div class="danger-zone actions"><button class="btn danger" id="dDel">Delete this enquiry</button><span class="biz">Use for privacy deletion requests.</span></div>`;
+    $('#dNotes').addEventListener('input', () => { S.dirty = true; });
+    $('#dStatus').addEventListener('change', () => save(r, { status: $('#dStatus').value }));
+    $('#dSave').addEventListener('click', () => save(r, { status: $('#dStatus').value, notes: $('#dNotes').value.trim() || null }));
+    let armed = false;
+    $('#dDel').addEventListener('click', async e => {
+      if (!armed){ armed = true; e.target.textContent = 'Press again to delete for good'; setTimeout(() => { armed = false; if (document.body.contains(e.target)) e.target.textContent = 'Delete this enquiry'; }, 4000); return; }
+      try { if (S.mode === 'live') await api('enquiries?id=eq.' + encodeURIComponent(r.id), { method: 'DELETE' }); S.rows = S.rows.filter(x => x.id !== r.id); S.dirty = false; close(); render(); }
+      catch (err){ handle(err, $('#dNotesMsg')); }
+    });
+    $$('#dBody [data-copy]').forEach(b => b.addEventListener('click', () => copy(b)));
+    $('#scrim').hidden = false; $('#drawer').hidden = false; $('#dClose').focus();
+  }
+  async function save(r, patch){
+    const msg = $('#dNotesMsg'); msg.style.color = ''; delete msg.dataset.warned; msg.textContent = 'Saving…';
+    try {
+      if (S.mode === 'live'){
+        const out = await api('enquiries?id=eq.' + encodeURIComponent(r.id), { method: 'PATCH', body: patch, prefer: 'return=representation' });
+        Object.assign(r, out && out[0] ? out[0] : patch);
+      } else { if (r.status === 'new' && patch.status && patch.status !== 'new' && !r.contacted_at) r.contacted_at = new Date().toISOString(); Object.assign(r, patch); }
+      S.dirty = false; render(); openItem(r.id);
+      $('#dNotesMsg').textContent = S.mode === 'live' ? 'Saved' : 'Saved in this preview only (sample data)';
+    } catch (err){ handle(err, msg); }
+  }
+  function copy(b){
+    const v = b.dataset.copy, done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400); };
+    try { navigator.clipboard.writeText(v).then(done, () => { b.textContent = v; }); } catch (e){ b.textContent = v; }
+  }
+
+  // ---------- privacy requests ----------
+  function renderPrivacy(){
+    $('#privRows').innerHTML = S.priv.map(p => `<tr><td class="when">${when(p.created_at)}</td><td><b>${esc(p.request_type)}</b></td><td><div class="who">${esc(p.name)}</div><div class="biz">${esc(p.contact)}</div></td>
+      <td>${esc(p.details || '—')}</td><td><span class="pill s-${p.status}">${p.status === 'done' ? 'Done' : 'Open'}</span></td>
+      <td><button class="mini" data-p="${esc(p.id)}">${p.status === 'done' ? 'Reopen' : 'Mark done'}</button></td></tr>`).join('');
+    $('#noPriv').hidden = !!S.priv.length;
+    $$('#privRows [data-p]').forEach(b => b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const p = S.priv.find(x => String(x.id) === b.dataset.p), status = p.status === 'done' ? 'open' : 'done';
+      try { if (S.mode === 'live') await api('privacy_requests?id=eq.' + encodeURIComponent(p.id), { method: 'PATCH', body: { status } }); p.status = status; render(); }
+      catch (err){ handle(err); }
+    }));
+  }
+
+  // ---------- CSV export ----------
+  $('#exportCsv').addEventListener('click', () => {
+    const cols = ['created_at', 'status', 'name', 'business', 'business_type', 'services', 'result', 'budget', 'currency', 'timing', 'contact_via', 'whatsapp', 'email', 'city', 'website', 'detail', 'notes', 'contacted_at'];
+    const cell = v => { v = Array.isArray(v) ? v.join('; ') : v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const csv = [cols.join(','), ...filtered().map(r => cols.map(c => cell(r[c])).join(','))].join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'weberact-enquiries-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+  });
+
+  // ---------- website editor ----------
+  // Every word, list, image, setting and SEO field of the site lives in one content document (content.json).
+  // The editor works on a draft; Publish copies the draft to the live copy the website is built from.
+  const RD = window.WA_RENDER;
+  const SITE = 'site/';  // the dashboard deployment carries a copy of the site here, for the live preview (tools/build_admin.py)
+  const CM = { def: null, draft: null, live: null, saved: '', draftMeta: null, liveMeta: null, sec: 'home', open: new Set(), pv: matchMedia('(min-width:1181px)').matches,
+    dev: 'desktop', media: null, hist: null, hook: '', err: '', t: 0 };
+  const DEFS = new Map();
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const getP = (o, p) => p.split('.').reduce((a, k) => a == null ? undefined : a[k], o);
+  function setP(o, p, v){ const ks = p.split('.'), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; }
+  function merge(base, nw){  // same rule as tools/fetch_content.py: saved values win, new keys get defaults
+    const obj = x => x && typeof x === 'object' && !Array.isArray(x);
+    if (obj(base) && obj(nw)){ const out = {}; new Set([...Object.keys(base), ...Object.keys(nw)]).forEach(k => { out[k] = k in base && k in nw ? merge(base[k], nw[k]) : k in nw ? nw[k] : base[k]; }); return out; }
+    if (base == null) return nw;
+    return Array.isArray(base) === Array.isArray(nw) && typeof base === typeof nw ? nw : base;
+  }
+  function diff(a, b, p = '', out = []){
+    if (Array.isArray(a) || Array.isArray(b)){
+      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length){ out.push(p); return out; }
+      a.forEach((x, i) => diff(x, b[i], p ? p + '.' + i : String(i), out)); return out;
+    }
+    if (a && b && typeof a === 'object' && typeof b === 'object'){ new Set([...Object.keys(a), ...Object.keys(b)]).forEach(k => diff(a[k], b[k], p ? p + '.' + k : k, out)); return out; }
+    if (a !== b) out.push(p);
+    return out;
+  }
+  const isDirty = () => !!CM.draft && JSON.stringify(CM.draft) !== CM.saved;
+  const kb = n => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+
+  // field builders
+  const T = (p, label, o) => Object.assign({ t: 'text', p, label }, o);
+  const TA = (p, label, o) => Object.assign({ t: 'area', p, label }, o);
+  const LN = (p, label, o) => Object.assign({ t: 'lines', p, label, noun: 'line', blank: () => '' }, o);
+  const LS = (p, label, fields, o) => Object.assign({ t: 'list', p, label, fields, noun: 'item' }, o);
+  const IMG = (p, label, o) => Object.assign({ t: 'image', p, label }, o);
+  const SEL = (p, label, options, o) => Object.assign({ t: 'select', p, label, options }, o);
+  const ROW = (...fields) => ({ t: 'row', fields });
+  const NOTE = html => ({ t: 'note', html });
+  const G = (title, fields, hint) => ({ title, fields, hint });
+  const go = id => `<button type="button" class="linkish" data-goto="${id}">`;
+
+  const TESTI = [T('tag', 'Label above the quote', { max: 40 }), TA('quote', 'Their words', { max: 380, help: 'Quotation marks are added for you.' }), ROW(T('name', 'Name', { max: 60 }), T('role', 'Role', { max: 60 })), T('company', 'Company', { max: 80 })];
+  const TESTI_LIST = p => LS(p, 'Testimonials', TESTI, { min: 1, max: 6, noun: 'testimonial', name: x => x.name || x.tag, blank: () => ({ tag: '', quote: '', name: '', role: '', company: '' }) });
+  const STEP = [T('title', 'Title', { max: 60 }), TA('text', 'Text', { max: 300 })];
+  const STEP_LIST = (p, label, max, noun) => LS(p, label, STEP, { min: 1, max, noun, name: x => x.title, blank: () => ({ title: '', text: '' }) });
+  const HERO = p => LN(p, 'Headline', { min: 1, max: 5, len: 34, help: 'One row per line, the way it breaks on a large screen.' });
+  const SEO_PAGES = [['index', 'Home', ''], ['services', 'Services', 'services'], ['work', 'Work', 'work'], ['method', 'Method', 'method'], ['about', 'About', 'about'],
+    ['proposal', 'Request a proposal', 'proposal'], ['terms', 'Terms and conditions', 'terms'], ['privacy', 'Privacy policy', 'privacy'],
+    ['website-development', 'Website development', 'website-development'], ['technical-seo', 'Technical SEO', 'technical-seo'], ['ai-automation', 'AI business automation', 'ai-automation'],
+    ['b2b-lead-generation', 'B2B lead generation', 'b2b-lead-generation'], ['international', 'International clients', 'international']];
+  // one editor for every dedicated page (content.pages[slug]); the build turns it into the page and its structured data
+  const PAGE_EDITOR = (slug, nav) => { const b = 'pages.' + slug, card = [T('title', 'Title', { max: 70 }), TA('text', 'Text', { max: 320 })];
+    const cards = (k, label, max, noun) => LS(`${b}.${k}`, label, card, { min: 1, max, noun, name: x => x.title, blank: () => ({ title: '', text: '' }) });
+    return { id: slug, nav, grp: 'Service pages', page: slug + '.html', pre: [b], groups: [
+      G('Top of the page', [HERO(`${b}.hero`), TA(`${b}.lede`, 'Introduction', { max: 320 }), ROW(T(`${b}.crumb`, 'Short name', { max: 40, help: 'Used in the breadcrumb, the footer and related links.' }), T(`${b}.cta_label`, 'Main button', { max: 40 }))]),
+      G('Direct answer', [T(`${b}.answer_q`, 'Question', { max: 110 }), TA(`${b}.answer`, 'Answer', { max: 600, help: 'Two to four sentences that answer the question on their own. Search engines and AI answer engines quote this part.' })],
+        'The first thing under the heading: a plain answer to the main question people ask.'),
+      G('Who it is for', [T(`${b}.who_title`, 'Section title', { max: 70 }), cards('who', 'Cards', 6, 'card')]),
+      G('What is included', [T(`${b}.included_title`, 'Section title', { max: 70 }), cards('included', 'Items', 8, 'item')]),
+      G('How it works', [T(`${b}.process_title`, 'Section title', { max: 70 }), cards('process', 'Steps', 6, 'step')]),
+      G('Cost or details', [T(`${b}.cost_title`, 'Section title', { max: 110 }), LN(`${b}.cost_text`, 'Paragraphs', { min: 1, max: 4, area: true, noun: 'paragraph', len: 700 }),
+        LN(`${b}.cost_factors`, 'Checklist', { min: 0, max: 8, noun: 'point', len: 140 })]),
+      G('Questions and answers', [T(`${b}.faq_title`, 'Section title', { max: 70 }), LS(`${b}.faq`, 'Questions', [T('q', 'Question', { max: 140 }), TA('a', 'Answer', { max: 800 })],
+        { min: 1, max: 10, noun: 'question', name: x => x.q, blank: () => ({ q: '', a: '' }) })], 'Each answer is also published as structured data, so keep it exactly as true as the page.'),
+      G('Sources', [LS(`${b}.sources`, 'Sources', [T('label', 'Name', { max: 80 }), T('url', 'Address', { type: 'url', ph: 'https://' })],
+        { min: 0, max: 6, noun: 'source', name: x => x.label, blank: () => ({ label: '', url: '' }) })], 'Official sources for facts quoted on the page.'),
+    ] };
+  };
+
+  const SECTIONS = [
+    { id: 'home', nav: 'Home', grp: 'Pages', page: 'index.html', pre: ['home'], groups: [
+      G('Top of the page', [HERO('home.hero'), TA('home.lede', 'Introduction', { max: 320 }), ROW(T('home.cta_primary', 'Main button', { max: 32 }), T('home.cta_secondary', 'Second link', { max: 32 })),
+        T('home.stamp', 'Round badge', { max: 28, help: 'The circular stamp beside the headline.' })]),
+      G('What we make', [T('home.make_title', 'Section title', { max: 40 }), LS('home.make', 'Services', [T('title', 'Title', { max: 40 }), TA('text', 'Text', { max: 220 }),
+        T('badge', 'Small label', { max: 16, help: 'For example “New”. Leave it empty to hide it.' })], { fixed: true, name: x => x.title })]),
+      G('Testimonials', [TESTI_LIST('home.testimonials')], 'Use real words from real clients, with their permission.'),
+      G('How a project runs', [STEP_LIST('home.steps', 'Steps', 6, 'step')]),
+      G('Selected work', [T('home.work_title', 'Section title', { max: 40 }),
+        NOTE(`Shows the first three projects from ${go('work')}Work</button>. The method block and the closing line are in ${go('shared')}Shared blocks</button>.`)]),
+    ] },
+    { id: 'services', nav: 'Services', grp: 'Pages', page: 'services.html', pre: ['services'], groups: [
+      G('Top of the page', [HERO('services.hero'), TA('services.lede', 'Introduction', { max: 320 })]),
+      G('The four services', [LS('services.items', 'Services', [
+        ROW(T('chip', 'Name', { max: 32, help: 'Used in the page index and the footer.' }), T('label', 'Small heading', { max: 40 })),
+        TA('heading', 'Headline', { max: 90 }), TA('intro', 'Introduction', { max: 420 }),
+        LS('points', 'What is included', [T('title', 'Title', { max: 50 }), TA('text', 'Text', { max: 300 })], { min: 1, max: 6, noun: 'point', name: x => x.title, blank: () => ({ title: '', text: '' }) }),
+        LS('facts', 'Key facts', [ROW(T('label', 'Label', { max: 24 }), T('value', 'Value', { max: 40 }))], { min: 1, max: 4, noun: 'fact', name: x => [x.label, x.value].filter(Boolean).join(': '), blank: () => ({ label: '', value: '' }) }),
+      ], { fixed: true, name: x => x.chip })], 'Each service keeps its place and its link; change its words here.'),
+      G('Questions and answers', [T('services.faq_title', 'Section title', { max: 50 }),
+        LS('services.faq', 'Questions', [T('q', 'Question', { max: 120 }), TA('a', 'Answer', { max: 600 })], { min: 0, max: 12, noun: 'question', name: x => x.q, blank: () => ({ q: '', a: '' }) })]),
+    ] },
+    { id: 'work', nav: 'Work', grp: 'Pages', page: 'work.html', pre: ['work'], groups: [
+      G('Top of the page', [HERO('work.hero'), TA('work.lede', 'Introduction', { max: 320 })]),
+      G('Projects', [LS('work.projects', 'Projects', [T('name', 'Project name', { max: 60 }), SEL('category', 'Service', Object.entries(RD.CATS)), TA('result', 'The result, in one line', { max: 160 }),
+        IMG('image', 'Screenshot', { help: 'Landscape, about 16 by 10. Leave it empty for the drawn placeholder.' }),
+        T('link', 'Link', { type: 'url', ph: 'https://', help: 'Optional: the live website. Without one, the card leads to the proposal form.' })],
+        { min: 1, max: 12, noun: 'project', name: x => x.name, blank: () => ({ name: '', category: 'web', result: '', image: '', link: '' }) })], 'The first three also appear on the home page. Filters on the Work page follow the services you use.'),
+      G('Below the projects', [TA('work.note', 'Note', { max: 200 }), T('work.closing', 'Closing line', { max: 80 })]),
+    ] },
+    { id: 'method', nav: 'Method', grp: 'Pages', page: 'method.html', pre: ['method'], groups: [
+      G('Top of the page', [HERO('method.hero'), TA('method.text', 'Introduction', { max: 420 })]),
+      G('The three steps', [LS('method.phases', 'Steps', [T('title', 'Title', { max: 30 }), TA('text', 'Text', { max: 420 }), ROW(T('cmd', 'Terminal command', { max: 60 }), T('out', 'Terminal result', { max: 60 })),
+        LS('items', 'Checklist', [ROW(T('label', 'Item', { max: 50 }), T('tag', 'Detail', { max: 24 }))], { min: 1, max: 6, noun: 'item', name: x => x.label, blank: () => ({ label: '', tag: '' }) })],
+        { fixed: true, name: x => x.title })]),
+      G('Closing', [T('method.closing', 'Closing line', { max: 80 })]),
+    ] },
+    { id: 'about', nav: 'About', grp: 'Pages', page: 'about.html', pre: ['about'], groups: [
+      G('Top of the page', [HERO('about.hero')]),
+      G('Story', [LN('about.story', 'Paragraphs', { min: 1, max: 6, area: true, noun: 'paragraph', len: 600 })]),
+      G('People', [T('about.people_title', 'Section title', { max: 50 }), LS('about.people', 'People', [ROW(T('name', 'Name', { max: 60 }), T('role', 'Role', { max: 40 })), TA('bio', 'Short bio', { max: 320 }),
+        IMG('photo', 'Photo', { help: 'A square photo works best.' }), T('initials', 'Initials', { max: 3, help: 'Shown when there is no photo.' })],
+        { min: 1, max: 6, noun: 'person', name: x => x.name, blank: () => ({ role: '', name: '', bio: '', initials: '', photo: '' }) })]),
+      G('Promises', [T('about.values_title', 'Section title', { max: 50 }), STEP_LIST('about.values', 'Promises', 8, 'promise')]),
+      G('Testimonials', [TESTI_LIST('about.testimonials')], 'Use real words from real clients, with their permission.'),
+      G('How we work', [STEP_LIST('about.steps', 'Steps', 6, 'step')]),
+    ] },
+    { id: 'proposal', nav: 'Request a proposal', grp: 'Pages', page: 'proposal.html', pre: ['proposal'], groups: [
+      G('Top of the page', [HERO('proposal.hero'), TA('proposal.lede', 'Introduction', { max: 320 })]),
+      G('What happens next', [T('proposal.next_title', 'Title', { max: 40 }), STEP_LIST('proposal.next', 'Steps', 6, 'step')]),
+      G('Contact and thank-you', [T('proposal.contact_label', 'Label above the contact details', { max: 40 }), T('proposal.done_title', 'Message after sending', { max: 80 }),
+        NOTE(`The email and WhatsApp number are in ${go('settings')}Header, footer and contact</button>.`)]),
+    ] },
+    { id: 'shared', nav: 'Shared blocks', grp: 'Across the site', page: 'index.html', pre: ['common'], groups: [
+      G('Method block', [LN('common.method.title', 'Headline', { min: 1, max: 4, len: 14, help: 'Large words, one per row.' }), TA('common.method.text', 'Text', { max: 300 }), T('common.method.link', 'Link text', { max: 30 }),
+        LS('common.method.terminal', 'Terminal lines', [ROW(T('cmd', 'Command', { max: 60 }), T('out', 'Result', { max: 60 }))], { min: 1, max: 6, noun: 'line', name: x => x.cmd, blank: () => ({ cmd: 'weberact ', out: '' }) })],
+        'Appears on Home and Services.'),
+      G('Closing line', [T('common.closing', 'Closing line', { max: 90, help: 'The large line above “Book a consultation” on Home and Services.' })]),
+    ] },
+    { id: 'settings', nav: 'Header, footer and contact', grp: 'Across the site', page: 'index.html', pre: ['settings'], groups: [
+      G('Header', [T('settings.topline', 'Line above the header', { max: 60 }), T('settings.header_button', 'Header button', { max: 28 })]),
+      G('Brand', [T('settings.tagline', 'Tagline', { max: 60, help: 'Used in search data and on the social share image.' }),
+        TA('settings.org_description', 'Company description', { max: 320, help: 'One factual sentence or two about what WeberAct does. Used in structured data for search and AI answer engines.' }),
+        LN('settings.areas_served', 'Countries served', { min: 0, max: 12, noun: 'country' })]),
+      G('Contact details', [ROW(T('settings.email', 'Email', { type: 'email', ph: 'hello@weberact.co' }), T('settings.whatsapp', 'WhatsApp number', { ph: '+91 98765 43210', help: 'Include the country code.' })),
+        T('settings.booking_url', 'Booking link', { type: 'url', ph: 'https://cal.com/…', help: 'Optional. A “Book a call” link appears in the footer once this is filled in.' })],
+        'Shown on the proposal page, in the closing links and in the terms and privacy policy.'),
+      G('Footer', [TA('settings.footer_blurb', 'Short description', { max: 160 }), T('settings.footer_all_services', 'Last link under Services', { max: 30 }),
+        ROW(T('settings.footer_left', 'Bottom line, left', { max: 40, help: '“© year WeberAct” follows it.' }), T('settings.footer_right', 'Bottom line, right', { max: 40 }))]),
+      G('Cookie notice', [TA('settings.consent_text', 'Message', { max: 200 }), ROW(T('settings.consent_accept', 'Accept button', { max: 30 }), T('settings.consent_decline', 'Decline button', { max: 30 }))],
+        'Shown to visitors only when a Google Analytics ID is set below. A link to the privacy policy follows the message.'),
+      G('Search engines and analytics', [ROW(T('settings.google_site_verification', 'Google Search Console code', { help: 'Only the code from the HTML tag method, not the whole tag.' }),
+          T('settings.bing_site_verification', 'Bing Webmaster Tools code', { help: 'Only the code from the meta tag method.' })),
+        T('settings.ga4_id', 'Google Analytics 4 measurement ID', { ph: 'G-XXXXXXXXXX', help: 'When set, visitors are asked for consent and analytics loads only if they accept.' })],
+        'Changes reach the website at the next publish.'),
+      G('Social profiles', [T('settings.linkedin', 'LinkedIn', { type: 'url', ph: 'https://www.linkedin.com/company/…' }), T('settings.instagram', 'Instagram', { type: 'url', ph: 'https://www.instagram.com/…' }), T('settings.x', 'X', { type: 'url', ph: 'https://x.com/…' })],
+        'Each link appears in the footer once it is filled in.'),
+    ] },
+    { id: 'seo', nav: 'Search and sharing (SEO)', grp: 'Across the site', page: null, pre: ['seo'], groups: SEO_PAGES.map(([k, label], i) => G(label,
+      [{ t: 'snip', key: k }, T(`seo.${k}.title`, 'Title in search results', { max: 60 }), TA(`seo.${k}.description`, 'Description in search results', { max: 160 })]
+        .concat(k === 'index' ? [T('seo.index.og_title', 'Title when shared on social media', { max: 90 }), TA('seo.index.og_description', 'Description when shared', { max: 200 })] : []),
+      i ? '' : 'Google shows about 60 characters of a title and 160 of a description. Every page has its own.')) },
+    { id: 'legal', nav: 'Legal details', grp: 'Across the site', page: 'terms.html', pre: ['legal'], groups: [
+      G('Company', [T('legal.legal_name', 'Registered business name'), TA('legal.registered_address', 'Registered address'), ROW(T('legal.court_city', 'City for legal disputes', { help: 'For example “Mumbai, Maharashtra”.' }), T('legal.grievance_officer', 'Grievance officer (privacy)'))],
+        'Words in [square brackets] are placeholders still to fill in. Have both documents checked by a lawyer before launch.'),
+      G('Dates', [ROW(T('legal.terms_updated', 'Terms last updated'), T('legal.privacy_updated', 'Privacy policy last updated')), T('legal.privacy_effective', 'Privacy policy effective from')]),
+      G('Numbers in the terms', [ROW(T('legal.invoice_days', 'Days to pay an invoice'), T('legal.warranty_days', 'Days of free fixes after delivery')),
+        ROW(T('legal.liability_months', 'Months of fees that cap liability'), T('legal.notice_days', 'Days of notice to end monthly services'))]),
+      G('Services named in the privacy policy', [ROW(T('legal.hosting_provider', 'Website hosting'), T('legal.email_provider', 'Email')), ROW(T('legal.crm_provider', 'CRM'), T('legal.document_storage', 'Document storage')),
+        ROW(T('legal.payment_providers', 'Payments and accounting'), T('legal.analytics_tool', 'Analytics'))]),
+      G('How long data is kept', [T('legal.retention_requests', 'Months to keep enquiries that do not become projects'), ROW(T('legal.retention_projects', 'Years to keep project records'), T('legal.retention_accounts', 'Years to keep accounting records'))]),
+    ] },
+    PAGE_EDITOR('website-development', 'Website development'), PAGE_EDITOR('technical-seo', 'Technical SEO'), PAGE_EDITOR('ai-automation', 'AI business automation'),
+    PAGE_EDITOR('b2b-lead-generation', 'B2B lead generation'), PAGE_EDITOR('international', 'International clients'),
+    { id: 'texts', nav: 'Every other text', grp: 'Across the site', pre: ['texts'], get page(){ return CM.tpage; }, custom: () => renderTexts() },
+    { id: 'media', nav: 'Images', grp: 'Library', custom: () => renderMedia() },
+    { id: 'history', nav: 'History and backups', grp: 'Library', custom: () => renderHistory() },
+  ];
+  const cur = () => SECTIONS.find(s => s.id === CM.sec) || SECTIONS[0];
+  const secFor = p => (SECTIONS.find(s => (s.pre || []).some(x => p === x || p.startsWith(x + '.'))) || { nav: 'Other' }).nav;
+
+  // ----- fields -----
+  const fid = p => 'f-' + p.replace(/[^a-z0-9]/gi, '-');
+  const counter = (p, v, max) => max ? `<span class="cnt${String(v || '').length > max ? ' over' : ''}" data-cnt="${p}" data-max="${max}">${String(v || '').length} / ${max}</span>` : '';
+  function ctl(lp, i, n, f){
+    if (f.fixed) return '';
+    return `<span class="ctl"><button type="button" data-act="up" data-list="${lp}" data-i="${i}" aria-label="Move up"${i ? '' : ' disabled'}>↑</button>` +
+      `<button type="button" data-act="down" data-list="${lp}" data-i="${i}" aria-label="Move down"${i < n - 1 ? '' : ' disabled'}>↓</button>` +
+      `<button type="button" data-act="del" data-list="${lp}" data-i="${i}" aria-label="Remove"${n > (f.min || 0) ? '' : ' disabled'}>✕</button></span>`;
+  }
+  const addBtn = (p, n, f) => f.fixed ? '' : `<button type="button" class="add" data-act="add" data-list="${p}"${n >= f.max ? ' disabled' : ''}>+ Add ${f.noun}${n >= f.max ? ` (up to ${f.max})` : ''}</button>`;
+  function snip(k){
+    const s = (CM.draft.seo || {})[k] || {}, page = SEO_PAGES.find(x => x[0] === k);
+    return `<div class="snip" data-snip="${k}" aria-label="How it may look in Google"><span class="u">weberact.co${page[2] ? ' › ' + page[2] : ''}</span><b>${esc(s.title || '')}</b><p>${esc(s.description || '')}</p></div>`;
+  }
+  function field(f, base){
+    if (f.t === 'note') return `<p class="help">${f.html}</p>`;
+    if (f.t === 'row') return `<div class="two">${f.fields.map(x => field(x, base)).join('')}</div>`;
+    if (f.t === 'snip') return snip(f.key);
+    const p = base ? base + '.' + f.p : f.p, v = getP(CM.draft, p), id = fid(p);
+    const help = f.help ? `<p class="help">${f.help}</p>` : '';
+    const lab = extra => `<div class="fl"><label for="${id}">${esc(f.label)}</label>${extra || ''}</div>`;
+    if (f.t === 'text') return `<div class="f">${lab(counter(p, v, f.max))}<input id="${id}" type="${f.type || 'text'}" data-p="${p}" value="${esc(v)}"${f.ph ? ` placeholder="${esc(f.ph)}"` : ''} autocomplete="off"${f.type ? ' spellcheck="false"' : ''}>${help}</div>`;
+    if (f.t === 'area') return `<div class="f">${lab(counter(p, v, f.max))}<textarea id="${id}" data-p="${p}" rows="${Math.min(8, Math.max(2, Math.ceil(String(v || '').length / 64)))}">${esc(v)}</textarea>${help}</div>`;
+    if (f.t === 'select') return `<div class="f">${lab()}<select id="${id}" data-p="${p}">${f.options.map(([k, l]) => `<option value="${esc(k)}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>${help}</div>`;
+    if (f.t === 'image') return `<div class="f"><div class="fl"><label for="${id}">${esc(f.label)}</label></div><div class="img"><div class="thumb" data-thumb="${p}">${v ? `<img src="${esc(RD.safeUrl(v))}" alt="">` : 'None'}</div>` +
+      `<div class="f"><input id="${id}" type="url" data-p="${p}" value="${esc(v)}" placeholder="Choose an image, or paste its address" spellcheck="false"><div class="inline">` +
+      `<button type="button" class="mini" data-act="pick" data-path="${p}">Choose from images</button><button type="button" class="mini" data-act="upload" data-path="${p}">Upload</button>` +
+      `${v ? `<button type="button" class="mini" data-act="clear" data-path="${p}">Remove</button>` : ''}</div></div></div>${help}</div>`;
+    const arr = Array.isArray(v) ? v : [];
+    DEFS.set(p, f);
+    if (f.t === 'lines'){
+      const rows = arr.map((x, i) => {
+        const pi = p + '.' + i, aria = `aria-label="${esc(f.label)}, ${f.noun} ${i + 1}"`;
+        const input = f.area ? `<textarea id="${fid(pi)}" data-p="${pi}" rows="3" ${aria}>${esc(x)}</textarea>` : `<input id="${fid(pi)}" data-p="${pi}" value="${esc(x)}" ${aria} autocomplete="off">`;
+        return `<div class="line">${input}${f.len ? counter(pi, x, f.len) : ''}${ctl(p, i, arr.length, f)}</div>`;
+      }).join('');
+      return `<div class="f"><div class="fl"><span>${esc(f.label)}</span></div><div class="lines">${rows}</div>${addBtn(p, arr.length, f)}${help}</div>`;
+    }
+    const items = arr.map((x, i) => {
+      const pi = p + '.' + i;
+      return `<details class="item" data-item="${pi}"${CM.open.has(pi) ? ' open' : ''}><summary><span class="ttl"><em>${i + 1}</em><span data-ttl="${pi}">${esc((f.name && f.name(x)) || 'Untitled')}</span></span>${ctl(p, i, arr.length, f)}</summary>` +
+        `<div class="inner">${f.fields.map(sf => field(sf, pi)).join('')}</div></details>`;
+    }).join('');
+    return `<div class="f"><div class="fl"><span>${esc(f.label)}</span>${f.max && !f.fixed ? `<span class="cnt">${arr.length} of up to ${f.max}</span>` : ''}</div>` +
+      `<div class="items">${items || '<p class="help">None yet.</p>'}</div>${addBtn(p, arr.length, f)}${help}</div>`;
+  }
+
+  // ----- every other text -----
+  // Any wording on any page that has no field of its own: buttons, labels, small print, form questions, hidden
+  // labels for screen readers. content.texts maps the original wording to the new one, and an edit applies
+  // everywhere the same words appear (cms.apply_texts in the build, WA_RENDER.applyTexts in the browser).
+  const TEXT_PAGES = SEO_PAGES.map(([k, label]) => [(k === 'index' ? 'index' : k) + '.html', label]).concat([['404.html', 'Page not found (404)']]);
+  CM.tpage = 'index.html'; CM.tx = {}; CM.tq = '';
+  const WHERE = ['Page', 'Form', 'Header and footer', 'Hidden label (aria-label)', 'Hidden label (alt)', 'Hidden label (title)', 'Hidden label (placeholder)'];
+  function extractTexts(page){
+    return new Promise(done => {
+      const f = document.createElement('iframe'); f.name = 'wa-extract'; f.className = 'tx-frame'; f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      const finish = list => { clearTimeout(t); f.remove(); done(list); };
+      const t = setTimeout(() => finish(null), 15000);
+      f.addEventListener('load', () => setTimeout(() => {
+        try {
+          const d = f.contentDocument, w = f.contentWindow, list = RD.collectTexts(d), seen = new Set(list.map(x => x.text));
+          if (w.WA_FORM_TEXTS) w.WA_FORM_TEXTS().forEach(t => { t = RD.norm(t); if (t && /[A-Za-z]/.test(t) && !seen.has(t)){ seen.add(t); list.push({ text: t, where: 'Form' }); } });
+          finish(list);
+        } catch (e) { finish(null); }
+      }, 300));
+      f.src = SITE + page; document.body.appendChild(f);
+    });
+  }
+  function renderTexts(){
+    const page = CM.tpage, list = CM.tx[page], texts = CM.draft.texts || {};
+    const pick = `<div class="f"><div class="fl"><label for="tPage">Page</label></div><select id="tPage" data-tpage>${TEXT_PAGES.map(([v, l]) => `<option value="${v}"${v === page ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></div>`;
+    const find = `<div class="f"><div class="fl"><label for="tFind">Find</label><span class="cnt" id="tCount"></span></div><input id="tFind" type="search" data-tfind value="${esc(CM.tq)}" placeholder="Type a few words" autocomplete="off"></div>`;
+    const head = `<section class="group"><h2>Every other text</h2><p class="hint">Every word on the page that has no field of its own: buttons, labels, small print, form questions and the hidden labels screen readers announce. ` +
+      `Change the wording in the box; empty the box to go back to the original. A change applies everywhere the same words appear on the website. Headlines, lists and contact details are edited in their own sections.</p><div class="tbar">${pick}${find}</div></section>`;
+    if (list === undefined){
+      CM.tx[page] = null;  // reading
+      extractTexts(page).then(r => { CM.tx[page] = r || false; if (CM.sec === 'texts' && CM.tpage === page) renderSection(true); });
+    }
+    if (!list) return head + `<section class="group"><p class="help">${list === false ? 'This page could not be read. Reload the dashboard and try again.' : 'Reading the page…'}</p></section>`;
+    const rows = k => { const v = Object.prototype.hasOwnProperty.call(texts, k) ? texts[k] : k, on = v !== k, id = 't-' + (CM.tn = (CM.tn || 0) + 1);
+      const input = k.length > 90 ? `<textarea id="${id}" data-tk="${esc(k)}" rows="${Math.min(6, Math.ceil(k.length / 70))}">${esc(v)}</textarea>` : `<input id="${id}" data-tk="${esc(k)}" value="${esc(v)}" autocomplete="off">`;
+      return `<div class="f trow${on ? ' on' : ''}" data-q="${esc((k + ' ' + v).toLowerCase())}"><div class="fl"><label for="${id}">${esc(k)}</label>${on ? `<button type="button" class="mini" data-act="treset" data-tk="${esc(k)}">Original</button>` : ''}</div>${input}</div>`; };
+    const groups = WHERE.map(w => [w, list.filter(x => x.where === w)]).filter(([, l]) => l.length);
+    return head + groups.map(([w, l]) => `<section class="group" data-tgroup><h2>${esc(w === 'Page' ? 'On this page' : w === 'Form' ? 'The form' : w)}</h2>` +
+      (w === 'Header and footer' ? '<p class="hint">The same on every page.</p>' : w.startsWith('Hidden') ? '<p class="hint">Not shown on screen: read aloud by screen readers, or shown when an image cannot load.</p>' : '') +
+      `<div class="tlist">${l.map(x => rows(x.text)).join('')}</div></section>`).join('');
+  }
+  function filterTexts(){
+    const q = CM.tq.trim().toLowerCase(); let n = 0, all = 0;
+    $$('#editor .trow').forEach(r => { const hit = !q || r.dataset.q.includes(q); r.hidden = !hit; all++; if (hit) n++; });
+    $$('#editor [data-tgroup]').forEach(g => { g.hidden = !g.querySelector('.trow:not([hidden])'); });
+    const c = $('#tCount'); if (c) c.textContent = q ? `${n} of ${all}` : `${all} texts`;
+  }
+  function setText(k, v){
+    const texts = CM.draft.texts = CM.draft.texts || {};
+    if (!v.trim() || RD.norm(v) === k) delete texts[k]; else texts[k] = v;
+  }
+
+  // ----- page -----
+  function renderCms(){
+    if (!CM.draft){
+      $('#editor').innerHTML = `<section class="group"><h2>The website content could not be loaded</h2><p class="help">${esc(CM.err || 'Loading…')}</p></section>`;
+      $('#snav').innerHTML = ''; return;
+    }
+    const groups = [...new Set(SECTIONS.map(s => s.grp))];
+    $('#snav').innerHTML = groups.map(g => `<div><h3>${g}</h3>${SECTIONS.filter(s => s.grp === g).map(s =>
+      `<button type="button" data-sec="${s.id}" aria-current="${s.id === CM.sec}">${esc(s.nav)}<span class="dot" data-dot="${s.id}" title="Changed since the last publish" hidden></span></button>`).join('')}</div>`).join('');
+    renderSection();
+  }
+  function renderSection(keep){
+    const s = cur(), y = scrollY; DEFS.clear();
+    const body = s.custom ? s.custom() : s.groups.map(g => `<section class="group"><h2>${esc(g.title)}</h2>${g.hint ? `<p class="hint">${g.hint}</p>` : ''}${g.fields.map(f => field(f)).join('')}</section>`).join('');
+    $('#editor').innerHTML = body + `<div class="savebar" id="saveBar" hidden><span>You have unsaved changes</span><span class="actions"><button type="button" class="btn ghost" data-act="discard">Discard</button><button type="button" class="btn" data-act="save">Save draft</button></span></div>`;
+    $$('#snav button').forEach(b => b.setAttribute('aria-current', String(b.dataset.sec === CM.sec)));
+    if (s.id === 'texts') filterTexts();
+    if (keep) scrollTo(0, y);
+    syncBars(); loadPreview();
+  }
+  function syncBars(){
+    if (!CM.draft) return;
+    const dirty = isDirty(), pend = diff(CM.draft, CM.live || {});
+    const bar = $('#saveBar'); if (bar) bar.hidden = !dirty;
+    const secs = new Set(pend.map(secFor));
+    $$('[data-dot]').forEach(d => { const s = SECTIONS.find(x => x.id === d.dataset.dot); d.hidden = !secs.has(s.nav); });
+    const parts = [dirty ? 'Unsaved changes' : CM.draftMeta ? 'Draft saved ' + when(CM.draftMeta.updated_at) : 'Edit any page, then save and publish'];
+    parts.push(pend.length ? `${pend.length} ${pend.length === 1 ? 'change' : 'changes'} not published yet` : 'The website shows the latest version');
+    if (CM.liveMeta) parts.push('Last published ' + when(CM.liveMeta.updated_at) + (CM.liveMeta.updated_by && CM.liveMeta.updated_by !== 'system' ? ' by ' + CM.liveMeta.updated_by : ''));
+    $('#wsStatus').textContent = parts.join(' · ');
+    $('#publishBtn').disabled = !pend.length && !dirty;
+    if ($('#siteStatus')) $('#siteStatus').textContent = parts.slice(1).join(' · ');
+  }
+  function changed(){ clearTimeout(CM.t); CM.t = setTimeout(() => { paint(); syncBars(); }, 150); }
+  function restructure(focus){
+    changed(); renderSection(true);
+    if (focus){ const el = document.querySelector(`[data-item="${focus}"] [data-p], [id="${fid(focus)}"]`); if (el) el.focus(); }
+  }
+  function remap(lp, fn){
+    const pre = lp + '.';
+    CM.open = new Set([...CM.open].map(p => {
+      if (!p.startsWith(pre)) return p;
+      const rest = p.slice(pre.length), k = parseInt(rest, 10), n = fn(k);
+      return n < 0 ? null : pre + n + rest.slice(String(k).length);
+    }).filter(Boolean));
+  }
+  function arm(b, label){
+    if (b.classList.contains('arm')) return true;
+    const old = b.textContent; b.classList.add('arm'); b.textContent = label || 'Remove?';
+    setTimeout(() => { if (document.body.contains(b)){ b.classList.remove('arm'); b.textContent = old; } }, 3500);
+    return false;
+  }
+
+  const ed = $('#editor');
+  ed.addEventListener('input', e => {
+    const el = e.target;
+    if (el.dataset.tpage !== undefined){ CM.tpage = el.value; CM.tq = ''; renderSection(); return; }
+    if (el.dataset.tfind !== undefined){ CM.tq = el.value; filterTexts(); return; }
+    if (el.dataset.tk !== undefined && CM.draft){
+      const k = el.dataset.tk; setText(k, el.value);
+      const row = el.closest('.trow'), on = !!(CM.draft.texts && CM.draft.texts[k] !== undefined);
+      if (row && row.classList.contains('on') !== on){ row.classList.toggle('on', on); const fl = row.querySelector('.fl'), b = fl.querySelector('[data-act="treset"]');
+        if (on && !b) fl.insertAdjacentHTML('beforeend', `<button type="button" class="mini" data-act="treset" data-tk="${esc(k)}">Original</button>`); else if (!on && b) b.remove(); }
+      changed(); return;
+    }
+    const p = el.dataset.p; if (!p || !CM.draft) return;
+    setP(CM.draft, p, el.value);
+    const c = ed.querySelector(`[data-cnt="${p}"]`);
+    if (c){ const n = el.value.length, m = +c.dataset.max; c.textContent = n + ' / ' + m; c.classList.toggle('over', n > m); }
+    const d = el.closest('details.item');
+    if (d){ const pi = d.dataset.item, f = DEFS.get(pi.slice(0, pi.lastIndexOf('.'))), t = ed.querySelector(`[data-ttl="${pi}"]`); if (f && t) t.textContent = (f.name && f.name(getP(CM.draft, pi))) || 'Untitled'; }
+    if (p.startsWith('seo.')) $$('[data-snip]').forEach(s => { s.outerHTML = snip(s.dataset.snip); });
+    const th = ed.querySelector(`[data-thumb="${p}"]`); if (th){ const u = RD.safeUrl(el.value); th.innerHTML = u ? `<img src="${esc(u)}" alt="">` : 'None'; }
+    changed();
+  });
+  ed.addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.item) d.open ? CM.open.add(d.dataset.item) : CM.open.delete(d.dataset.item); }, true);
+  ed.addEventListener('focusin', e => { const ds = e.target.dataset || {}; if (ds.p) spot(ds.p); else if (ds.tk !== undefined) spotText(ds.tk); });
+  ed.addEventListener('click', async e => {
+    const b = e.target.closest('[data-act],[data-goto]'); if (!b) return;
+    if (b.closest('summary')) e.preventDefault();
+    if (b.dataset.goto) return openSection(b.dataset.goto);
+    const act = b.dataset.act, lp = b.dataset.list, i = +b.dataset.i, arr = lp ? getP(CM.draft, lp) : null;
+    if (act === 'add'){ const f = DEFS.get(lp); arr.push(f.blank()); const pi = lp + '.' + (arr.length - 1); if (f.t === 'list') CM.open.add(pi); restructure(pi); }
+    else if (act === 'up' || act === 'down'){
+      const j = act === 'up' ? i - 1 : i + 1; [arr[i], arr[j]] = [arr[j], arr[i]]; remap(lp, k => k === i ? j : k === j ? i : k); restructure();
+      const nb = ed.querySelector(`[data-act="${act}"][data-list="${lp}"][data-i="${j}"]`); if (nb && !nb.disabled) nb.focus();
+    }
+    else if (act === 'del'){ if (!arm(b)) return; arr.splice(i, 1); remap(lp, k => k === i ? -1 : k > i ? k - 1 : k); restructure(); }
+    else if (act === 'pick'){ const url = await picker(); if (url) setImage(b.dataset.path, url); }
+    else if (act === 'upload') chooseFiles(false, async files => { try { toast('Uploading…'); setImage(b.dataset.path, await uploadImage(files[0])); toast('Image added'); } catch (err){ handle(err); toast(err.message); } });
+    else if (act === 'clear') setImage(b.dataset.path, '');
+    else if (act === 'save') saveDraftUI();
+    else if (act === 'treset'){ setText(b.dataset.tk, ''); changed(); renderSection(true); }
+    else if (act === 'discard'){ if (!arm(b, 'Discard all?')) return; CM.draft = JSON.parse(CM.saved); renderSection(true); changed(); toast('Changes discarded'); }
+    else if (act === 'mupload') chooseFiles(true, uploadMany);
+    else if (act === 'mcopy') copyText(b.dataset.url, b);
+    else if (act === 'mdel') deleteImage(b);
+    else if (act === 'hload') loadVersion(+b.dataset.id);
+    else if (act === 'hdown') downloadVersion(+b.dataset.id);
+    else if (act === 'export') download(CM.draft, 'content.json');
+    else if (act === 'import') importFile();
+    else if (act === 'tolive'){ if (!arm(b, 'Press again to reset the draft')) return; CM.draft = clone(CM.live); CM.open.clear(); renderSection(); changed(); toast('The draft now matches the website. Save it to keep this.'); }
+  });
+  // drag and drop on the image library
+  ed.addEventListener('dragover', e => { const z = e.target.closest('#drop'); if (z){ e.preventDefault(); z.classList.add('over'); } });
+  ed.addEventListener('dragleave', e => { const z = e.target.closest('#drop'); if (z) z.classList.remove('over'); });
+  ed.addEventListener('drop', e => { const z = e.target.closest('#drop'); if (!z) return; e.preventDefault(); z.classList.remove('over'); uploadMany([...e.dataTransfer.files]); });
+
+  $('#snav').addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if (b) openSection(b.dataset.sec); });
+  function openSection(id){
+    CM.sec = id; renderSection(); scrollTo(0, 0);
+    try { history.replaceState(null, '', '#website/' + id); } catch (e) {}
+    const b = $(`#snav [data-sec="${id}"]`); if (b && b.scrollIntoView && matchMedia('(max-width:820px)').matches) b.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+  function setImage(p, url){ setP(CM.draft, p, url); renderSection(true); changed(); }
+
+  // ----- live preview -----
+  const fr = $('#pvFrame');
+  function loadPreview(){
+    $('#cms').classList.toggle('pv-on', CM.pv); $('#preview').hidden = !CM.pv; $('#pvToggle').setAttribute('aria-pressed', String(CM.pv));
+    if (!CM.pv) return;
+    const s = cur();
+    $('#pvTitle').textContent = s.page ? s.page.replace('index.html', 'Home page').replace('.html', ' page') : 'Preview';
+    const src = s.page ? SITE + s.page : '';
+    $('#pvNone').hidden = !!s.page; fr.hidden = !s.page;
+    if (!s.page){ $('#pvNone').textContent = s.id === 'seo' ? 'Each page’s search result is previewed next to its fields.' : 'This section has no page preview.'; return; }
+    if (fr.dataset.page !== src){ fr.dataset.page = src; fr.src = src; } else paint();
+    fit();
+  }
+  fr.addEventListener('load', () => {
+    try {
+      const d = fr.contentDocument, st = d.createElement('style');
+      st.textContent = '.rv,.line-mask>span,.page-hero .rv{opacity:1!important;transform:none!important;transition:none!important;animation:none!important}html{scroll-behavior:auto!important}';
+      d.head.appendChild(st);
+      d.addEventListener('click', ev => { const a = ev.target.closest('a[href]'); if (a){ ev.preventDefault(); } }, true);
+      d.addEventListener('submit', ev => ev.preventDefault(), true);  // the preview never sends forms
+      new d.defaultView.MutationObserver(ms => { if (!CM.draft || !CM.draft.texts) return; ms.forEach(m => m.addedNodes.forEach(n => { const el = n.nodeType === 1 ? n : n.parentElement; if (el && el.isConnected) RD.applyTexts(el, CM.draft.texts); })); })
+        .observe(d.body, { childList: true, subtree: true });
+    } catch (e) {}
+    paint();
+  });
+  function paint(){ if (!CM.pv || fr.hidden || !CM.draft) return; try { const d = fr.contentDocument; if (d && d.querySelector('.topline')) RD.apply(d, CM.draft); } catch (e) {} }
+  function fit(){
+    const box = $('#pvBox'); if (!CM.pv || !box.clientWidth) return;
+    const W = CM.dev === 'mobile' ? 390 : 1280, s = Math.min(1, box.clientWidth / W);
+    fr.style.width = W + 'px'; fr.style.height = (box.clientHeight / s) + 'px'; fr.style.transform = `scale(${s})`; fr.style.left = Math.max(0, (box.clientWidth - W * s) / 2) + 'px';
+  }
+  if (window.ResizeObserver) new ResizeObserver(fit).observe($('#pvBox'));
+  function spot(p){
+    if (!CM.pv || fr.hidden) return;
+    let d; try { d = fr.contentDocument; } catch (e) { return; }
+    if (!d) return;
+    let el = d.querySelector(`[data-cms="${p}"]`);
+    if (!el) for (const x of d.querySelectorAll('[data-cms-list]')){ const k = x.getAttribute('data-cms-list'), cp = RD.LIST_PATH[k] || (k.startsWith('page.') ? 'pages.' + k.slice(5) : k); if (p === cp || p.startsWith(cp + '.')){ el = x; break; } }
+    if (!el) el = p === 'settings.topline' ? d.querySelector('.topline') : p === 'settings.header_button' ? d.querySelector('.head') : p.startsWith('settings.') || p.startsWith('services.items') ? d.querySelector('.foot') : null;
+    if (!el) return;
+    const w = d.defaultView, r = el.getBoundingClientRect();
+    w.scrollTo(0, Math.max(0, r.top + w.scrollY - Math.max(40, (w.innerHeight - r.height) / 2)));
+    el.style.outline = '3px solid #c6a24e'; el.style.outlineOffset = '6px';
+    clearTimeout(el._wa); el._wa = setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1600);
+  }
+  function spotText(k){
+    if (!CM.pv || fr.hidden) return;
+    let d; try { d = fr.contentDocument; } catch (e) { return; }
+    if (!d || !d.body) return;
+    let el = [...d.querySelectorAll('[data-t]')].find(x => x.getAttribute('data-t') === k);
+    if (!el){ const w = d.createTreeWalker(d.body, 4); for (let n = w.nextNode(); n; n = w.nextNode()) if (RD.norm(n.nodeValue) === k){ el = n.parentElement; break; } }
+    if (!el) el = [...d.body.querySelectorAll('[aria-label],[alt],[title],[placeholder]')].find(x => ['aria-label', 'alt', 'title', 'placeholder'].some(a => RD.norm(x.getAttribute('data-t-' + a) || x.getAttribute(a) || '') === k));
+    if (!el || !el.getClientRects().length) return;
+    const w = d.defaultView, r = el.getBoundingClientRect();
+    w.scrollTo(0, Math.max(0, r.top + w.scrollY - Math.max(40, (w.innerHeight - r.height) / 2)));
+    el.style.outline = '3px solid #c6a24e'; el.style.outlineOffset = '4px';
+    clearTimeout(el._wa); el._wa = setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1600);
+  }
+  $('#pvToggle').addEventListener('click', () => { CM.pv = !CM.pv; loadPreview(); });
+  $('#pvClose').addEventListener('click', () => { CM.pv = false; loadPreview(); });
+  $$('#preview [data-dev]').forEach(b => b.addEventListener('click', () => { CM.dev = b.dataset.dev; $$('#preview [data-dev]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); fit(); }));
+
+  // ----- load, save, publish -----
+  async function loadContent(){
+    try { const r = await fetch(SITE + 'content.json', { cache: 'no-store' }); if (r.ok) CM.def = await r.json(); } catch (e) {}
+    if (!CM.def && window.WA_CONTENT_DEFAULT) CM.def = window.WA_CONTENT_DEFAULT;  // copies of the dashboard that carry the content inline
+    if (S.mode === 'live'){
+      const rows = await api('site_content?select=id,content,updated_at,updated_by');
+      const live = rows.find(r => r.id === 'live'), draft = rows.find(r => r.id === 'draft');
+      CM.liveMeta = live || null; CM.draftMeta = draft || null;
+      CM.live = live ? live.content : CM.def; CM.draft = clone(draft ? draft.content : CM.live);
+      try { const h = await api('private_settings?key=eq.deploy_hook&select=value'); CM.hook = (h[0] && h[0].value) || ''; } catch (e) {}
+    } else {
+      let d = null, l = null; try { d = JSON.parse(localStorage.getItem('wa-cms-draft') || 'null'); l = JSON.parse(localStorage.getItem('wa-cms-live') || 'null'); } catch (e) {}
+      CM.live = l || CM.def; CM.draft = clone(d || CM.live); CM.hist = CM.hist || [];
+    }
+    if (!CM.draft){ CM.err = 'The file content.json was not found next to this page, and nothing has been saved yet.'; return; }
+    if (CM.def){ CM.draft = merge(CM.def, CM.draft); CM.live = merge(CM.def, CM.live); }
+    CM.saved = JSON.stringify(CM.draft);
+  }
+  const me = () => ((S.session && S.session.email) || '').toLowerCase();
+  function sampleHist(kind){ CM.hist = [{ id: Date.now(), created_at: new Date().toISOString(), kind, saved_by: 'you (preview)', content: clone(CM.draft) }, ...(CM.hist || [])].slice(0, 80); }
+  async function saveDraft(){
+    if (S.mode === 'sample'){
+      try { localStorage.setItem('wa-cms-draft', JSON.stringify(CM.draft)); } catch (e) {}
+      CM.draftMeta = { updated_at: new Date().toISOString(), updated_by: 'you' }; CM.saved = JSON.stringify(CM.draft); sampleHist('draft'); return true;
+    }
+    const now = await api('site_content?id=eq.draft&select=updated_at,updated_by');
+    if (now[0] && CM.draftMeta && now[0].updated_at !== CM.draftMeta.updated_at && now[0].updated_by !== me()){
+      const ok = await modal({ title: 'Someone else saved a newer draft', body: `<p class="help"><b>${esc(now[0].updated_by)}</b> saved the draft ${when(now[0].updated_at)}. Saving now replaces their version with yours. Their version stays in History and backups.</p>`, ok: 'Save mine anyway' });
+      if (!ok) return false;
+    }
+    const out = await api('site_content?on_conflict=id', { method: 'POST', body: { id: 'draft', content: CM.draft }, prefer: 'resolution=merge-duplicates,return=representation' });
+    CM.draftMeta = out[0]; CM.saved = JSON.stringify(CM.draft); CM.hist = null; return true;
+  }
+  async function saveDraftUI(){
+    if (!CM.draft) return;
+    const btns = [$('#saveDraft'), ...$$('[data-act="save"]')]; btns.forEach(b => b.disabled = true);
+    try { if (await saveDraft()) toast(S.mode === 'sample' ? 'Draft saved in this browser (preview only)' : 'Draft saved'); }
+    catch (err){ handle(err); toast(err.message); }
+    finally { btns.forEach(b => b.disabled = false); syncBars(); if (CM.sec === 'history') renderSection(true); }
+  }
+  async function publishUI(){
+    if (!CM.draft) return;
+    const pend = diff(CM.draft, CM.live || {});
+    if (!pend.length){ if (isDirty()) await saveDraftUI(); toast('Nothing new to publish: the website already shows this version.'); return; }
+    const by = {}; pend.forEach(p => { const s = secFor(p); by[s] = (by[s] || 0) + 1; });
+    const how = S.mode === 'sample' ? 'This is a preview, so nothing is sent anywhere.' : CM.hook ? 'Visitors see the changes as soon as you publish, and the website rebuilds for search engines in about a minute.'
+      : 'Visitors see the changes as soon as you publish. Search engines see them after the next rebuild; add a deploy hook in Settings to rebuild automatically.';
+    const ok = await modal({ title: 'Publish these changes?', ok: 'Publish', body: `<ul class="changes">${Object.entries(by).map(([k, n]) => `<li><b>${esc(k)}</b>: ${n} ${n === 1 ? 'change' : 'changes'}</li>`).join('')}</ul><p class="help">${how} Every published version is kept, so you can go back.</p>` });
+    if (!ok) return;
+    $('#publishBtn').disabled = true;
+    try {
+      if (isDirty() && !(await saveDraft())) return;
+      if (S.mode === 'live'){
+        const out = await api('site_content?on_conflict=id', { method: 'POST', body: { id: 'live', content: CM.draft }, prefer: 'resolution=merge-duplicates,return=representation' });
+        CM.liveMeta = out[0]; CM.hist = null;
+      } else { CM.liveMeta = { updated_at: new Date().toISOString(), updated_by: 'you' }; sampleHist('live'); try { localStorage.setItem('wa-cms-live', JSON.stringify(CM.draft)); } catch (e) {} }
+      CM.live = clone(CM.draft);
+      let msg = S.mode === 'sample' ? 'Published in this preview only' : 'Published. Visitors see it now; reload the website to check.';
+      if (S.mode === 'live' && CM.hook){
+        try { await fetch(CM.hook, { method: 'POST', mode: 'no-cors' }); msg = 'Published. Visitors see it now, and the website is rebuilding for search engines.'; }
+        catch (e){ msg = 'Published, but the rebuild did not start. Check the deploy hook in Settings.'; }
+      }
+      toast(msg);
+    } catch (err){ handle(err); toast(err.message); }
+    finally { syncBars(); if (CM.sec === 'history') renderSection(true); }
+  }
+  $('#saveDraft').addEventListener('click', saveDraftUI);
+  $('#publishBtn').addEventListener('click', publishUI);
+  document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && S.view === 'website'){ e.preventDefault(); saveDraftUI(); } });
+  addEventListener('beforeunload', e => { if (isDirty()){ e.preventDefault(); e.returnValue = ''; } });
+
+  // ----- images -----
+  const IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+  const publicUrl = name => C.url + '/storage/v1/object/public/media/' + encodeURIComponent(name);
+  async function storage(path, opts = {}){
+    await fresh();
+    const r = await fetch(C.url + '/storage/v1/' + path, { method: opts.method || 'GET', headers: Object.assign({ apikey: C.key, Authorization: 'Bearer ' + S.session.access_token }, opts.headers || {}), body: opts.body });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.message || j.error || 'The image library refused the request (' + r.status + ').');
+    return j;
+  }
+  async function loadMedia(){
+    if (S.mode === 'sample'){ CM.media = CM.media || []; return; }
+    const list = await storage('object/list/media', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prefix: '', limit: 500, offset: 0, sortBy: { column: 'created_at', order: 'desc' } }) });
+    CM.media = list.filter(o => o.id).map(o => ({ name: o.name, url: publicUrl(o.name), size: (o.metadata || {}).size || 0, at: o.created_at }));
+  }
+  async function prepare(file){
+    if (!IMG_TYPES.includes(file.type)) throw new Error('Use a JPG, PNG, WebP, AVIF or GIF image.');
+    let blob = file, ext = (file.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+    if (file.type !== 'image/gif' && window.createImageBitmap){
+      try {  // keep pages fast: at most 2000 px wide, saved as WebP when that is smaller
+        const bmp = await createImageBitmap(file), k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+        if (k < 1 || file.size > 500 * 1024){
+          const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+          cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+          const b = await new Promise(res => cv.toBlob(res, 'image/webp', .84));
+          if (b && b.type === 'image/webp' && b.size < file.size){ blob = b; ext = 'webp'; }
+        }
+      } catch (e) {}
+    }
+    if (blob.size > 5 * 1048576) throw new Error('That image is over 5 MB even after resizing. Try a smaller one.');
+    const base = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'image';
+    return { blob, name: `${base}-${Date.now().toString(36)}.${ext}` };
+  }
+  async function uploadImage(file){
+    const { blob, name } = await prepare(file);
+    if (S.mode === 'sample'){ const url = URL.createObjectURL(blob); CM.media = [{ name, url, size: blob.size, at: new Date().toISOString() }, ...(CM.media || [])]; return url; }
+    await storage('object/media/' + encodeURIComponent(name), { method: 'POST', headers: { 'Content-Type': blob.type, 'cache-control': '31536000', 'x-upsert': 'false' }, body: blob });
+    CM.media = null; return publicUrl(name);
+  }
+  async function uploadMany(files){
+    let n = 0;
+    for (const f of files){ try { toast(`Uploading ${f.name}…`); await uploadImage(f); n++; } catch (err){ handle(err); toast(`${f.name}: ${err.message}`); await new Promise(r => setTimeout(r, 1500)); } }
+    if (n){ try { await loadMedia(); } catch (e) {} toast(`${n} ${n === 1 ? 'image' : 'images'} added`); }
+    if (CM.sec === 'media') renderSection(true);
+  }
+  function chooseFiles(multi, cb){
+    const i = document.createElement('input'); i.type = 'file'; i.accept = IMG_TYPES.join(','); i.multiple = multi;
+    i.addEventListener('change', () => { if (i.files.length) cb([...i.files]); }); i.click();
+  }
+  function renderMedia(){
+    if (CM.media === null){ loadMedia().then(() => { if (CM.sec === 'media') renderSection(true); }, err => { handle(err); CM.media = []; toast(err.message); }); return '<section class="group"><p class="help">Loading images…</p></section>'; }
+    const used = JSON.stringify(CM.draft) + JSON.stringify(CM.live || {});
+    return `<section class="group"><h2>Images</h2><p class="hint">Screenshots for projects and photos of people. Big images are resized and turned into WebP so pages stay fast.${S.mode === 'sample' ? ' In this preview, uploads stay in this browser tab.' : ''}</p>
+      <div class="drop" id="drop"><b>Drop images here</b><span>JPG, PNG, WebP, AVIF or GIF, up to 5 MB</span><button type="button" class="btn ghost" data-act="mupload">Choose files</button></div>
+      ${CM.media.length ? `<div class="mediagrid">${CM.media.map(m => `<div class="mcard"><div class="im"><img src="${esc(m.url)}" alt="" loading="lazy"></div><div class="meta"><span title="${esc(m.name)}">${esc(m.name)}</span>
+        <span>${kb(m.size)}${used.includes(m.url) ? ' · in use' : ''}</span><div class="inline"><button type="button" class="mini" data-act="mcopy" data-url="${esc(m.url)}">Copy link</button><button type="button" class="mini" data-act="mdel" data-name="${esc(m.name)}" data-url="${esc(m.url)}">Delete</button></div></div></div>`).join('')}</div>` : '<p class="help">No images yet.</p>'}</section>`;
+  }
+  async function deleteImage(b){
+    const inUse = (JSON.stringify(CM.draft) + JSON.stringify(CM.live || {})).includes(b.dataset.url);
+    if (!arm(b, inUse ? 'In use. Delete?' : 'Delete?')) return;
+    try {
+      if (S.mode === 'live') await storage('object/media', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prefixes: [b.dataset.name] }) });
+      CM.media = CM.media.filter(m => m.name !== b.dataset.name); renderSection(true); toast('Image deleted');
+    } catch (err){ handle(err); toast(err.message); }
+  }
+  async function picker(){
+    if (CM.media === null){ try { await loadMedia(); } catch (err){ handle(err); toast(err.message); return false; } }
+    const grid = () => CM.media.length ? `<div class="mediagrid">${CM.media.map(m => `<div class="mcard"><button type="button" class="pick" data-url="${esc(m.url)}" aria-label="Use ${esc(m.name)}"><div class="im"><img src="${esc(m.url)}" alt="" loading="lazy"></div></button><div class="meta"><span>${esc(m.name)}</span></div></div>`).join('')}</div>`
+      : '<p class="help">No images yet. Upload one below.</p>';
+    return modal({ title: 'Choose an image', wide: true, cancel: 'Close', body: `<div data-grid>${grid()}</div><div><button type="button" class="btn ghost" data-up>Upload a new image</button></div>`,
+      onOpen: (box, done) => {
+        box.addEventListener('click', e => {
+          const p = e.target.closest('.pick'); if (p) return done(p.dataset.url);
+          if (e.target.closest('[data-up]')) chooseFiles(false, async files => { try { toast('Uploading…'); done(await uploadImage(files[0])); toast('Image added'); } catch (err){ handle(err); toast(err.message); } });
+        });
+      } });
+  }
+
+  // ----- history and backups -----
+  async function loadHistory(){ if (S.mode === 'sample'){ CM.hist = CM.hist || []; return; } CM.hist = await api('content_history?select=id,created_at,kind,saved_by&order=id.desc&limit=80'); }
+  function renderHistory(){
+    if (CM.hist === null){ loadHistory().then(() => { if (CM.sec === 'history') renderSection(true); }, err => { handle(err); CM.hist = []; toast(err.message); }); return '<section class="group"><p class="help">Loading versions…</p></section>'; }
+    return `<section class="group"><h2>Versions</h2><p class="hint">Every saved draft and every publish is kept (the latest 80). Loading one puts it in the editor; the website changes only when you publish.</p>
+      <div class="hist">${CM.hist.map(h => `<div><span><b>${h.kind === 'live' ? 'Published' : 'Draft saved'}</b> <span class="muted">by ${esc(h.saved_by || 'unknown')}</span></span>
+        <span class="actions"><button type="button" class="mini" data-act="hload" data-id="${h.id}">Load into editor</button><button type="button" class="mini" data-act="hdown" data-id="${h.id}">Download</button></span>
+        <span class="when">${full(h.created_at)}</span></div>`).join('') || '<p class="help">No versions yet. They appear after the first save.</p>'}</div></section>
+      <section class="group"><h2>Backups</h2><p class="hint">Download the whole website’s content as one file, or load a file you downloaded before. Loading a file changes the draft only.</p>
+        <div class="inline"><button type="button" class="btn ghost" data-act="export">Download the draft</button><button type="button" class="btn ghost" data-act="import">Load a file…</button></div></section>
+      <section class="group"><h2>Start again</h2><p class="hint">Throw away every draft change and go back to what the website shows now.</p><div><button type="button" class="btn danger" data-act="tolive">Reset the draft to the published version</button></div></section>`;
+  }
+  async function versionContent(id){
+    if (S.mode === 'sample') return (CM.hist.find(h => h.id === id) || {}).content;
+    const r = await api('content_history?id=eq.' + id + '&select=content'); return r[0] && r[0].content;
+  }
+  async function loadVersion(id){
+    try { const c = await versionContent(id); if (!c) return; CM.draft = merge(CM.def || {}, c); CM.open.clear(); changed(); syncBars(); toast('Loaded into the editor. Save the draft to keep it, or publish it.'); }
+    catch (err){ handle(err); toast(err.message); }
+  }
+  async function downloadVersion(id){ try { const c = await versionContent(id); if (c) download(c, 'weberact-content-' + id + '.json'); } catch (err){ handle(err); toast(err.message); } }
+  function download(obj, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 1)], { type: 'application/json' })); a.download = name; a.click(); }
+  function importFile(){
+    const i = document.createElement('input'); i.type = 'file'; i.accept = '.json,application/json';
+    i.addEventListener('change', async () => {
+      try {
+        const c = JSON.parse(await i.files[0].text());
+        if (!c || typeof c !== 'object' || !c.home || !c.settings) throw new Error('That file is not a WeberAct content file.');
+        CM.draft = merge(CM.def || CM.draft, c); CM.open.clear(); changed(); syncBars(); toast('File loaded into the draft. Check it, then save or publish.');
+      } catch (err){ toast(err.message.startsWith('That') ? err.message : 'That file could not be read.'); }
+    });
+    i.click();
+  }
+
+  // ----- small helpers -----
+  function modal({ title, body, ok, cancel = 'Cancel', wide, onOpen }){
+    return new Promise(res => {
+      const bg = document.createElement('div'), prev = document.activeElement; bg.className = 'modal-bg';
+      bg.innerHTML = `<div class="modal${wide ? ' wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="mTitle"><header><h3 id="mTitle">${esc(title)}</h3></header><div class="mbody">${body}</div>` +
+        `<footer><button type="button" class="btn ghost" data-m="0">${esc(cancel)}</button>${ok ? `<button type="button" class="btn" data-m="1">${esc(ok)}</button>` : ''}</footer></div>`;
+      let closed = false;
+      const done = v => { if (closed) return; closed = true; bg.remove(); document.removeEventListener('keydown', key, true); try { prev && prev.focus(); } catch (e) {} res(v); };
+      const key = e => { if (e.key === 'Escape'){ e.stopPropagation(); done(false); } };
+      bg.addEventListener('click', e => { if (e.target === bg) return done(false); const b = e.target.closest('[data-m]'); if (b) done(b.dataset.m === '1'); });
+      document.addEventListener('keydown', key, true); document.body.appendChild(bg);
+      if (onOpen) onOpen(bg.querySelector('.mbody'), done);
+      (bg.querySelector('[data-m="1"]') || bg.querySelector('[data-m="0"]')).focus();
+    });
+  }
+  function toast(msg){
+    let t = $('#toast'); if (!t){ t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+    t.textContent = msg; t.hidden = false; clearTimeout(t._t); t._t = setTimeout(() => { t.hidden = true; }, 4200);
+  }
+  function copyText(v, b){ const old = b.textContent; try { navigator.clipboard.writeText(v).then(() => { b.textContent = 'Copied'; setTimeout(() => b.textContent = old, 1400); }, () => toast(v)); } catch (e){ toast(v); } }
+
+  // ---------- settings ----------
+  function renderAccount(){
+    $('#meEmail').textContent = S.mode === 'sample' ? 'Preview mode: these controls show how it works.' : 'Signed in as ' + (S.session.email || '');
+    $('#hookUrl').value = CM.hook || '';
+  }
+  $('#pwForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const a = $('#pw1').value, b = $('#pw2').value, msg = $('#pwMsg'); msg.style.color = '#b42318';
+    if (a.length < 8) return void (msg.textContent = 'Use at least 8 characters.');
+    if (a !== b) return void (msg.textContent = 'The two passwords are different.');
+    if (S.mode === 'sample'){ msg.style.color = ''; msg.textContent = 'In preview mode nothing is changed.'; return; }
+    try { await fresh(); await auth('user', { password: a }, S.session.access_token); $('#pw1').value = $('#pw2').value = ''; msg.style.color = 'var(--won)'; msg.textContent = 'Password changed.'; }
+    catch (err){ handle(err, msg); }
+  });
+  $('#hookForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = $('#hookUrl').value.trim(), msg = $('#hookMsg'); msg.style.color = '#b42318';
+    if (v && !/^https:\/\/[^\s]+$/.test(v)) return void (msg.textContent = 'A deploy hook starts with https://');
+    try {
+      if (S.mode === 'live') await api('private_settings?on_conflict=key', { method: 'POST', body: { key: 'deploy_hook', value: v }, prefer: 'resolution=merge-duplicates,return=minimal' });
+      CM.hook = v; msg.style.color = 'var(--won)'; msg.textContent = v ? 'Saved. Publish now rebuilds the website automatically.' : 'Removed. Publish now only saves the live copy.';
+    } catch (err){ handle(err, msg); }
+  });
+
+  // ---------- sign-in ----------
+  let authMode = 'signin';
+  function setAuth(mode, message, kind){
+    authMode = mode;
+    const t = { signin: ['Sign in', 'The WeberAct dashboard: enquiries and the website, in one place.', 'Sign in'],
+      forgot: ['Reset your password', 'We email you a link to set a new password.', 'Send reset link'], reset: ['Set a new password', 'Choose a password of at least 8 characters.', 'Save password'] }[mode];
+    $('#authTitle').textContent = t[0]; $('#authSub').textContent = t[1]; $('#authBtn').textContent = t[2];
+    $('#pwField').hidden = mode === 'forgot'; $('#aEmail').closest('.field').hidden = mode === 'reset';
+    $('#aPass').autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
+    $('#toForgot').hidden = mode !== 'signin'; $('#toSignin').hidden = mode !== 'forgot';
+    const m = $('#authMsg'); m.hidden = !message; m.textContent = message || ''; m.className = 'msg ' + (kind || '');
+  }
+  $('#toForgot').addEventListener('click', () => setAuth('forgot'));
+  $('#toSignin').addEventListener('click', () => setAuth('signin'));
+  $('#authForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#aEmail').value.trim().toLowerCase(), pw = $('#aPass').value, btn = $('#authBtn');
+    if (authMode !== 'reset' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setAuth(authMode, 'Enter the email address you use for the dashboard.', 'err');
+    if (authMode !== 'forgot' && pw.length < 8) return setAuth(authMode, 'Passwords are at least 8 characters.', 'err');
+    btn.disabled = true;
+    try {
+      if (authMode === 'signin'){ saveSession(asSession(await auth('token?grant_type=password', { email, password: pw }))); await start(); }
+      else if (authMode === 'forgot'){ await auth('recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { email }); setAuth('signin', 'If that email has an account, a reset link is on its way.', 'ok'); }
+      else { await auth('user', { password: pw }, S.session.access_token); setAuth('signin', 'Password saved.', 'ok'); await start(); }
+    } catch (err){ setAuth(authMode, err.message === 'Invalid login credentials' ? 'That email and password do not match.' : err.message, 'err'); }
+    finally { btn.disabled = false; }
+  });
+  async function signOut(){ try { if (S.session) await auth('logout', {}, S.session.access_token); } catch (e) {} saveSession(null); S.rows = []; S.priv = []; show('auth'); setAuth('signin'); }
+  $('#signout').addEventListener('click', signOut); $('#naOut').addEventListener('click', signOut);
+
+  function handle(err, el){
+    if (err.message === 'signed-out'){ show('auth'); setAuth('signin', 'Your session ended. Please sign in again.', 'err'); return; }
+    if (el){ el.textContent = err.message; el.style.color = '#b42318'; } else { $('#updated').textContent = err.message; }
+  }
+
+  // ---------- start ----------
+  async function start(){
+    if (S.mode === 'live'){
+      const admins = await api('admins?select=email&limit=1');
+      if (!admins.length){ $('#naEmail').textContent = S.session.email || 'this account'; show('noaccess'); return; }
+    }
+    await load();
+    if (!CM.draft){ try { await loadContent(); } catch (err){ if (err.message === 'signed-out') throw err; CM.err = err.message; } }
+    const [want, sec] = (location.hash || '').slice(1).split('/');
+    if (sec && SECTIONS.some(s => s.id === sec)) CM.sec = sec;
+    show(APP_VIEWS.includes(want) ? want : 'overview'); render(); syncBars();
+  }
+  async function refresh(){ if (S.mode === 'sample' || S.dirty || !$('#drawer').hidden) return; try { await load(); render(); } catch (err){ handle(err); } }
+  $('#refresh').addEventListener('click', async () => { if (S.mode === 'sample') { render(); return; } try { await load(); render(); } catch (err){ handle(err); } });
+  setInterval(() => { if (document.visibilityState === 'visible' && S.session) refresh(); }, 60000);
+
+  (async function boot(){
+    if (S.mode === 'sample'){ $('#banner').hidden = false; await start(); return; }
+    // links from Supabase emails (confirm address, reset password) arrive with tokens in the address
+    const h = new URLSearchParams(location.hash.slice(1));
+    if (h.get('access_token')){
+      saveSession(asSession({ access_token: h.get('access_token'), refresh_token: h.get('refresh_token'), expires_in: +h.get('expires_in') || 3600 }));
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      if (h.get('type') === 'recovery'){ show('auth'); setAuth('reset'); return; }
+    } else S.session = loadSession();
+    if (!S.session){ show('auth'); setAuth('signin'); return; }
+    try { await start(); } catch (err){ show('auth'); setAuth('signin', err.message === 'signed-out' ? '' : err.message, err.message === 'signed-out' ? '' : 'err'); }
+  })();
+})();
+</script>
+</body>
+</html>
